@@ -345,7 +345,7 @@ if gum confirm --affirmative="Si" --negative="No" "Instalar dotfiles? (Obligator
   # Configuración de Matugen
   if rm -rf "$HOME/.config/matugen" && \
      cp -r "$HOME/.dotfiles/.config/matugen" "$HOME/.config/matugen" && \
-     wallpaper "$HOME/.config/gallaecia-dots/wallpaper.jpg" Oscuro 0
+     "$HOME/.config/gallaecia-dots/scripts/wallpaper.sh" "$HOME/.config/gallaecia-dots/wallpaper.jpg" Oscuro 0
   then  
     echo && gum style --foreground="#2baf03" --bold "Matugen configurado conxito!" && echo
   else
