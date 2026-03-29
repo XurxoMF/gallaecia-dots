@@ -1,0 +1,257 @@
+@import "./colors.css";
+
+* {
+  font-family: "CommitMono Nerd Font";
+  font-size: 14px;
+  font-weight: bold;
+}
+
+/* TOOLTIP */
+
+tooltip {
+  background: @surface;
+  border: 1px solid @outline_variant;
+  border-radius: 15px;
+}
+
+tooltip label {
+  color: @on_surface;
+  margin: 5px;
+}
+
+/* WAYBAR */
+
+#waybar {
+  all: unset;
+}
+
+#waybar > box {
+  margin: 10px 10px 10px 10px;
+}
+
+/* MODULES LEFT */
+
+.modules-left {
+  box-shadow: 0px 0px 5px 0px @shadow;
+  background-color: @surface;
+  color: @on_surface;
+  border: 1px solid @outline_variant;
+  padding: 5px 10px;
+  border-radius: 15px;
+}
+
+/* CLOCK */
+
+#clock {
+  padding: 3px 5px 3px 5px;
+  margin-right: 5px;
+}
+
+/* CPU */
+
+#cpu {
+  padding: 3px 11px 3px 5px;
+  margin-right: 5px;
+}
+
+/* TEMPERATURE */
+
+#temperature {
+  padding: 3px 5px 3px 5px;
+  margin-right: 5px;
+}
+
+/* MEMORY */
+
+#memory {
+  padding: 3px 12px 3px 5px;
+  margin-right: 5px;
+}
+
+/* TRAY */
+
+#tray {
+  padding: 3px 5px 3px 5px;
+}
+
+#tray menu {
+  background-color: @surface;
+  border: 1px solid @outline_variant;
+  border-radius: 5px;
+  padding: 0px;
+}
+
+#tray menu menuitem {
+  color: @on_surface;
+}
+
+#tray menu menuitem:first-child {
+  border-radius: 5px 5px 0px 0px;
+}
+
+#tray menu menuitem:last-child {
+  border-radius: 0px 0px 5px 5px;
+}
+
+#tray menu menuitem:hover {
+  background-color: @primary_container;
+  color: @on_primary_container;
+}
+
+#tray menu menuitem:disabled {
+  opacity: 0.5;
+}
+
+#tray menu separator {
+  border-top: 1px solid @outline;
+}
+
+/* MODULES CENTER */
+
+.modules-center {
+  box-shadow: 0px 0px 5px 0px @shadow;
+  background-color: @surface;
+  color: @on_surface;
+  border: 1px solid @outline_variant;
+  padding: 5px 8px;
+  border-radius: 15px;
+}
+
+/* WORKSPACES */
+
+#workspaces {
+  all: unset;
+  padding: 2px 0px;
+}
+
+#workspaces button {
+  all: unset;
+  padding: 0px 10px;
+  border-radius: 8px;
+  transition: all 0.15s linear;
+}
+
+#workspaces button:not(:last-child) {
+  margin-right: 5px;
+}
+
+#workspaces button:not(.empty) {
+  background-color: @primary_container;
+  color: @on_primary_container;
+}
+
+#workspaces button.active {
+  background-color: @primary;
+  color: @on_primary;
+  padding: 0px 20px;
+}
+
+#workspaces button.empty.active {
+  background-color: @primary;
+  color: @on_primary;
+}
+
+/* MODULES RIGHT */
+
+.modules-right {
+  box-shadow: 0px 0px 5px 0px @shadow;
+  background-color: @surface;
+  color: @on_surface;
+  border: 1px solid @outline_variant;
+  padding: 5px 10px;
+  border-radius: 15px;
+}
+
+/* CUSTOM / SYSTEMUPDATE */
+
+#custom-systemupdate {
+  padding: 3px 10px 3px 5px;
+  margin-right: 5px;
+}
+
+/* IDDLE INHIBITOR */
+
+#idle_inhibitor {
+  padding: 3px 10px 3px 7px;
+  margin-right: 5px;
+}
+
+#idle_inhibitor.deactivated {
+  padding: 3px 11px 3px 6px;
+}
+
+/* POWER PROFILES DAEMON */
+
+#power-profiles-daemon {
+  padding: 3px 10px 3px 5px;
+  margin-right: 5px;
+}
+
+/* PULSEAUDIO OUTPUT */
+
+#pulseaudio.output {
+  padding: 3px 8px 3px 5px;
+  margin-right: 5px;
+}
+
+/* PULSEAUDIO INPUT */
+
+#pulseaudio.input {
+  padding: 3px 5px 3px 5px;
+  margin-right: 5px;
+}
+
+#pulseaudio.input.source-muted {
+  padding: 3px 12px 3px 5px;
+}
+
+/* BACKLIGHT */
+
+#backlight {
+  padding: 3px 5px 3px 5px;
+  margin-right: 5px;
+}
+
+/* BLUETOOTH */
+
+#bluetooth {
+  padding: 3px 7px 3px 7px;
+  margin-right: 5px;
+}
+
+#bluetooth.connected {
+  padding: 3px 8px 3px 6px;
+}
+
+/* NETWORK */
+
+#network {
+  padding: 3px 12px 3px 5px;
+  margin-right: 5px;
+}
+
+/* BATTERY */
+
+#battery {
+  padding: 3px 10px 3px 5px;
+  margin-right: 5px;
+}
+
+#battery.warning:not(.charging) {
+  color: @yellow_value;
+}
+
+#battery.critical:not(.charging) {
+  color: @red_value;
+  animation-name: blink;
+  animation-duration: 0.1s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+}
+
+/* CUSTOM / CTLPANEL */
+
+#custom-ctlpanel {
+  padding: 3px 9px 3px 5px;
+}

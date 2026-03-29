@@ -1,0 +1,192 @@
+{
+    "layer": "top",
+    "position": "top",
+    "reload_style_on_change": true,
+    "spacing": 0,
+    "modules-left": [
+        "clock",
+        "cpu",
+        "temperature",
+        "memory",
+        "tray"
+    ],
+    "modules-center": [
+        "hyprland/workspaces"
+    ],
+    "modules-right": [
+        "custom/systemupdate",
+        "idle_inhibitor",
+        "power-profiles-daemon",
+        "pulseaudio#output",
+        "pulseaudio#input",
+        "backlight",
+        "bluetooth",
+        "network",
+        "battery",
+        "custom/ctlpanel"
+    ],
+    // Modules left configuration
+    "clock": {
+        "format": "{:%H:%M:%S}",
+        "tooltip": false,
+        "interval": 1
+    },
+    "cpu": {
+        "format": "{usage}% ",
+        "tooltip": false,
+        "interval": 1
+    },
+    "temperature": {
+        // "thermal-zone": 2,
+        "hwmon-path": "/sys/class/hwmon/hwmon2/temp1_input",
+        "critical-threshold": 80,
+        "format": "{temperatureC}°C ",
+        "tooltip": false,
+        "interval": 1
+    },
+    "memory": {
+        "format": "{}% ",
+        "tooltip": false,
+        "interval": 1
+    },
+    "tray": {
+        "icon-size": 16,
+        "spacing": 10
+    },
+    // Modules center configuration
+    "hyprland/workspaces": {
+        "all-outputs": true,
+        "format": "{name}",
+        "persistent-workspaces": {
+            "*": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9
+            ]
+        }
+    },
+    // Modules right configuration
+    "custom/systemupdate": {
+        "format": "",
+        "on-click": "kitty --class system-update -e $HOME/.config/gallaecia-dots/scripts/system-update.sh",
+        "tooltip": false
+    },
+    "idle_inhibitor": {
+        "format": "{icon}",
+        "format-icons": {
+            "activated": "",
+            "deactivated": ""
+        },
+        "tooltip": false,
+        "start-activated": true
+    },
+    "power-profiles-daemon": {
+        "format": "{icon}",
+        "tooltip-format": "Perfil: {profile}\nDriver: {driver}",
+        "format-icons": {
+            "default": "",
+            "performance": "",
+            "balanced": "",
+            "power-saver": ""
+        }
+    },
+    "pulseaudio#output": {
+        "format": "{volume}% {icon}",
+        "format-bluetooth": "{volume}% {icon} 󰂯",
+        "format-bluetooth-muted": "  {icon} 󰂯",
+        "format-muted": "",
+        "format-icons": {
+            "headphone": "",
+            "hands-free": "",
+            "headset": "",
+            "phone": "",
+            "portable": "",
+            "car": "",
+            "default": [
+                ""
+            ]
+        },
+        "on-scroll-up": "wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+",
+        "on-scroll-down": "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-",
+        "on-click-right": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle",
+        "on-click": "pavucontrol",
+        "tooltip": false
+    },
+    "pulseaudio#input": {
+        "format": "{format_source}",
+        "format-source": "{volume}% ",
+        "format-source-muted": "",
+        "on-scroll-up": "wpctl set-volume -l 1 @DEFAULT_AUDIO_SOURCE@ 5%+",
+        "on-scroll-down": "wpctl set-volume @DEFAULT_AUDIO_SOURCE@ 5%-",
+        "on-click-right": "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle",
+        "on-click": "pavucontrol",
+        "tooltip": false
+    },
+    "backlight": {
+        "format": "{percent}% {icon}",
+        "format-icons": [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+        ],
+        "tooltip": false
+    },
+    "bluetooth": {
+        "format-on": "󰂯",
+        "format-off": "󰂲",
+        "format-disabled": "󰂲",
+        "format-connected": "󰂱",
+        "format-connected-battery": "{device_battery_percentage}% 󰂱",
+        "tooltip-format": "{controller_alias}\t{controller_address}\n\n{num_connections} conectados",
+        "tooltip-format-connected": "{controller_alias}\t{controller_address}\n\n{num_connections} conectados\n\n{device_enumerate}",
+        "tooltip-format-enumerate-connected": "{device_alias}\n{device_address}",
+        "tooltip-format-enumerate-connected-battery": "{device_alias}\n{device_address}\n{device_battery_percentage}%",
+        "on-click": "blueman-manager"
+    },
+    "network": {
+        "format-wifi": "",
+        "format-ethernet": "",
+        "format-disconnected": "",
+        "tooltip-format-disconnected": "Desconectado",
+        "tooltip-format-wifi": "{essid} ({signalStrength}%) ",
+        "tooltip-format-ethernet": "{ifname} ",
+        "on-click": "kitty -e nmtui"
+    },
+    "battery": {
+        "interval": 30,
+        "states": {
+            "good": 95,
+            "warning": 30,
+            "critical": 20
+        },
+        "format": "{capacity}% {icon}",
+        "format-charging": "{capacity}% {icon} ",
+        "format-plugged": "{capacity}% {icon} ",
+        "format-icons": [
+            "",
+            "",
+            "",
+            "",
+            ""
+        ],
+        "tooltip": false
+    },
+    "custom/ctlpanel": {
+        "format": "󰣇",
+        "on-click": "swaync-client -t -sw",
+        "escape": true,
+        "tooltip": false
+    }
+}

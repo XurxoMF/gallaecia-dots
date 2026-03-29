@@ -1,0 +1,73 @@
+[config]
+
+[config.wallpaper]
+set = true
+command = "awww img --transition-type wipe --transition-angle 30 --transition-step 180 --transition-duration 2 {{ image }}"
+
+[templates.btop]
+input_path = '~/.config/matugen/templates/btop-theme.theme'
+output_path = '~/.config/btop/themes/matugen.theme'
+
+[templates.gtk3]
+input_path = '~/.config/matugen/templates/gtk-theme.css'
+output_path = '~/.config/gtk-3.0/gtk.css'
+
+[templates.gtk4]
+input_path = '~/.config/matugen/templates/gtk-theme.css'
+output_path = '~/.config/gtk-4.0/gtk.css'
+
+[templates.gum]
+input_path = '~/.config/matugen/templates/gum-theme.conf'
+output_path = '~/.config/hypr/gum-theme.conf'
+
+[templates.hyprland]
+input_path = '~/.config/matugen/templates/hyprland-colors.conf'
+output_path = '~/.config/hypr/colors.conf'
+
+[templates.kitty]
+input_path = '~/.config/matugen/templates/kitty-colors.conf'
+output_path = '~/.config/kitty/colors.conf'
+
+[templates.nvim]
+input_path = '~/.config/matugen/templates/nvim-colors.vim'
+output_path = '~/.config/nvim/colors/matugen.vim'
+
+[templates.qt5ct]
+input_path = '~/.config/matugen/templates/qtct-colors.conf'
+output_path = '~/.config/qt5ct/colors/matugen.conf'
+
+[templates.qt6ct]
+input_path = '~/.config/matugen/templates/qtct-colors.conf'
+output_path = '~/.config/qt6ct/colors/matugen.conf'
+
+[templates.waybar]
+input_path = '~/.config/matugen/templates/colors.css'
+output_path = '~/.config/waybar/colors.css'
+
+[templates.walker]
+input_path = '~/.config/matugen/templates/colors.css'
+output_path = '~/.config/walker/themes/matugen/colors.css'
+
+[templates.yazi]
+input_path = '~/.config/matugen/templates/yazi-theme.toml'
+output_path = '~/.config/yazi/theme.toml'
+
+[templates.swaync]
+input_path = "~/.config/matugen/templates/colors.css"
+output_path = "~/.config/swaync/colors.css"
+
+[config.custom_colors]
+black  = "#050505"
+white  = "#f5f5f5"
+red    = "#e53935" 
+orange = "#fb8c00"
+yellow = "#f9a825"
+green  = "#43a047"
+teal   = "#00897b"
+cyan   = "#00acc1"
+blue   = "#1e88e5"
+indigo = "#3949ab"
+purple = "#8e24aa"
+pink   = "#d81b60"
+brown  = "#6d4c41"
+grey   = "#757575"

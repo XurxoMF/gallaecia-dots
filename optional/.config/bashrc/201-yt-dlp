@@ -1,0 +1,11 @@
+# shellcheck shell=bash
+
+# Descarga un vídeo de YouTube usando ty-dlp
+ytdlp-video() {
+    yt-dlp --config-location "$HOME/.configs/yt-dlp/youtube-com.conf" "$@"
+}
+
+# Descarga unha canción de YouTube ou YouTube Music usando yt-dlp
+ytdlp-musica() {
+    yt-dlp --config-location "$HOME/.configs/yt-dlp/music-youtube-com.conf" "$@"
+}

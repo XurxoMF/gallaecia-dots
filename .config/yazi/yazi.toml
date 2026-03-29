@@ -1,0 +1,255 @@
+"$schema" = "https://yazi-rs.github.io/schemas/yazi.json"
+
+[mgr]
+ratio          = [ 2, 3, 3 ]
+sort_by        = "natural"
+sort_sensitive = false
+sort_reverse 	 = false
+sort_dir_first = true
+sort_translit  = false
+linemode       = "none"
+show_hidden    = false
+show_symlink   = true
+scrolloff      = 5
+mouse_events   = [ "click", "scroll" ]
+title_format   = "Yazi: {cwd}"
+
+[preview]
+wrap            = "no"
+tab_size        = 2
+max_width       = 600
+max_height      = 900
+cache_dir       = ""
+image_delay     = 30
+image_filter    = "triangle"
+image_quality   = 75
+ueberzug_scale  = 1
+ueberzug_offset = [ 0, 0, 0, 0 ]
+
+[opener]
+edit = [
+	{ run = "xdg-open %s",                                            desc = "Editar",                                    for = "linux",  block = false,  orphan = true },
+]
+edit-text = [
+	{ run = "nvim %s",                                                desc = "Editar con NeoVim",                         for = "linux",  block = true,  orphan = false },
+	{ run = "code %s",                                                desc = "Editar con VS Code",                        for = "linux",  block = false,  orphan = true },
+]
+edit-image = [
+	{ run = "krita %s",                                               desc = "Editar con Krita",                          for = "linux",  block = false,  orphan = true },
+]
+edit-video = [
+	{ run = "ghb -d %s",                                              desc = "Editar con Handbrake",                      for = "linux",  block = false,  orphan = true },
+]
+set-wallpaper = [
+	{ run = "clear && $HOME/.config/gallaecia-dots/scripts/wallpaper.sh %s1",  desc = "Establecer como fondo de pantalla",         for = "linux",  block = true,  orphan = false },
+]
+play = [
+	{ run = "vlc %s1",                                                desc = "Reproducir con VLC",                        for = "linux",  block = false,  orphan = true },
+]
+open = [
+	{ run = "xdg-open %s1",                                           desc = "Abrir",                                     for = "linux",  block = false,  orphan = false },
+]
+reveal = [
+	{ run = "xdg-open %d1",                                           desc = "Mostrar en Kitty",                          for = "linux",  block = false,  orphan = false },
+]
+extract = [
+	{ run = "ya pub extract --list %s",                               desc = "Extraer aquí",                              for = "linux",  block = false,  orphan = false },
+]
+download = [
+	{ run = "ya emit download --open %S",                             desc = "Descargar e abrir",                         for = "linux",  block = false,  orphan = false },
+	{ run = "ya emit download %S",                                    desc = "Descargar",                                 for = "linux",  block = false,  orphan = false },
+]
+bulk-rename = [
+	{ run = "code --wait %s",                                         desc = "Renomear en masa",                          for = "linux",  block = true,  orphan = true },
+]
+
+[open]
+rules = [
+	# Carpeta
+	{ url = "*/",                                                                                             use = [ "open", "edit-text", "reveal" ] },
+	# Texto
+	{ mime = "text/*",                                                                                        use = [ "open", "edit-text", "reveal" ] },
+	# JSON
+	{ mime = "application/{json,ndjson}",                                                                     use = [ "open", "edit-text", "reveal" ] },
+	{ mime = "*/javascript",                                                                                  use = [ "open", "edit-text", "reveal" ] },
+	# Wallpapers
+	{ mime = "image/{jpg,jpeg,png,gif,webp}",                                                                 use = [ "open", "edit-image", "set-wallpaper", "reveal" ] },
+	# Imaxe
+	{ mime = "image/*",                                                                                       use = [ "open", "edit-image", "reveal" ] },
+	# Vídeo
+	{ mime = "video/*",                                                                                       use = [ "play", "edit-video", "reveal" ] },
+	# Audio
+	{ mime = "video/*",                                                                                       use = [ "play", "reveal" ] },
+	# Archivo
+	{ mime = "application/{zip,rar,7z*,tar,gzip,xz,zstd,bzip*,lzma,compress,archive,cpio,arj,xar,ms-cab*}",   use = [ "extract", "reveal" ] },
+	# Arquivo valeiro
+	{ mime = "inode/empty",                                                                                   use = [ "edit-text", "reveal" ] },
+	# Fallback
+	{ url = "*",                                                                                              use = [ "open", "reveal" ] },
+]
+prepend_rules = [
+	{ url = "bulk-rename.txt",                                                                                use = [ "bulk-rename" ] }
+]
+
+[tasks]
+micro_workers    = 10
+macro_workers    = 10
+bizarre_retry    = 3
+image_alloc      = 536870912  # 512MB
+image_bound      = [ 10000, 10000 ]
+suppress_preload = false
+
+[plugin]
+prepend_fetchers = [
+	{ id  = "git",    url = "*",           run = "git" },
+	{ id  = "git",    url = "*/",          run = "git" },
+]
+fetchers = [
+	# MIME type
+	{ id = "mime",    url = "*/",          run = "mime.dir",     prio = "high" },
+	{ id = "mime",    url = "local://*",   run = "mime.local",   prio = "high" },
+	{ id = "mime",    url = "remote://*",  run = "mime.remote",  prio = "high" },
+]
+spotters = [
+	{ url = "*/",                                                       run = "folder" },
+	# Código
+	{ mime = "text/*",                                                  run = "code" },
+	{ mime = "application/{mbox,javascript,wine-extension-ini}",        run = "code" },
+	# Imaxe
+	{ mime = "image/{avif,hei?,jxl}",                                   run = "magick" },
+	{ mime = "image/svg+xml",                                           run = "svg" },
+	{ mime = "image/*",                                                 run = "spot-image" },
+	# Vídeo
+	{ mime = "video/*",                                                 run = "spot-video" },
+	# Audio
+        { mime = "audio/mpegurl", run = "code" }, # Ignora arquivos m3u
+        { mime = "audio/*", run = "spot-audio" },
+	# Error
+	{ mime = "null/*",                                                  run = "null" },
+	# Fallback
+	{ url = "*",                                                        run = "file" },
+]
+preloaders = [
+	# Imaxes
+	{ mime = "image/{avif,hei?,jxl}",                                   run = "magick" },
+	{ mime = "image/svg+xml",                                           run = "svg" },
+	{ mime = "image/*",                                                 run = "image" },
+	# Vídeos
+	{ mime = "video/*",                                                 run = "video" },
+	# Música
+	{ mime = "audio/mpegurl",                                           run = "code" }, # Ignora arquivos .m3u
+	{ mime = "audio/*",                                                 run = "preview-audio" },
+	# PDF
+	{ mime = "application/pdf",                                         run = "pdf" },
+	# Fontes
+	{ mime = "font/*",                                                  run = "font" },
+	{ mime = "application/ms-opentype",                                 run = "font" },
+]
+previewers = [
+	{ url = "*/",                                                                                                run = "folder" },
+	# Código
+	{ mime = "text/*",                                                                                           run = "code" },
+	{ mime = "application/{mbox,javascript,wine-extension-ini}",                                                 run = "code" },
+	# JSON
+	{ mime = "application/{json,ndjson}",                                                                        run = "json" },
+	# Imaxe
+	{ mime = "image/{avif,hei?,jxl}",                                                                            run = "magick" },
+	{ mime = "image/svg+xml",                                                                                    run = "svg" },
+	{ mime = "image/*",                                                                                          run = "image" },
+	# Vídeo
+	{ mime = "video/*",                                                                                          run = "video" },
+	# Música
+	{ mime = "audio/mpegurl",                                                                                    run = "code" }, # Ignora arquivos .m3u
+	{ mime = "audio/*",                                                                                          run = "preview-audio" },	
+	# PDF
+	{ mime = "application/pdf",                                                                                  run = "pdf" },
+	# Archivo
+	{ mime = "application/{zip,rar,7z*,tar,gzip,xz,zstd,bzip*,lzma,compress,archive,cpio,arj,xar,ms-cab*}",      run = "archive" },
+	{ mime = "application/{debian*-package,redhat-package-manager,rpm,android.package-archive}",                 run = "archive" },
+	{ url = "*.{AppImage,appimage}",                                                                             run = "archive" },
+	# Disco Virtual / Imaxe de Disco
+	{ mime = "application/{iso9660-image,qemu-disk,ms-wim,apple-diskimage}",                                     run = "archive" },
+	{ mime = "application/virtualbox-{vhd,vhdx}",                                                                run = "archive" },
+	{ url = "*.{img,fat,ext,ext2,ext3,ext4,squashfs,ntfs,hfs,hfsx}",                                             run = "archive" },
+	# Fontes
+	{ mime = "font/*",                                                                                           run = "font" },
+	{ mime = "application/ms-opentype",                                                                          run = "font" },
+	# Arquivo vacío
+	{ mime = "inode/empty",                                                                                      run = "empty" },
+	# Error
+	{ mime = "null/*",                                                                                           run = "null" },
+	# Fallback
+	{ url = "*",                                                                                                 run = "file" },
+]
+
+[input]
+cursor_blink = false
+
+# cd
+cd_title  = "Cambiar directorio:"
+cd_origin = "top-center"
+cd_offset = [ 0, 2, 50, 3 ]
+
+# Crear
+create_title  = [ "Crear:", "Crear (dir):" ]
+create_origin = "top-center"
+create_offset = [ 0, 2, 50, 3 ]
+
+# Renomear
+rename_title  = "Renomear:"
+rename_origin = "hovered"
+rename_offset = [ 0, 1, 50, 3 ]
+
+# Filtrar
+filter_title  = "Filtrar:"
+filter_origin = "top-center"
+filter_offset = [ 0, 2, 50, 3 ]
+
+# Atopar
+find_title  = [ "Atopar seguinte:", "Atopar anterior:" ]
+find_origin = "top-center"
+find_offset = [ 0, 2, 50, 3 ]
+
+# Buscar
+search_title  = "Buscar con {n}:"
+search_origin = "top-center"
+search_offset = [ 0, 2, 50, 3 ]
+
+# Shell
+shell_title  = [ "Shell:", "Shell (bloque):" ]
+shell_origin = "top-center"
+shell_offset = [ 0, 2, 50, 3 ]
+
+[confirm]
+# Papelera
+trash_title 	= "Mover a papeleira os {n} arquivos{s} seleccionado{s}?"
+trash_origin	= "center"
+trash_offset	= [ 0, 0, 70, 20 ]
+
+# Eliminar
+delete_title 	= "Eliminar permanentemente os {n} arquivos{s} seleccionado{s}?"
+delete_origin	= "center"
+delete_offset	= [ 0, 0, 70, 20 ]
+
+# Sobreescribir
+overwrite_title  = "Sobreescribir arquivo?"
+overwrite_body   = "Sobreescribiránse os siguientes arquivos:"
+overwrite_origin = "center"
+overwrite_offset = [ 0, 0, 50, 15 ]
+
+# Salir
+quit_title  = "Saír?"
+quit_body   = "Hai tarefas sen completar, sair de todas formas?\n(Abre o xestor de tarefas ca tecla 'w')"
+quit_origin = "center"
+quit_offset = [ 0, 0, 50, 15 ]
+
+[pick]
+open_title  = "Abrir con:"
+open_origin = "hovered"
+open_offset = [ 0, 1, 50, 7 ]
+
+[which]
+sort_by      	 = "none"
+sort_sensitive = false
+sort_reverse 	 = false
+sort_translit  = false

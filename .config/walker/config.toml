@@ -1,0 +1,11 @@
+theme = "matugen"
+force_keyboard_focus = true
+close_when_open = true
+click_to_close = true
+selection_wrap = false
+exact_search_prefix = "'"
+disable_mouse = false
+debug = false
+
+[placeholders]
+"default" = { input = "Buscar", list = "Sin Resultados" }

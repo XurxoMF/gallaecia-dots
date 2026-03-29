@@ -1,0 +1,7 @@
+# shellcheck shell=bash
+
+# Cambia o fondo de pantalla polo pasado e garda a paleta de cores en ~/.dotfiles/colors.txt
+# Pide seleccionar tema e cor base a usar para extraer a paleta de cores
+wallpaper() {
+    "$HOME/.config/gallaecia-dots/scripts/wallpaper.sh" "$1" "$2" "$3"
+}
