@@ -200,7 +200,7 @@ gum style --foreground="#D6C104" --bold "· Sobreescríbese a carpeta ~/.config/
 gum style --foreground="#D6C104" --bold "· Sobreescríbese a carpeta ~/.config/elephant/"
 gum style --foreground="#D6C104" --bold "· Sobreescríbese a carpeta ~/.config/swaync/"
 gum style --foreground="#D6C104" --bold "· Sobreescríbese a carpeta ~/.config/hypr/"
-gum style --foreground="#D6C104" --bold "· Sobreescríbese a carpeta ~/.config/matugen/"
+gum style --foreground="#D6C104" --bold "· Sobreescríbese a carpeta ~/.config/matugen/" && echo
 
 if gum confirm --affirmative="Si" --negative="No" "Instalar dotfiles? (Obligatorio)"; then
   # Instalar configs propias de Gallaecia Dots como scripts e demáis
