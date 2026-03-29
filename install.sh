@@ -86,8 +86,9 @@ gum style "Como bos dotfiles en Galego, temos que cambiar o idioma a Galego. Se 
 gum style --foreground="#D6C104" --bold "Isto modificará o ficheiro /etc/locale.gen e sobreescribirá o ficheiro /etc/locale.conf!" && echo
 
 if gum confirm --affirmative="Si" --negative="No" "Cambiar idioma a Galego > Español > Inglés?"; then
-  if echo "LANG=gl_ES.UTF-8" | sudo tee /etc/locale.conf && \
-     echo "LANGUAGE=gl_ES:es_ES:en_US" | sudo tee -a /etc/locale.conf && \
+  if sed -i 's/^#es_ES.UTF-8 UTF-8/es_ES.UTF-8 UTF-8/' && \
+     sed -i 's/^#gl_ES.UTF-8 UTF-8/gl_ES.UTF-8 UTF-8/' && \
+     sed -i 's/^#en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' && \
      sudo locale-gen && \
      echo "LANG=gl_ES.UTF-8" | sudo tee /etc/locale.conf && \
      echo "LANGUAGE=gl_ES:es_ES:en_US" | sudo tee -a /etc/locale.conf
