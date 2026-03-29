@@ -104,8 +104,8 @@ gum style "Algúns dos paquetes obligatorios están en multilib polo que temos q
 gum style --foreground="#D6C104" --bold "Isto modificará o ficheiro /etc/pacman.conf!" && echo
 
 if gum confirm --affirmative="Si" --negative="No" "Habilitar [multilib] en pacman? (Obligatorio)"; then
-  if sudo sed -i "s/^#\[multilib\]/[multilib]/" /etc/pacman.conf && \
-     sudo sed -i 's|^#Include = /etc/pacman.d/mirrorlist|Include = /etc/pacman.d/mirrorlist|' /etc/pacman.conf && \
+  if sudo sed -i -e 's/^#\[multilib\]/[multilib]/' \
+     -e '/^\[multilib\]/{n; s/^#Include/Include/}' /etc/pacman.conf && \
      sudo pacman -Syy
   then
     echo && gum style --foreground="#2baf03" --bold "[multilib] habilitado con éxito!" && echo
