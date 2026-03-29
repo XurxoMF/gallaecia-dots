@@ -316,7 +316,7 @@ if gum confirm --affirmative="Si" --negative="No" "Instalar dotfiles? (Obligator
 
   # Configuración de Elephat e Walker
   if rm -rf "$HOME/.config/elephat" "$HOME/.config/walker" && \
-     cp -r "$HOME/.dotfiles/.config/elephat" "$HOME/.config/elephat" && \
+     cp -r "$HOME/.dotfiles/.config/elephant" "$HOME/.config/elephant" && \
      cp -r "$HOME/.dotfiles/.config/walker" "$HOME/.config/walker"
   then
     echo && gum style --foreground="#2baf03" --bold "Elephat e Walker configurados conxito!" && echo
