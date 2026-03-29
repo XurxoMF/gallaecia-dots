@@ -124,8 +124,8 @@ gum style "Podes ver a lista de programas obligatorios en https://gallaecia-dots
 
 if gum confirm --affirmative="Si" --negative="No" "Instalar YAY? (Obligatorio)"; then
   # Instalar YAY
-  if sudo pacman -Sy --needed base-devel && \
-     git clone https://aur.archlinux.org/yay.git "$HOME/yay" && \
+  if sudo pacman -Syu --needed base-devel && \
+     git clone https://aur.archlinux.org/yay.git ./yay && \
      cd yay && \
      makepkg -si && \
      cd .. && \
@@ -146,7 +146,7 @@ if gum confirm --affirmative="Si" --negative="No" "Instalar YAY? (Obligatorio)";
   fi
 
   # Isntalar paquetes obligatorios
-  if yay -Syu \
+  if yay -Syu --needed \
      noto-fonts-cjk noto-fonts-emoji otf-commit-mono-nerd sddm flatpak kitty neovim hyprland hypridle hyprlock hyprpicker waybar wl-clipboard yazi swaync walker elephant-all awww-bin matugen-bin grim slurp trash-cli hyprpolkitagent util-linux pipewire pavucontrol ffmpeg xorg-xrandr wireplumber 7zip jq poppler fd ripgrep fzf rar udisks2 zoxide resvg imagemagick zip tar xsettingsd bluez-utils libnotify libpulse btop blueman gnome-themes-extra adw-gtk-theme xdg-desktop-portal xdg-desktop-portal-hyprland xdg-desktop-portal-gtk xdg-user-dirs qt5-base qt6-base qt5-wayland qt6-wayland breeze-icons breeze-gtk qt6ct-kde qt5ct-kde visual-studio-code-bin firefox qbittorrent libreoffice-still libreoffice-still-gl libreoffice-still-es thunderbird amberol krita filezilla keepassxc vlc vlc-plugins-all
   then
     echo && gum style --foreground="#2baf03" --bold "Paquetes requeridos instalados con éxito!" && echo
@@ -363,7 +363,7 @@ gum style "Se queres descargar vídeos e cancións de YouTube ou YouTube Music f
 gum style --foreground="#D6C104" --bold "Isto substituirá a carpeta ~/.config/yt-dlp/ e o arquivo ~/.config/bachrc/201-yt-dlp!" && echo
 
 if gum confirm --affirmative="Si" --negative="No" "Instalar yt-dlp?"; then
-  if yay -Sy yt-dlp && \
+  if yay -Syu --needed yt-dlp && \
      rm -rf "$HOME/.config/yt-dlp" && \
      cp -r "$HOME/.dotfiles/optional/.config/yt-dlp" "$HOME/.config/yt-dlp" && \
      rm -rf "$HOME/.config/bashrc/201-yt-dlp" && \
