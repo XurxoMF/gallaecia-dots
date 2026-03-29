@@ -165,7 +165,7 @@ gum style "Inda que como usuario non precises estas carpetas, certas funcionalid
 gum style --foreground="#D6C104" --bold "Isto substituirá os ficheiros ~/.config/user-dirs.dirs e ~/.config/user-dirs.conf!" && echo
 
 if gum confirm --affirmative="Si" --negative="No" "Crear carpetas? (Obligatorio)"; then
-  if mkdir "$HOME/Aplicacións" "$HOME/Desarrollo" "$HOME/Descargas" "$HOME/Documentos" "$HOME/Escritorio" "$HOME/Imaxes" "$HOME/Modelos" "$HOME/Música" "$HOME/Público" "$HOME/Vídeos" "$HOME/Xogos" && \
+  if mkdir -p "$HOME/Aplicacións" "$HOME/Desarrollo" "$HOME/Descargas" "$HOME/Documentos" "$HOME/Escritorio" "$HOME/Imaxes" "$HOME/Modelos" "$HOME/Música" "$HOME/Público" "$HOME/Vídeos" "$HOME/Xogos" && \
      rm -rf "$HOME/.config/user-dirs.dirs" "$HOME/.config/user-dirs.conf" && \
      cp -r "$HOME/.dotfiles/.config/user-dirs.dirs" "$HOME/.config/user-dirs.dirs" && \
      cp -r "$HOME/.dotfiles/.config/user-dirs.conf" "$HOME/.config/user-dirs.conf"
