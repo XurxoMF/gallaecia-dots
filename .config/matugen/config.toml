@@ -28,10 +28,6 @@ output_path = '~/.config/hypr/colors.conf'
 input_path = '~/.config/matugen/templates/kitty-colors.conf'
 output_path = '~/.config/kitty/colors.conf'
 
-[templates.nvim]
-input_path = '~/.config/matugen/templates/nvim-colors.vim'
-output_path = '~/.config/nvim/colors/matugen.vim'
-
 [templates.qt5ct]
 input_path = '~/.config/matugen/templates/qtct-colors.conf'
 output_path = '~/.config/qt5ct/colors/matugen.conf'

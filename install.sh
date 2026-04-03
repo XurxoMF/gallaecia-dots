@@ -305,15 +305,6 @@ if gum confirm --affirmative="Si" --negative="No" "Instalar dotfiles? (Obligator
     echo && gum style --foreground="#cc2508" --bold "Algo fallou ao configurar BTOP++! Abortando instalación..." && exit 1
   fi
 
-  # Configuración de NeoVim
-  if rm -rf "$HOME/.config/nvim" && \
-     cp -r "$HOME/.dotfiles/.config/nvim" "$HOME/.config/nvim"
-  then
-    echo && gum style --foreground="#2baf03" --bold "NeoVim configurado conxito!" && echo
-  else
-    echo && gum style --foreground="#cc2508" --bold "Algo fallou ao configurar NeoVim! Abortando instalación..." && exit 1
-  fi
-
   # Configuración de Elephat e Walker
   if rm -rf "$HOME/.config/elephat" "$HOME/.config/walker" && \
      cp -r "$HOME/.dotfiles/.config/elephant" "$HOME/.config/elephant" && \
