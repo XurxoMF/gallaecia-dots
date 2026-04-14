@@ -137,8 +137,8 @@ if gum confirm --affirmative="Si" --negative="No" "Instalar YAY? (Obligatorio)";
   fi
 
   # Instalar Rust
-  if curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && \
-     source "$HOME/.cargo/env"
+  if sudo pacman -Syu --needed rustup && \
+     rustup default stable
   then
     echo && gum style --foreground="#2baf03" --bold "Rust instalado con éxito!" && echo
   else

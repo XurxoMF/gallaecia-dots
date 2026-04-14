@@ -2,6 +2,3 @@
 
 # Automcompleta comandos executados con sudo
 complete -cf sudo
-
-# Carga rustup
-source "$HOME/.cargo/env"
