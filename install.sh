@@ -146,8 +146,16 @@ if gum confirm --affirmative="Si" --negative="No" "Instalar YAY? (Obligatorio)";
   fi
 
   # Isntalar paquetes obligatorios
-  if yay -Syu --needed \
-     noto-fonts-cjk noto-fonts-emoji otf-commit-mono-nerd sddm flatpak kitty neovim hyprland hypridle hyprlock hyprpicker waybar wl-clipboard yazi swaync walker elephant-all awww-bin matugen-bin grim slurp trash-cli hyprpolkitagent util-linux pipewire pavucontrol ffmpeg xorg-xrandr wireplumber 7zip jq poppler fd ripgrep fzf rar udisks2 zoxide resvg imagemagick zip tar xsettingsd bluez-utils libnotify libpulse btop blueman gnome-themes-extra adw-gtk-theme xdg-desktop-portal xdg-desktop-portal-hyprland xdg-desktop-portal-gtk xdg-user-dirs qt5-base qt6-base qt5-wayland qt6-wayland breeze-icons breeze-gtk qt6ct-kde qt5ct-kde visual-studio-code-bin firefox qbittorrent libreoffice-still libreoffice-still-gl libreoffice-still-es thunderbird amberol krita filezilla keepassxc vlc vlc-plugins-all
+  if yay -Syu --needed noto-fonts-cjk noto-fonts-emoji noto-fonts \
+     flatpak util-linux pipewire gnome-keyring libsecret greetd cage wlr-randr dbus polkit \
+     hyprland \
+     noctalia-git noctalia-greeter-git \
+     qt5-base qt6-base qt5-wayland qt6-wayland xsettingsd hyprland-qt-support hyprqt6engine \
+     xdg-desktop-portal xdg-desktop-portal-hyprland xdg-desktop-portal-gtk xdg-user-dirs \
+     xorg-xrandr \
+     adw-gtk-theme \
+     kitty seahorse nautilus firefox && \
+     flatpak install org.gtk.Gtk3theme.adw-gtk3-dark org.gtk.Gtk3theme.adw-gtk3
   then
     echo && gum style --foreground="#2baf03" --bold "Paquetes requeridos instalados con éxito!" && echo
   else
@@ -182,6 +190,7 @@ fi
 gum style --foreground="#90CDFF" --bold "Instalar dotfiles" && echo
 gum style "Todos os paquetes necesitan unha configuración tanto para o funcionamento como para os estilos. Iso mismo son os dotfiles." && echo
 gum style --foreground="#D6C104" --bold "Isto eliminará e modificará multiples ficheiros en ~/.config/ e ~/. Lista de cambios:" && echo
+gum style --foreground="#D6C104" --bold "· Sobreescríbese o ficheiro /etc/greetd/config.toml"
 gum style --foreground="#D6C104" --bold "· Sobreescríbese o ficheiro ~/.bashrc"
 gum style --foreground="#D6C104" --bold "· Sobreescríbese a carpeta ~/.config/bashrc/"
 gum style --foreground="#D6C104" --bold "· Sobreescríbese o ficheiro ~/.config/mimeapps.list"
@@ -192,17 +201,20 @@ gum style --foreground="#D6C104" --bold "· Sobreescríbese a carpeta ~/.config/
 gum style --foreground="#D6C104" --bold "· Sobreescríbese a carpeta ~/.config/gtk-4.0/"
 gum style --foreground="#D6C104" --bold "· Sobreescríbese a carpeta ~/.config/qt5ct/"
 gum style --foreground="#D6C104" --bold "· Sobreescríbese a carpeta ~/.config/qt6ct/"
-gum style --foreground="#D6C104" --bold "· Sobreescríbese a carpeta ~/.config/kitty/"
-gum style --foreground="#D6C104" --bold "· Sobreescríbese a carpeta ~/.config/yazi/"
-gum style --foreground="#D6C104" --bold "· Sobreescríbese a carpeta ~/.config/waybar/"
-gum style --foreground="#D6C104" --bold "· Sobreescríbese a carpeta ~/.config/btop/"
-gum style --foreground="#D6C104" --bold "· Sobreescríbese a carpeta ~/.config/walker/"
-gum style --foreground="#D6C104" --bold "· Sobreescríbese a carpeta ~/.config/elephant/"
-gum style --foreground="#D6C104" --bold "· Sobreescríbese a carpeta ~/.config/swaync/"
 gum style --foreground="#D6C104" --bold "· Sobreescríbese a carpeta ~/.config/hypr/"
-gum style --foreground="#D6C104" --bold "· Sobreescríbese a carpeta ~/.config/matugen/" && echo
+gum style --foreground="#D6C104" --bold "· Sobreescríbese a carpeta ~/.config/kitty/" && echo
 
 if gum confirm --affirmative="Si" --negative="No" "Instalar dotfiles? (Obligatorio)"; then
+  # Instalar config de greetd
+  if sudo -rf rm "/etc/greetd" && \
+     sudo -r cp "$HOME/.dotfiles/others/greetd" "/etc/greetd" && \
+     sudo systemctl reload greetd
+  then
+    echo && gum style --foreground="#2baf03" --bold "Configuración de greetd instalada con éxito!" && echo
+  else
+    echo && gum style --foreground="#cc2508" --bold "Algo fallou ao instalar a configuración de greetd! Abortando instalación..." && exit 1
+  fi
+
   # Instalar configs propias de Gallaecia Dots como scripts e demáis
   if rm -rf "$HOME/.config/gallaecia-dots" && \
      cp -r "$HOME/.dotfiles/.config/gallaecia-dots" "$HOME/.config/gallaecia-dots" && \
@@ -277,74 +289,20 @@ if gum confirm --affirmative="Si" --negative="No" "Instalar dotfiles? (Obligator
     echo && gum style --foreground="#cc2508" --bold "Algo fallou ao configurar Kitty! Abortando instalación..." && exit 1
   fi
 
-  # Configuración de Yazi
-  if rm -rf "$HOME/.config/yazi" && \
-     cp -r "$HOME/.dotfiles/.config/yazi" "$HOME/.config/yazi" && \
-     ya pkg add yazi-rs/plugins:git yazi-rs/plugins:mount yazi-rs/plugins:chmod uhs-robert/recycle-bin KKV9/compress AminurAlam/yazi-plugins:preview-audio AminurAlam/yazi-plugins:spot AminurAlam/yazi-plugins:spot-audio AminurAlam/yazi-plugins:spot-video AminurAlam/yazi-plugins:spot-image
-  then
-    echo && gum style --foreground="#2baf03" --bold "Yazi configurado con éxito!" && echo
-  else
-    echo && gum style --foreground="#cc2508" --bold "Algo fallou ao configurar Yazi! Abortando instalación..." && exit 1
-  fi
-
-  # Configuración de Waybar
-  if rm -rf "$HOME/.config/waybar" && \
-     cp -r "$HOME/.dotfiles/.config/waybar" "$HOME/.config/waybar"
-  then
-    echo && gum style --foreground="#2baf03" --bold "Waybar configurado con éxito!" && echo
-  else
-    echo && gum style --foreground="#cc2508" --bold "Algo fallou ao configurar Waybar! Abortando instalación..." && exit 1
-  fi
-
-  # Configuración de BTOP++
-  if rm -rf "$HOME/.config/btop" && \
-     cp -r "$HOME/.dotfiles/.config/btop" "$HOME/.config/btop"
-  then
-    echo && gum style --foreground="#2baf03" --bold "BTOP++ configurado con éxito!" && echo
-  else
-    echo && gum style --foreground="#cc2508" --bold "Algo fallou ao configurar BTOP++! Abortando instalación..." && exit 1
-  fi
-
-  # Configuración de Elephat e Walker
-  if rm -rf "$HOME/.config/elephat" "$HOME/.config/walker" && \
-     cp -r "$HOME/.dotfiles/.config/elephant" "$HOME/.config/elephant" && \
-     cp -r "$HOME/.dotfiles/.config/walker" "$HOME/.config/walker"
-  then
-    echo && gum style --foreground="#2baf03" --bold "Elephat e Walker configurados conxito!" && echo
-  else
-    echo && gum style --foreground="#cc2508" --bold "Algo fallou ao configurar Elephat e Walker! Abortando instalación..." && exit 1
-  fi
-
-  # Configuración de SwayNC
-  if rm -rf "$HOME/.config/swaync" && \
-     cp -r "$HOME/.dotfiles/.config/swaync" "$HOME/.config/swaync"
-  then
-    echo && gum style --foreground="#2baf03" --bold "SwayNC configurado conxito!" && echo
-  else
-    echo && gum style --foreground="#cc2508" --bold "Algo fallou ao configurar SwayNC! Abortando instalación..." && exit 1
-  fi
-
-  # Configuración de Hyprland, Hypridle e Hyprlock
+  # Configuración de Hyprland
   if rm -rf "$HOME/.config/hypr" && \
      cp -r "$HOME/.dotfiles/.config/hypr" "$HOME/.config/hypr"
   then
-    echo && gum style --foreground="#2baf03" --bold "Hyprland, Hypridle e Hyprlock configurados conxito!" && echo
+    echo && gum style --foreground="#2baf03" --bold "Hyprland configurado con éxito!" && echo
   else
-    echo && gum style --foreground="#cc2508" --bold "Algo fallou ao configurar Hyprland, Hypridle e Hyprlock! Abortando instalación..." && exit 1
-  fi
-
-  # Configuración de Matugen
-  if rm -rf "$HOME/.config/matugen" && \
-     cp -r "$HOME/.dotfiles/.config/matugen" "$HOME/.config/matugen" && \
-     "$HOME/.config/gallaecia-dots/scripts/wallpaper.sh" "$HOME/.config/gallaecia-dots/wallpaper.jpg" Oscuro 0
-  then  
-    echo && gum style --foreground="#2baf03" --bold "Matugen configurado conxito!" && echo
-  else
-    echo && gum style --foreground="#cc2508" --bold "Algo fallou ao configurar Matugen! Abortando instalación..." && exit 1
+    echo && gum style --foreground="#cc2508" --bold "Algo fallou ao configurar Hyprland! Abortando instalación..." && exit 1
   fi
 else
   gum style --foreground="#cc2508" --bold "Sen dotfiles... non hai dotfiles... curiosamente... Abortando instalación..." && exit 1
 fi
+
+systemctl --user enable gnome-keyring-daemon.service
+systemctl --user start gnome-keyring-daemon.service
 
 gum style "Xa temos os dotfiles instalados e configurados! Agora solo faltan as partes opcionales!" && echo
 
@@ -366,3 +324,5 @@ if gum confirm --affirmative="Si" --negative="No" "Instalar yt-dlp?"; then
     echo && gum style --foreground="#cc2508" --bold "Algo fallou ao instalar yt-dlp! Podes instalalo manualmente." && echo
   fi
 fi
+
+
