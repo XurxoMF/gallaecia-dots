@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Obter os novos MIME types dispoñibles e os engade a "~/.config/mimeapps.list"
+# Obten os novos MIME types dispoñibles e os engade a "~/.config/mimeapps.list"
 # sin sobreescribir os que xa están.
 
 MIMEINFO="/usr/share/applications/mimeinfo.cache"

@@ -104,14 +104,20 @@ gum style --foreground="#90CDFF" --bold "Habilitar [multilib] en pacman" && echo
 gum style "Algúns dos paquetes obligatorios están en multilib polo que temos que habilitala." && echo
 gum style --foreground="#D6C104" --bold "Isto modificará o ficheiro /etc/pacman.conf!" && echo
 
-if gum confirm --affirmative="Si" --negative="No" "Habilitar [multilib] en pacman? (Obligatorio)"; then
-  if sudo sed -i -e 's/^#\[multilib\]/[multilib]/' \
-     -e '/^\[multilib\]/{n; s/^#Include/Include/}' /etc/pacman.conf && \
+if gum confirm --affirmative="Si" --negative="No" "Habilitar [multilib] e cores en pacman? (Obligatorio)"; then
+  if sudo sed -i \
+      -e 's/^#Color/Color/' \
+      -e 's/^#ILoveCandy/ILoveCandy/' \
+      -e '/^#Color/a ILoveCandy' \
+      -e 's/^#\[multilib\]/[multilib]/' \
+      -e '/^\[multilib\]/{n; s/^#Include/Include/}' \
+      /etc/pacman.conf && \
+     yay -Y --color always --save && \
      sudo pacman -Syy
   then
-    echo && gum style --foreground="#2baf03" --bold "[multilib] habilitado con éxito!" && echo
+    echo && gum style --foreground="#2baf03" --bold "[multilib] habilitado con éxito e cores activadas!" && echo
   else
-    echo && gum style --foreground="#cc2508" --bold "Algo fallou ao habilitar [multilib]! Abortando instalación..." && exit 1
+    echo && gum style --foreground="#cc2508" --bold "Algo fallou ao habilitar [multilib] ou activar cores! Abortando instalación..." && exit 1
   fi
 else
   gum style --foreground="#cc2508" --bold "Sen [multilib] algúns paquetes obligatorios non poderán ser instalados! Abortando instalación..." && exit 1
@@ -150,7 +156,7 @@ if gum confirm --affirmative="Si" --negative="No" "Instalar YAY? (Obligatorio)";
      flatpak util-linux pipewire gnome-keyring libsecret greetd cage wlr-randr dbus polkit \
      hyprland \
      noctalia-git noctalia-greeter-git \
-     qt5-base qt6-base qt5-wayland qt6-wayland xsettingsd hyprland-qt-support hyprqt6engine \
+     qt5-base qt6-base qt5ct qt6ct qt5-wayland qt6-wayland xsettingsd hyprland-qt-support \
      xdg-desktop-portal xdg-desktop-portal-hyprland xdg-desktop-portal-gtk xdg-user-dirs \
      xorg-xrandr \
      adw-gtk-theme \
@@ -192,8 +198,9 @@ gum style "Todos os paquetes necesitan unha configuración tanto para o funciona
 gum style --foreground="#D6C104" --bold "Isto eliminará e modificará multiples ficheiros en ~/.config/ e ~/. Lista de cambios:" && echo
 gum style --foreground="#D6C104" --bold "· Sobreescríbese o ficheiro /etc/greetd/config.toml"
 gum style --foreground="#D6C104" --bold "· Sobreescríbese o ficheiro ~/.bashrc"
-gum style --foreground="#D6C104" --bold "· Sobreescríbese a carpeta ~/.config/bashrc/"
 gum style --foreground="#D6C104" --bold "· Sobreescríbese o ficheiro ~/.config/mimeapps.list"
+gum style --foreground="#D6C104" --bold "· Sobreescríbense os ficheiros ~/.wallpapers/Gallaecia XXXXXX.jpg"
+gum style --foreground="#D6C104" --bold "· Sobreescríbese a carpeta ~/.config/bashrc/"
 gum style --foreground="#D6C104" --bold "· Sobreescríbese a carpeta ~/.config/gallaecia-dots/"
 gum style --foreground="#D6C104" --bold "· Sobreescríbese a carpeta ~/.config/xdg-desktop-portal/"
 gum style --foreground="#D6C104" --bold "· Sobreescríbese a carpeta ~/.config/xsettingsd/"
@@ -215,10 +222,12 @@ if gum confirm --affirmative="Si" --negative="No" "Instalar dotfiles? (Obligator
     echo && gum style --foreground="#cc2508" --bold "Algo fallou ao instalar a configuración de greetd! Abortando instalación..." && exit 1
   fi
 
-  # Instalar configs propias de Gallaecia Dots como scripts e demáis
+  # Instalar configs propias de Gallaecia Dots como scripts e wallpapers
   if rm -rf "$HOME/.config/gallaecia-dots" && \
      cp -r "$HOME/.dotfiles/.config/gallaecia-dots" "$HOME/.config/gallaecia-dots" && \
      sudo chmod +x -R "$HOME/.config/gallaecia-dots/scripts"
+     mkdir -p "$HOME/.wallpapers"
+     cp -rf "$HOME/.dotfiles/.wallpapers/." "$HOME/.wallpapers/"
   then
     echo && gum style --foreground="#2baf03" --bold "Configs propias de Gallaecia Dots instaladas con éxito!" && echo
   else

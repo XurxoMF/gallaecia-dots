@@ -13,7 +13,11 @@ end = [
     "battery",
     "session"
 ]
-margin_ends = 10
+margin_edge = 0
+margin_ends = 0
+radius = 0
+radius_bottom_left = -20
+radius_bottom_right = -20
 start = [ "clock", "launcher", "wallpaper" ]
 widget_spacing = 8
 
@@ -200,10 +204,14 @@ widget_order = [
 enabled = []
 
 [shell]
+font_family = "Adwaita Sans"
 launch_apps_as_systemd_services = true
 polkit_agent = true
 settings_show_advanced = true
 telemetry_enabled = true
+
+    [shell.launcher]
+    app_grid = true
 
     [shell.panel]
     clipboard_placement = "attached"
@@ -215,7 +223,11 @@ telemetry_enabled = true
     open_near_click_wallpaper = true
 
     [shell.screen_corners]
-    size = 24
+    enabled = true
+    size = 20
+
+[system.monitor]
+gpu_poll_seconds = 2
 
 [theme]
 builtin = "Catppuccin"
@@ -232,19 +244,19 @@ transition = [ "disc" ]
 transition_on_startup = true
 
     [wallpaper.default]
-    path = "/home/xurxomf/Descargas/wallpaper-2.png"
+    path = "/home/xurxomf/Descargas/wallpaper-1.jpg"
 
     [wallpaper.last]
-    path = "/home/xurxomf/Descargas/wallpaper-2.png"
+    path = "/home/xurxomf/Descargas/wallpaper-1.jpg"
 
     [wallpaper.monitors.DP-1]
-    path = "/home/xurxomf/Descargas/wallpaper-2.png"
+    path = "/home/xurxomf/Descargas/wallpaper-1.jpg"
 
     [wallpaper.monitors.HDMI-A-1]
-    path = "/home/xurxomf/Descargas/wallpaper-2.png"
+    path = "/home/xurxomf/Descargas/wallpaper-1.jpg"
 
     [wallpaper.monitors.HDMI-A-2]
-    path = "/home/xurxomf/Descargas/wallpaper-2.png"
+    path = "/home/xurxomf/Descargas/wallpaper-1.jpg"
 
 [widget.media]
 hide_when_no_media = true
