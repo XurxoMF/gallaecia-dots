@@ -215,6 +215,8 @@ if gum confirm --affirmative="Si" --negative="No" "Instalar dotfiles? (Obligator
   # Instalar config de greetd
   if sudo -rf rm "/etc/greetd" && \
      sudo -r cp "$HOME/.dotfiles/others/greetd" "/etc/greetd" && \
+     sudo useradd -r -s /usr/bin/nologin -d /var/lib/noctalia-greeter greeter 2>/dev/null || true && \
+     sudo systemctl enable --now greetd && \
      sudo systemctl reload greetd
   then
     echo && gum style --foreground="#2baf03" --bold "Configuración de greetd instalada con éxito!" && echo
