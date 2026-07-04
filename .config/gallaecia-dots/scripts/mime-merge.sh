@@ -13,8 +13,8 @@ fi
 
 # Obter os novos MIME types
 NEW=$(comm -23 \
-    <(awk -F'=' '/^[^[]/ {print $1}' "$MIMEINFO" | sort -u) \
-    <(awk -F'=' '/^[^[]/ {print $1}' "$MIMEAPPS" | sort -u))
+    <(awk -F'=' '/^[a-zA-Z0-9.+-]+\/[a-zA-Z0-9.+-]+=/ {print $1}' "$MIMEINFO" | sort -u) \
+    <(awk -F'=' '/^[a-zA-Z0-9.+-]+\/[a-zA-Z0-9.+-]+=/ {print $1}' "$MIMEAPPS" | sort -u))
 
 # Contar os novos MIME types
 COUNT=$(echo "$NEW" | grep -c .)
