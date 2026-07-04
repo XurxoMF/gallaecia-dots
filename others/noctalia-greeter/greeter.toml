@@ -1,0 +1,11 @@
+[appearance]
+scheme = "Synced"
+password_style = "default"
+hide_logo = true
+
+[keyboard]
+layout = "es"
+numlock = true
+
+[auth]
+allow_empty_password = false

@@ -218,11 +218,11 @@ gum style --foreground="#D6C104" --bold "· Sobreescríbese a carpeta ~/.config/
 
 if gum confirm --affirmative="Si" --negative="No" "Instalar dotfiles? (Obligatorio)"; then
   # Instalar config de greetd
-  if sudo -rf rm "/etc/greetd" && \
+  if sudo -rf rm "/etc/greetd" "/var/lib/noctalia-greeter" && \
      sudo -r cp "$HOME/.dotfiles/others/greetd" "/etc/greetd" && \
+     sudo -r cp "$HOME/.dotfiles/others/noctalia-greeter" "/var/lib/noctalia-greeter" && \
      sudo useradd -r -s /usr/bin/nologin -d /var/lib/noctalia-greeter greeter 2>/dev/null || true && \
-     sudo systemctl enable --now greetd && \
-     sudo systemctl reload greetd
+     sudo systemctl enable greetd
   then
     echo && gum style --foreground="#2baf03" --bold "Configuración de greetd instalada con éxito!" && echo
   else
@@ -843,13 +843,10 @@ if gum confirm --affirmative="Si" --negative="No" "Instalar yt-dlp?"; then
   fi
 fi
 
-# Xerar MIME types
-gum style --foreground="#90CDFF" --bold "Xerar os MIME types rexistrados" && echo
-gum style "Os MIME types son os que lle indican ao sistema que aplicación por defecto usa cada arquivo, por exemplo, que aplicación abre os .mp4." && echo
-gum style "Isto engadirá os mimes que necesitan as aplcacións que instalaches en ~/.config/mimeapps.list para que logo poidas editala manualmente e asociar as apps que queiras a cada un." && echo
+# Reiniciar o sistema?
+gum style --foreground="#90CDFF" --bold "Reiniciar o sistema" && echo
+gum style "Recoméndase reiniciar o sistema para aplicar correctamente todos os cambios." && echo
 
-if "$HOME/.config/gallaecia-dots/scripts/mime-merge.sh"; then
-  echo && gum style --foreground="#2baf03" --bold "MIME types agregados con éxito!" && echo
-else
-  echo && gum style --foreground="#cc2508" --bold "Algo fallou ao xerar os novos MIME types!" && echo
+if gum confirm --affirmative="Si" --negative="No" "Reiniciar o sistema agora?"; then
+  systemctl reboot
 fi
