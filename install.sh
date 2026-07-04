@@ -112,7 +112,6 @@ if gum confirm --affirmative="Si" --negative="No" "Habilitar [multilib] e cores 
       -e 's/^#\[multilib\]/[multilib]/' \
       -e '/^\[multilib\]/{n; s/^#Include/Include/}' \
       /etc/pacman.conf && \
-     yay -Y --color always --save && \
      sudo pacman -Syy
   then
     echo && gum style --foreground="#2baf03" --bold "[multilib] habilitado con éxito e cores activadas!" && echo
@@ -135,7 +134,8 @@ if gum confirm --affirmative="Si" --negative="No" "Instalar YAY? (Obligatorio)";
      cd yay && \
      makepkg -si && \
      cd .. && \
-     sudo rm -rf yay
+     sudo rm -rf yay && \
+     yay -Y --color always --save
   then
     echo && gum style --foreground="#2baf03" --bold "YAY instalado con éxito!" && echo
   else
