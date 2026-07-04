@@ -204,6 +204,16 @@ hl.bind(custom.mainMod .. " + Q", hl.dsp.window.close())
 hl.bind(custom.mainMod .. " + F", hl.dsp.window.float({ action = "toggle" }))
 hl.bind(custom.mainMod .. " + P", hl.dsp.window.pseudo())
 
+-- Noctalia keybinds
+hl.bind(custom.mainMod .. " + Space", hl.dsp.exec_cmd("noctalia msg panel-toggle launcher"))
+hl.bind(custom.mainMod .. " + Tab",   hl.dsp.exec_cmd("noctalia msg window-switcher"))
+hl.bind(custom.mainMod .. " + V",     hl.dsp.exec_cmd("noctalia msg panel-toggle clipboard"))
+
+-- Screenshot keybinds
+hl.bind("Print",          hl.dsp.exec_cmd("noctalia msg screenshot-region"))
+hl.bind("SHIFT + Print",  hl.dsp.exec_cmd("noctalia msg screenshot-fullscreen allw"))
+hl.bind("ALT + Print",    hl.dsp.exec_cmd("noctalia msg screenshot-fullscreen"))
+
 -- Move focus with custom.mainMod + arrow keys
 hl.bind(custom.mainMod .. " + left",  hl.dsp.focus({ direction = "left" }))
 hl.bind(custom.mainMod .. " + right", hl.dsp.focus({ direction = "right" }))
@@ -218,7 +228,7 @@ for i = 1, 10 do
     hl.bind(custom.mainMod .. " + SHIFT + " .. key,     hl.dsp.window.move({ workspace = i }))
 end
 
--- Example special workspace (scratchpad)
+-- Special workspace (scratchpad)
 hl.bind(custom.mainMod .. " + S",         hl.dsp.workspace.toggle_special("magic"))
 hl.bind(custom.mainMod .. " + SHIFT + S", hl.dsp.window.move({ workspace = "special:magic" }))
 
@@ -230,19 +240,17 @@ hl.bind(custom.mainMod .. " + mouse_up",   hl.dsp.focus({ workspace = "e-1" }))
 hl.bind(custom.mainMod .. " + mouse:272", hl.dsp.window.drag(),   { mouse = true })
 hl.bind(custom.mainMod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true })
 
--- Laptop multimedia keys for volume and LCD brightness
-hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd("noctalia msg volume-up"))
-hl.bind("XF86AudioLowerVolume", hl.dsp.exec_cmd("noctalia msg volume-down"))
-hl.bind("XF86AudioMute", hl.dsp.exec_cmd("noctalia msg volume-mute"))
-hl.bind("XF86AudioMicMute", hl.dsp.exec_cmd("noctalia msg mic-mute"))
-hl.bind("XF86MonBrightnessUp", hl.dsp.exec_cmd("noctalia msg brightness-up"))
-hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd("noctalia msg brightness-down"))
-
--- Requires playerctl
-hl.bind("XF86AudioNext",  hl.dsp.exec_cmd("playerctl next"),       { locked = true })
-hl.bind("XF86AudioPause", hl.dsp.exec_cmd("playerctl play-pause"), { locked = true })
-hl.bind("XF86AudioPlay",  hl.dsp.exec_cmd("playerctl play-pause"), { locked = true })
-hl.bind("XF86AudioPrev",  hl.dsp.exec_cmd("playerctl previous"),   { locked = true })
+-- Multimedia keys
+hl.bind("XF86AudioRaiseVolume",     hl.dsp.exec_cmd("noctalia msg volume-up"))
+hl.bind("XF86AudioLowerVolume",     hl.dsp.exec_cmd("noctalia msg volume-down"))
+hl.bind("XF86AudioMute",            hl.dsp.exec_cmd("noctalia msg volume-mute"))
+hl.bind("XF86AudioMicMute",         hl.dsp.exec_cmd("noctalia msg mic-mute"))
+hl.bind("XF86MonBrightnessUp",      hl.dsp.exec_cmd("noctalia msg brightness-up"))
+hl.bind("XF86MonBrightnessDown",    hl.dsp.exec_cmd("noctalia msg brightness-down"))
+hl.bind("XF86AudioNext",            hl.dsp.exec_cmd("noctalia msg media next"),      { locked = true })
+hl.bind("XF86AudioPause",           hl.dsp.exec_cmd("noctalia msg media stop"),      { locked = true })
+hl.bind("XF86AudioPlay",            hl.dsp.exec_cmd("noctalia msg media play"),      { locked = true })
+hl.bind("XF86AudioPrev",            hl.dsp.exec_cmd("noctalia msg media previous"),  { locked = true })
 
 
 -----------------------------------------
@@ -276,6 +284,7 @@ hl.layer_rule({
   match = {
     namespace = "^noctalia-(bar-.+|default|notification|dock|panel|attached-panel|osd)$",
   },
+  no_anim = true,
   ignore_alpha = 0.5,
   blur = true,
   blur_popups = true,

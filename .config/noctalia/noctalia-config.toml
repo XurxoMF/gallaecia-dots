@@ -1,5 +1,6 @@
 [bar.default]
-background_opacity = 0.79999998211860657
+background_opacity = 0.99999997764825821
+capsule_thickness = 0.79999998584389687
 center = [ "workspaces" ]
 end = [
     "media",
@@ -13,23 +14,48 @@ end = [
     "battery",
     "session"
 ]
+font_family = "Adwaita Sans"
 margin_edge = 0
 margin_ends = 0
+padding = 15
 radius = 0
 radius_bottom_left = -20
 radius_bottom_right = -20
-start = [ "clock", "launcher", "wallpaper" ]
-widget_spacing = 8
+start = [ "clock", "launcher", "wallpaper", "system_update" ]
+thickness = 30
+widget_spacing = 10
+
+[brightness]
+enable_ddcutil = true
+
+[calendar]
+enabled = true
+
+[control_center]
+width = 900
+
+[dock]
+background_opacity = 0.99999997764825821
+
+[notification]
+background_opacity = 0.99999997764825821
+
+[osd]
+background_opacity = 0.99999997764825821
 
 [plugins]
 enabled = []
 
 [shell]
 font_family = "Adwaita Sans"
+lang = "es"
 launch_apps_as_systemd_services = true
 polkit_agent = true
 settings_show_advanced = true
 telemetry_enabled = true
+
+    [shell.greeter_sync]
+    auto_sync = true
 
     [shell.launcher]
     app_grid = true
@@ -47,8 +73,12 @@ telemetry_enabled = true
     enabled = true
     size = 20
 
+    [shell.screenshot]
+    directory = "$HOME/Imaxes/Capturas de pantalla"
+
 [system.monitor]
 gpu_poll_seconds = 2
+network_poll_seconds = 2
 
 [theme]
 builtin = "Catppuccin"
@@ -60,9 +90,15 @@ wallpaper_scheme = "vibrant"
     builtin_ids = [ "gtk3", "gtk4", "hyprland", "kitty", "qt" ]
 
 [wallpaper]
-directory = "~/.wallpapers"
+directory = "$HOME/.wallpapers"
 transition = [ "disc" ]
 transition_on_startup = true
+
+    [wallpaper.default]
+    path = "$HOME/.wallpapers/Gallaecia - Torre de Hércules.jpg"
+
+    [wallpaper.last]
+    path = "$HOME/.wallpapers/Gallaecia - Torre de Hércules.jpg"
 
 [widget.media]
 hide_when_no_media = true
@@ -70,3 +106,10 @@ title_scroll = "always"
 
 [widget.network]
 show_label = false
+
+[widget.system_update]
+command = "kitty -e sh -c '$HOME/.config/gallaecia-dots/scripts/system-update.sh'"
+glyph = "cloud-download"
+middle_command = "kitty -e sh -c '$HOME/.config/gallaecia-dots/scripts/system-update.sh'"
+right_command = "kitty -e sh -c '$HOME/.config/gallaecia-dots/scripts/system-update.sh'"
+type = "custom_button"
