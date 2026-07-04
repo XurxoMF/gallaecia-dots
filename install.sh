@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# Versión do instalador e dot dotfiles
+version="2.0.0"
+
 # Limpiamos o terminal
 clear
 
@@ -55,6 +58,7 @@ export GUM_SPIN_PADDING="0 0"
 
 # Mostramos benvida ao usuario
 gum style --foreground="#90CDFF" --bold "BENVID@ AO INSTALADOR DE GALLAECIA DOTS!" && echo
+gum style --foreground="#90CDFF" --bold "VERSIÓN $version" && echo
 gum style "Con este script poderás instalar os dotfiles paso por paso para que poidas personalizar algunhas cousas e gardar copias de seguridade antes de que se sobreescriban polos dotfiles."
 gum style "Simplemente responde as preguntas que irán aparecendo en pantalla deixa que ocurra a maxia pagana." && echo
 
@@ -856,6 +860,9 @@ if gum confirm --affirmative="Si" --negative="No" "Instalar yt-dlp?"; then
     echo && gum style --foreground="#cc2508" --bold "Algo fallou ao instalar yt-dlp! Podes instalalo manualmente." && echo
   fi
 fi
+
+# Gardar versión instalada para futuros usos
+mkdir -p "$HOME/.local/share/gallaecia-dots" && echo "$version" > "$HOME/.local/share/gallaecia-dots/version"
 
 # Reiniciar o sistema?
 gum style --foreground="#90CDFF" --bold "Reiniciar o sistema" && echo
