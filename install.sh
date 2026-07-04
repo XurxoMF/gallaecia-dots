@@ -153,7 +153,7 @@ if gum confirm --affirmative="Si" --negative="No" "Instalar YAY? (Obligatorio)";
 
   # Instalar paquetes obligatorios
   if yay -Syu --needed noto-fonts-cjk noto-fonts-emoji noto-fonts \
-     flatpak util-linux pipewire gnome-keyring libsecret greetd cage wlr-randr dbus polkit libnewt playerctl \
+     flatpak util-linux pipewire gnome-keyring libsecret greetd cage wlr-randr dbus polkit libnewt playerctl ddcutil \
      hyprland uwsm \
      noctalia-git noctalia-greeter-git \
      qt5-base qt6-base qt5ct qt6ct qt5-wayland qt6-wayland xsettingsd hyprland-qt-support \
