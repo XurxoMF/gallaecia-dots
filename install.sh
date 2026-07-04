@@ -214,6 +214,7 @@ gum style --foreground="#D6C104" --bold "· Sobreescríbese a carpeta ~/.config/
 gum style --foreground="#D6C104" --bold "· Sobreescríbese a carpeta ~/.config/qt5ct/"
 gum style --foreground="#D6C104" --bold "· Sobreescríbese a carpeta ~/.config/qt6ct/"
 gum style --foreground="#D6C104" --bold "· Sobreescríbese a carpeta ~/.config/hypr/"
+gum style --foreground="#D6C104" --bold "· Sobreescríbese a carpeta ~/.config/noctalia/"
 gum style --foreground="#D6C104" --bold "· Sobreescríbese a carpeta ~/.config/kitty/" && echo
 
 if gum confirm --affirmative="Si" --negative="No" "Instalar dotfiles? (Obligatorio)"; then
@@ -312,6 +313,15 @@ if gum confirm --affirmative="Si" --negative="No" "Instalar dotfiles? (Obligator
   # Configuración de Hyprland
   if rm -rf "$HOME/.config/hypr" && \
      cp -r "$HOME/.dotfiles/.config/hypr" "$HOME/.config/hypr"
+  then
+    echo && gum style --foreground="#2baf03" --bold "Hyprland configurado con éxito!" && echo
+  else
+    echo && gum style --foreground="#cc2508" --bold "Algo fallou ao configurar Hyprland! Abortando instalación..." && exit 1
+  fi
+
+  # Configuración de Noctalia
+  if rm -rf "$HOME/.config/noctalia" && \
+     cp -r "$HOME/.dotfiles/.config/noctalia" "$HOME/.config/noctalia"
   then
     echo && gum style --foreground="#2baf03" --bold "Hyprland configurado con éxito!" && echo
   else
