@@ -218,15 +218,19 @@ gum style --foreground="#D6C104" --bold "· Sobreescríbese a carpeta ~/.config/
 
 if gum confirm --affirmative="Si" --negative="No" "Instalar dotfiles? (Obligatorio)"; then
   # Instalar config de greetd
-  if sudo -rf rm "/etc/greetd" "/var/lib/noctalia-greeter" && \
-     sudo -r cp "$HOME/.dotfiles/others/greetd" "/etc/greetd" && \
-     sudo -r cp "$HOME/.dotfiles/others/noctalia-greeter" "/var/lib/noctalia-greeter" && \
-     sudo useradd -r -s /usr/bin/nologin -d /var/lib/noctalia-greeter greeter 2>/dev/null || true && \
-     sudo systemctl enable greetd
+  if sudo rm -rf "/etc/greetd" "/var/lib/noctalia-greeter" && \
+    sudo cp -r "$HOME/.dotfiles/others/greetd" "/etc/greetd" && \
+    sudo cp -r "$HOME/.dotfiles/others/noctalia-greeter" "/var/lib/noctalia-greeter" && \
+    { sudo useradd -r -s /usr/bin/nologin -d /var/lib/noctalia-greeter greeter 2>/dev/null || true; } && \
+    sudo systemctl enable greetd
   then
-    echo && gum style --foreground="#2baf03" --bold "Configuración de greetd instalada con éxito!" && echo
+    echo
+    gum style --foreground="#2baf03" --bold "Configuración de greetd instalada con éxito!"
+    echo
   else
-    echo && gum style --foreground="#cc2508" --bold "Algo fallou ao instalar a configuración de greetd! Abortando instalación..." && exit 1
+    echo
+    gum style --foreground="#cc2508" --bold "Algo fallou ao instalar a configuración de greetd! Abortando instalación..."
+    exit 1
   fi
 
   # Instalar configs propias de Gallaecia Dots como scripts e wallpapers
@@ -673,7 +677,7 @@ suite_ofimatica=$(gum choose --header "Selecciona unha suite ofimática ou preme
 
 case "$suite_ofimatica" in
   "LibreOffice")
-    yay -Syu --needed libreoffice-fresh
+    yay -Syu --needed libreoffice-still libreoffice-still-gl libreoffice-still-es
     ;;
   "ONLYOFFICE")
     yay -Syu --needed onlyoffice-bin
