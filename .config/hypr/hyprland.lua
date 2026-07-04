@@ -1,5 +1,5 @@
 -- Import custom Hyprland configs
-local custom = require("hyprland-custom")
+require("hyprland-custom")
 
 -- Import Noctalia Color templates
 require("noctalia").apply_theme()
@@ -199,46 +199,54 @@ hl.gesture({
 ---- ATALLOS DE TECLADO ----
 ----------------------------
 
+local mainMod = "SUPER"
+
+-- Applications
+hl.bind(mainMod .. " + T", hl.dsp.exec_cmd("kitty"))
+-- {{navegador}}
+-- {{explorador}}
+-- {{editor_texto}}
+
 -- Basic keybinds
-hl.bind(custom.mainMod .. " + Q", hl.dsp.window.close())
-hl.bind(custom.mainMod .. " + F", hl.dsp.window.float({ action = "toggle" }))
-hl.bind(custom.mainMod .. " + P", hl.dsp.window.pseudo())
+hl.bind(mainMod .. " + Q", hl.dsp.window.close())
+hl.bind(mainMod .. " + F", hl.dsp.window.float({ action = "toggle" }))
+hl.bind(mainMod .. " + P", hl.dsp.window.pseudo())
 
 -- Noctalia keybinds
-hl.bind(custom.mainMod .. " + Space", hl.dsp.exec_cmd("noctalia msg panel-toggle launcher"))
-hl.bind(custom.mainMod .. " + Tab",   hl.dsp.exec_cmd("noctalia msg window-switcher"))
-hl.bind(custom.mainMod .. " + V",     hl.dsp.exec_cmd("noctalia msg panel-toggle clipboard"))
+hl.bind(mainMod .. " + Space", hl.dsp.exec_cmd("noctalia msg panel-toggle launcher"))
+hl.bind(mainMod .. " + Tab",   hl.dsp.exec_cmd("noctalia msg window-switcher"))
+hl.bind(mainMod .. " + V",     hl.dsp.exec_cmd("noctalia msg panel-toggle clipboard"))
 
 -- Screenshot keybinds
 hl.bind("Print",          hl.dsp.exec_cmd("noctalia msg screenshot-region"))
 hl.bind("SHIFT + Print",  hl.dsp.exec_cmd("noctalia msg screenshot-fullscreen allw"))
 hl.bind("ALT + Print",    hl.dsp.exec_cmd("noctalia msg screenshot-fullscreen"))
 
--- Move focus with custom.mainMod + arrow keys
-hl.bind(custom.mainMod .. " + left",  hl.dsp.focus({ direction = "left" }))
-hl.bind(custom.mainMod .. " + right", hl.dsp.focus({ direction = "right" }))
-hl.bind(custom.mainMod .. " + up",    hl.dsp.focus({ direction = "up" }))
-hl.bind(custom.mainMod .. " + down",  hl.dsp.focus({ direction = "down" }))
+-- Move focus with mainMod + arrow keys
+hl.bind(mainMod .. " + left",  hl.dsp.focus({ direction = "left" }))
+hl.bind(mainMod .. " + right", hl.dsp.focus({ direction = "right" }))
+hl.bind(mainMod .. " + up",    hl.dsp.focus({ direction = "up" }))
+hl.bind(mainMod .. " + down",  hl.dsp.focus({ direction = "down" }))
 
--- Switch workspaces with custom.mainMod + [0-9]
--- Move active window to a workspace with custom.mainMod + SHIFT + [0-9]
+-- Switch workspaces with mainMod + [0-9]
+-- Move active window to a workspace with mainMod + SHIFT + [0-9]
 for i = 1, 10 do
     local key = i % 10 -- 10 maps to key 0
-    hl.bind(custom.mainMod .. " + " .. key,             hl.dsp.focus({ workspace = i}))
-    hl.bind(custom.mainMod .. " + SHIFT + " .. key,     hl.dsp.window.move({ workspace = i }))
+    hl.bind(mainMod .. " + " .. key,             hl.dsp.focus({ workspace = i}))
+    hl.bind(mainMod .. " + SHIFT + " .. key,     hl.dsp.window.move({ workspace = i }))
 end
 
 -- Special workspace (scratchpad)
-hl.bind(custom.mainMod .. " + S",         hl.dsp.workspace.toggle_special("magic"))
-hl.bind(custom.mainMod .. " + SHIFT + S", hl.dsp.window.move({ workspace = "special:magic" }))
+hl.bind(mainMod .. " + S",         hl.dsp.workspace.toggle_special("magic"))
+hl.bind(mainMod .. " + SHIFT + S", hl.dsp.window.move({ workspace = "special:magic" }))
 
--- Scroll through existing workspaces with custom.mainMod + scroll
-hl.bind(custom.mainMod .. " + mouse_down", hl.dsp.focus({ workspace = "e+1" }))
-hl.bind(custom.mainMod .. " + mouse_up",   hl.dsp.focus({ workspace = "e-1" }))
+-- Scroll through existing workspaces with mainMod + scroll
+hl.bind(mainMod .. " + mouse_down", hl.dsp.focus({ workspace = "e+1" }))
+hl.bind(mainMod .. " + mouse_up",   hl.dsp.focus({ workspace = "e-1" }))
 
--- Move/resize windows with custom.mainMod + LMB/RMB and dragging
-hl.bind(custom.mainMod .. " + mouse:272", hl.dsp.window.drag(),   { mouse = true })
-hl.bind(custom.mainMod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true })
+-- Move/resize windows with mainMod + LMB/RMB and dragging
+hl.bind(mainMod .. " + mouse:272", hl.dsp.window.drag(),   { mouse = true })
+hl.bind(mainMod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true })
 
 -- Multimedia keys
 hl.bind("XF86AudioRaiseVolume",     hl.dsp.exec_cmd("noctalia msg volume-up"))
@@ -251,7 +259,6 @@ hl.bind("XF86AudioNext",            hl.dsp.exec_cmd("noctalia msg media next"), 
 hl.bind("XF86AudioPause",           hl.dsp.exec_cmd("noctalia msg media stop"),      { locked = true })
 hl.bind("XF86AudioPlay",            hl.dsp.exec_cmd("noctalia msg media play"),      { locked = true })
 hl.bind("XF86AudioPrev",            hl.dsp.exec_cmd("noctalia msg media previous"),  { locked = true })
-
 
 -----------------------------------------
 ---- VENTANAS E ESPACIOS DE TRABALLO ----

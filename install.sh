@@ -337,37 +337,37 @@ case "$navegador" in
   "Tor Browser")
     yay -Syu --needed tor-browser-bin && \
     sed -i 's|-- {{navegador}}|hl.bind(mainMod .. " + B", hl.dsp.exec_cmd("tor-browser"))|g' \
-      "$HOME/.config/hypr/hyprland-custom.lua"
+      "$HOME/.config/hypr/hyprland.lua"
     ;;
   "Firefox")
     yay -Syu --needed firefox && \
     sed -i 's|-- {{navegador}}|hl.bind(mainMod .. " + B", hl.dsp.exec_cmd("firefox"))|g' \
-      "$HOME/.config/hypr/hyprland-custom.lua"
+      "$HOME/.config/hypr/hyprland.lua"
     ;;
   "Vivaldi")
     yay -Syu --needed vivaldi && \
     sed -i 's|-- {{navegador}}|hl.bind(mainMod .. " + B", hl.dsp.exec_cmd("vivaldi-stable"))|g' \
-      "$HOME/.config/hypr/hyprland-custom.lua"
+      "$HOME/.config/hypr/hyprland.lua"
     ;;
   "Brave")
     yay -Syu --needed brave-bin && \
     sed -i 's|-- {{navegador}}|hl.bind(mainMod .. " + B", hl.dsp.exec_cmd("brave"))|g' \
-      "$HOME/.config/hypr/hyprland-custom.lua"
+      "$HOME/.config/hypr/hyprland.lua"
     ;;
   "Opera")
     yay -Syu --needed opera && \
     sed -i 's|-- {{navegador}}|hl.bind(mainMod .. " + B", hl.dsp.exec_cmd("opera"))|g' \
-      "$HOME/.config/hypr/hyprland-custom.lua"
+      "$HOME/.config/hypr/hyprland.lua"
     ;;
   "LibreWolf")
     yay -Syu --needed librewolf-bin && \
     sed -i 's|-- {{navegador}}|hl.bind(mainMod .. " + B", hl.dsp.exec_cmd("librewolf"))|g' \
-      "$HOME/.config/hypr/hyprland-custom.lua"
+      "$HOME/.config/hypr/hyprland.lua"
     ;;
   "Zen Browser")
     yay -Syu --needed zen-browser-bin && \
     sed -i 's|-- {{navegador}}|hl.bind(mainMod .. " + B", hl.dsp.exec_cmd("zen-browser"))|g' \
-      "$HOME/.config/hypr/hyprland-custom.lua"
+      "$HOME/.config/hypr/hyprland.lua"
     ;;
 esac
 
@@ -387,27 +387,27 @@ case "$explorador" in
   "Nemo")
     yay -Syu --needed nemo && \
     sed -i 's|-- {{explorador}}|hl.bind(mainMod .. " + E", hl.dsp.exec_cmd("nemo"))|g' \
-      "$HOME/.config/hypr/hyprland-custom.lua"
+      "$HOME/.config/hypr/hyprland.lua"
     ;;
   "Dolphin")
     yay -Syu --needed dolphin && \
     sed -i 's|-- {{explorador}}|hl.bind(mainMod .. " + E", hl.dsp.exec_cmd("dolphin"))|g' \
-      "$HOME/.config/hypr/hyprland-custom.lua"
+      "$HOME/.config/hypr/hyprland.lua"
     ;;
   "Nautilus")
     yay -Syu --needed nautilus && \
     sed -i 's|-- {{explorador}}|hl.bind(mainMod .. " + E", hl.dsp.exec_cmd("nautilus"))|g' \
-      "$HOME/.config/hypr/hyprland-custom.lua"
+      "$HOME/.config/hypr/hyprland.lua"
     ;;
   "Thunar")
     yay -Syu --needed thunar && \
     sed -i 's|-- {{explorador}}|hl.bind(mainMod .. " + E", hl.dsp.exec_cmd("thunar"))|g' \
-      "$HOME/.config/hypr/hyprland-custom.lua"
+      "$HOME/.config/hypr/hyprland.lua"
     ;;
   "Yazi")
     yay -Syu --needed yazi && \
     sed -i 's|-- {{explorador}}|hl.bind(mainMod .. " + E", hl.dsp.exec_cmd("kitty -e yazi"))|g' \
-      "$HOME/.config/hypr/hyprland-custom.lua"
+      "$HOME/.config/hypr/hyprland.lua"
     ;;
 esac
 
@@ -429,37 +429,37 @@ case "$editor_texto" in
   "VS Code")
     yay -Syu --needed visual-studio-code-bin && \
     sed -i 's|-- {{editor_texto}}|hl.bind(mainMod .. " + C", hl.dsp.exec_cmd("code"))|g' \
-      "$HOME/.config/hypr/hyprland-custom.lua"
+      "$HOME/.config/hypr/hyprland.lua"
     ;;
   "VSCodium")
     yay -Syu --needed vscodium-bin && \
     sed -i 's|-- {{editor_texto}}|hl.bind(mainMod .. " + C", hl.dsp.exec_cmd("codium"))|g' \
-      "$HOME/.config/hypr/hyprland-custom.lua"
+      "$HOME/.config/hypr/hyprland.lua"
     ;;
   "Neovim")
     yay -Syu --needed neovim && \
     sed -i 's|-- {{editor_texto}}|hl.bind(mainMod .. " + C", hl.dsp.exec_cmd("kitty -e nvim"))|g' \
-      "$HOME/.config/hypr/hyprland-custom.lua"
+      "$HOME/.config/hypr/hyprland.lua"
     ;;
   "Vim")
     yay -Syu --needed vim && \
     sed -i 's|-- {{editor_texto}}|hl.bind(mainMod .. " + C", hl.dsp.exec_cmd("kitty -e vim"))|g' \
-      "$HOME/.config/hypr/hyprland-custom.lua"
+      "$HOME/.config/hypr/hyprland.lua"
     ;;
   "Zed")
     yay -Syu --needed zed && \
     sed -i 's|-- {{editor_texto}}|hl.bind(mainMod .. " + C", hl.dsp.exec_cmd("zed"))|g' \
-      "$HOME/.config/hypr/hyprland-custom.lua"
+      "$HOME/.config/hypr/hyprland.lua"
     ;;
   "Kate")
     yay -Syu --needed kate && \
     sed -i 's|-- {{editor_texto}}|hl.bind(mainMod .. " + C", hl.dsp.exec_cmd("kate"))|g' \
-      "$HOME/.config/hypr/hyprland-custom.lua"
+      "$HOME/.config/hypr/hyprland.lua"
     ;;
   "Sublime Text")
     yay -Syu --needed sublime-text-4 && \
     sed -i 's|-- {{editor_texto}}|hl.bind(mainMod .. " + C", hl.dsp.exec_cmd("subl"))|g' \
-      "$HOME/.config/hypr/hyprland-custom.lua"
+      "$HOME/.config/hypr/hyprland.lua"
     ;;
 esac
 
