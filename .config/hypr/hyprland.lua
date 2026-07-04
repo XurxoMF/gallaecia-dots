@@ -1,6 +1,3 @@
--- Import custom Hyprland configs
-require("hyprland-custom")
-
 -- Import Noctalia Color templates
 require("noctalia").apply_theme()
 
