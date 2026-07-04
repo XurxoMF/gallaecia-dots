@@ -55,7 +55,7 @@ settings_show_advanced = true
 telemetry_enabled = true
 
     [shell.greeter_sync]
-    auto_sync = true
+    auto_sync = false
 
     [shell.launcher]
     app_grid = true
