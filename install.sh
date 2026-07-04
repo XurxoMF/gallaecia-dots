@@ -157,7 +157,7 @@ if gum confirm --affirmative="Si" --negative="No" "Instalar YAY? (Obligatorio)";
      hyprland uwsm \
      noctalia-git noctalia-greeter-git \
      qt5-base qt6-base qt5ct qt6ct qt5-wayland qt6-wayland xsettingsd hyprland-qt-support \
-     xdg-desktop-portal xdg-desktop-portal-hyprland xdg-desktop-portal-gtk xdg-user-dirs \
+     xdg-utils xdg-desktop-portal xdg-desktop-portal-hyprland xdg-desktop-portal-gtk xdg-user-dirs \
      xorg-xrandr \
      adw-gtk-theme \
      kitty seahorse && \
