@@ -2,3 +2,9 @@
 
 # Automcompleta comandos executados con sudo
 complete -cf sudo
+
+# PATH para apps de pipx
+export PATH="$PATH:$HOME/.local/bin"
+
+# Suxerencias de apps instaladas con pipx
+eval "$(register-python-argcomplete pipx)"

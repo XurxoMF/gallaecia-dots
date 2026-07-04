@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Versión do instalador e dot dotfiles
-version="2.0.0"
+version="2.1.0-04-07-2026"
 
 # Limpiamos o terminal
 clear
@@ -158,6 +158,7 @@ if gum confirm --affirmative="Si" --negative="No" "Instalar YAY? (Obligatorio)";
   # Instalar paquetes obligatorios
   if yay -Syu --needed noto-fonts-cjk noto-fonts-emoji noto-fonts \
      flatpak util-linux pipewire gnome-keyring libsecret greetd cage wlr-randr dbus polkit libnewt ddcutil power-profiles-daemon \
+     python pip pipx ffmpeg \
      hyprland uwsm \
      noctalia-git noctalia-greeter-git \
      qt5-base qt6-base qt5ct qt6ct qt5-wayland qt6-wayland xsettingsd hyprland-qt-support \
@@ -541,6 +542,36 @@ case "$reprodutor_video" in
     ;;
 esac
 
+# Instalar reprodutor de música
+gum style --foreground="#90CDFF" --bold "Instalar reprodutor de música e configuralo" && echo
+gum style "Un reprodutor de música permite escoitar e organizar a túa biblioteca musical de forma rápida e cómoda. Instala o que elixas (ou ningún) de forma rápida dende aquí." && echo
+
+reprodutor_musica=$(gum choose --header "Selecciona un reprodutor de música ou preme Esc para non instalar ningún:" \
+  "Tauon Music Box" \
+  "Strawberry" \
+  "Lollypop" \
+  "Audacious" \
+  "Amberol"
+)
+
+case "$reprodutor_musica" in
+  "Tauon Music Box")
+    yay -Syu --needed tauon-music-box
+    ;;
+  "Strawberry")
+    yay -Syu --needed strawberry
+    ;;
+  "Lollypop")
+    yay -Syu --needed lollypop
+    ;;
+  "Audacious")
+    yay -Syu --needed audacious
+    ;;
+  "Amberol")
+    yay -Syu --needed amberol
+    ;;
+esac
+
 # Instalar visor de PDF
 gum style --foreground="#90CDFF" --bold "Instalar visor de PDF" && echo
 gum style "Un visor de PDF permite abrir e consultar documentos PDF de forma rápida e cómoda. Instala o que elixas (ou ningún) de forma rápida dende aquí." && echo
@@ -861,8 +892,35 @@ if gum confirm --affirmative="Si" --negative="No" "Instalar yt-dlp?"; then
   fi
 fi
 
+# Instalar SpotDL?
+gum style --foreground="#90CDFF" --bold "Instalar SpotDL e configuralo" && echo
+gum style "Se queres descargar cancións de \"Spotify\" facilmente instala SpotDL e con solo un comando poderás descargar as cancións que queiras." && echo
+gum style --foreground="#D6C104" --bold "Isto substituirá a carpeta ~/.config/SpotDL/ e engadirá unha liña ao final de ~/.config/bashrc/100-autostart!" && echo
+
+if gum confirm --affirmative="Si" --negative="No" "Instalar SpotDL?"; then
+  if pipx install spotdl && \
+     rm -rf "$HOME/.config/spotdl" && \
+     cp -r "$HOME/.dotfiles/optional/.config/spotdl" "$HOME/.config/spotdl"
+  then
+    echo && gum style --foreground="#2baf03" --bold "SpotDL instalado con éxito!" && echo
+  else
+    echo && gum style --foreground="#cc2508" --bold "Algo fallou ao instalar SpotDL! Podes instalalo manualmente." && echo
+  fi
+fi
+
 # Gardar versión instalada para futuros usos
 mkdir -p "$HOME/.local/share/gallaecia-dots" && echo "$version" > "$HOME/.local/share/gallaecia-dots/version"
+
+# Reiniciar o sistema?
+gum style --foreground="#90CDFF" --bold "Reiniciar o sistema" && echo
+gum style "Recoméndase reiniciar o sistema para aplicar correctamente todos os cambios." && echo
+
+if gum confirm --affirmative="Si" --negative="No" "Reiniciar o sistema agora?"; then
+  systemctl reboot
+fi
+
+# Gardar versión instalada para futuros usos
+mkdir -p "$HOME/.local/share/gallaecia-dots" && echo "$version | Instalado o $(date +%d-%m-%Y)" > "$HOME/.local/share/gallaecia-dots/version"
 
 # Reiniciar o sistema?
 gum style --foreground="#90CDFF" --bold "Reiniciar o sistema" && echo

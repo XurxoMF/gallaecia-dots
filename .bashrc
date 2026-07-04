@@ -14,3 +14,8 @@ for f in ~/.config/bashrc/*; do
     [ -f "$f" ] && source "$f"
   fi
 done
+
+##########################################################
+#### TODO O QUE ESTÉ DEBAIXO DISTO DEBERÍASE DE MOVER ####
+####     A UN ARQUIVO EN ~/.config/bashrc/123-xxx     ####
+##########################################################
