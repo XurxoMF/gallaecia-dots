@@ -74,7 +74,7 @@ telemetry_enabled = true
     size = 20
 
     [shell.screenshot]
-    directory = "$HOME/Imaxes/Capturas de pantalla"
+    directory = "~/Imaxes/Capturas de pantalla"
 
 [system.monitor]
 gpu_poll_seconds = 2
@@ -90,15 +90,15 @@ wallpaper_scheme = "vibrant"
     builtin_ids = [ "gtk3", "gtk4", "hyprland", "kitty", "qt" ]
 
 [wallpaper]
-directory = "$HOME/.wallpapers"
+directory = "~/.wallpapers"
 transition = [ "disc" ]
 transition_on_startup = true
 
     [wallpaper.default]
-    path = "$HOME/.wallpapers/Gallaecia - Torre de Hércules.jpg"
+    path = "~/.wallpapers/Gallaecia - Torre de Hércules.jpg"
 
     [wallpaper.last]
-    path = "$HOME/.wallpapers/Gallaecia - Torre de Hércules.jpg"
+    path = "~/.wallpapers/Gallaecia - Torre de Hércules.jpg"
 
 [widget.media]
 hide_when_no_media = true
@@ -108,8 +108,8 @@ title_scroll = "always"
 show_label = false
 
 [widget.system_update]
-command = "kitty -e sh -c '$HOME/.config/gallaecia-dots/scripts/system-update.sh'"
+command = "kitty -e sh -c '~/.config/gallaecia-dots/scripts/system-update.sh'"
 glyph = "cloud-download"
-middle_command = "kitty -e sh -c '$HOME/.config/gallaecia-dots/scripts/system-update.sh'"
-right_command = "kitty -e sh -c '$HOME/.config/gallaecia-dots/scripts/system-update.sh'"
+middle_command = "kitty -e sh -c '~/.config/gallaecia-dots/scripts/system-update.sh'"
+right_command = "kitty -e sh -c '~/.config/gallaecia-dots/scripts/system-update.sh'"
 type = "custom_button"
