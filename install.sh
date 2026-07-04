@@ -100,7 +100,7 @@ if gum confirm --affirmative="Si" --negative="No" "Cambiar idioma a Galego > Esp
 fi
 
 # Habilitar [multilib] en pacman
-gum style --foreground="#90CDFF" --bold "Habilitar [multilib] en pacman" && echo
+gum style --foreground="#90CDFF" --bold "Habilitar [multilib] e cores en pacman" && echo
 gum style "Algúns dos paquetes obligatorios están en multilib polo que temos que habilitala." && echo
 gum style --foreground="#D6C104" --bold "Isto modificará o ficheiro /etc/pacman.conf!" && echo
 
@@ -125,7 +125,7 @@ fi
 
 # Instalar obligatorios
 gum style --foreground="#90CDFF" --bold "Instalar paquetes obligatorios? (Obligatorio)" && echo
-gum style "Os programas obligatorios inclúen, entre outros, YAY, Rust, Flatpak, Kitty, Hyprland..."
+gum style "Os programas obligatorios inclúen, entre outros, yay, Rust, Flatpak, Kitty, Hyprland..."
 gum style "Podes ver a lista de programas obligatorios en https://gallaecia-dots.xurxomf.xyz." && echo
 
 if gum confirm --affirmative="Si" --negative="No" "Instalar YAY? (Obligatorio)"; then
@@ -151,17 +151,19 @@ if gum confirm --affirmative="Si" --negative="No" "Instalar YAY? (Obligatorio)";
     echo && gum style --foreground="#cc2508" --bold "Algo fallou durante a instalación de Rust! Abortando instalación..." && exit 1
   fi
 
-  # Isntalar paquetes obligatorios
+  # Instalar paquetes obligatorios
   if yay -Syu --needed noto-fonts-cjk noto-fonts-emoji noto-fonts \
-     flatpak util-linux pipewire gnome-keyring libsecret greetd cage wlr-randr dbus polkit libnewt \
+     flatpak util-linux pipewire gnome-keyring libsecret greetd cage wlr-randr dbus polkit libnewt playerctl \
      hyprland uwsm \
      noctalia-git noctalia-greeter-git \
      qt5-base qt6-base qt5ct qt6ct qt5-wayland qt6-wayland xsettingsd hyprland-qt-support \
      xdg-desktop-portal xdg-desktop-portal-hyprland xdg-desktop-portal-gtk xdg-user-dirs \
      xorg-xrandr \
      adw-gtk-theme \
-     kitty seahorse nautilus firefox && \
-     flatpak install org.gtk.Gtk3theme.adw-gtk3-dark org.gtk.Gtk3theme.adw-gtk3
+     kitty seahorse && \
+     flatpak install org.gtk.Gtk3theme.adw-gtk3-dark org.gtk.Gtk3theme.adw-gtk3 && \
+     systemctl --user enable gnome-keyring-daemon.service && \
+     systemctl --user start gnome-keyring-daemon.service
   then
     echo && gum style --foreground="#2baf03" --bold "Paquetes requeridos instalados con éxito!" && echo
   else
@@ -202,7 +204,7 @@ gum style --foreground="#D6C104" --bold "· Sobreescríbese o ficheiro ~/.config
 gum style --foreground="#D6C104" --bold "· Sobreescríbese o ficheiro ~/.config/code-flags.conf"
 gum style --foreground="#D6C104" --bold "· Sobreescríbese o ficheiro ~/.config/user-dirs.conf"
 gum style --foreground="#D6C104" --bold "· Sobreescríbese o ficheiro ~/.config/user-dirs.dirs"
-gum style --foreground="#D6C104" --bold "· Sobreescríbense os ficheiros ~/.wallpapers/Gallaecia XXXXXX.jpg"
+gum style --foreground="#D6C104" --bold "· Sobreescríbense os ficheiros ~/.wallpapers/Gallaecia - XXXXXX.jpg"
 gum style --foreground="#D6C104" --bold "· Sobreescríbese a carpeta ~/.config/bashrc/"
 gum style --foreground="#D6C104" --bold "· Sobreescríbese a carpeta ~/.config/gallaecia-dots/"
 gum style --foreground="#D6C104" --bold "· Sobreescríbese a carpeta ~/.config/xdg-desktop-portal/"
@@ -315,10 +317,512 @@ else
   gum style --foreground="#cc2508" --bold "Sen dotfiles... non hai dotfiles... curiosamente... Abortando instalación..." && exit 1
 fi
 
-systemctl --user enable gnome-keyring-daemon.service
-systemctl --user start gnome-keyring-daemon.service
-
 gum style "Xa temos os dotfiles instalados e configurados! Agora solo faltan as partes opcionales!" && echo
+
+# Instalar navegador
+gum style --foreground="#90CDFF" --bold "Instalar navegador web e configuralo" && echo
+gum style "É complicado hoxe en día usar un ordenador sin un navegador web. Instala o que elixas (ou ningún) de forma rápida dende aquí." && echo
+
+navegador=$(gum choose --header "Selecciona un navegador web ou preme Esc para non instalar ningún:" \
+  "Tor Browser" \
+  "Firefox" \
+  "Vivaldi" \
+  "Brave" \
+  "Opera" \
+  "LibreWolf" \
+  "Zen Browser"
+)
+
+case "$navegador" in
+  "Tor Browser")
+    yay -Syu --needed tor-browser-bin && \
+    sed -i 's|-- {{navegador}}|hl.bind(mainMod .. " + B", hl.dsp.exec_cmd("tor-browser"))|g' \
+      "$HOME/.config/hypr/hyprland-custom.lua"
+    ;;
+  "Firefox")
+    yay -Syu --needed firefox && \
+    sed -i 's|-- {{navegador}}|hl.bind(mainMod .. " + B", hl.dsp.exec_cmd("firefox"))|g' \
+      "$HOME/.config/hypr/hyprland-custom.lua"
+    ;;
+  "Vivaldi")
+    yay -Syu --needed vivaldi && \
+    sed -i 's|-- {{navegador}}|hl.bind(mainMod .. " + B", hl.dsp.exec_cmd("vivaldi-stable"))|g' \
+      "$HOME/.config/hypr/hyprland-custom.lua"
+    ;;
+  "Brave")
+    yay -Syu --needed brave-bin && \
+    sed -i 's|-- {{navegador}}|hl.bind(mainMod .. " + B", hl.dsp.exec_cmd("brave"))|g' \
+      "$HOME/.config/hypr/hyprland-custom.lua"
+    ;;
+  "Opera")
+    yay -Syu --needed opera && \
+    sed -i 's|-- {{navegador}}|hl.bind(mainMod .. " + B", hl.dsp.exec_cmd("opera"))|g' \
+      "$HOME/.config/hypr/hyprland-custom.lua"
+    ;;
+  "LibreWolf")
+    yay -Syu --needed librewolf-bin && \
+    sed -i 's|-- {{navegador}}|hl.bind(mainMod .. " + B", hl.dsp.exec_cmd("librewolf"))|g' \
+      "$HOME/.config/hypr/hyprland-custom.lua"
+    ;;
+  "Zen Browser")
+    yay -Syu --needed zen-browser-bin && \
+    sed -i 's|-- {{navegador}}|hl.bind(mainMod .. " + B", hl.dsp.exec_cmd("zen-browser"))|g' \
+      "$HOME/.config/hypr/hyprland-custom.lua"
+    ;;
+esac
+
+# Instalar explorador de arquivos
+gum style --foreground="#90CDFF" --bold "Instalar explorador de arquivos e configuralo" && echo
+gum style "Igual que sin navegador é complicado traballar, sin explorador de arquivos inda máis. Instala o que elixas (ou ningún) de forma rápida dende aquí." && echo
+
+explorador=$(gum choose --header "Selecciona un explorador de arquivos ou preme Esc para non instalar ningún:" \
+  "Nemo" \
+  "Dolphin" \
+  "Nautilus" \
+  "Thunar" \
+  "Yazi"
+)
+
+case "$explorador" in
+  "Nemo")
+    yay -Syu --needed nemo && \
+    sed -i 's|-- {{explorador}}|hl.bind(mainMod .. " + E", hl.dsp.exec_cmd("nemo"))|g' \
+      "$HOME/.config/hypr/hyprland-custom.lua"
+    ;;
+  "Dolphin")
+    yay -Syu --needed dolphin && \
+    sed -i 's|-- {{explorador}}|hl.bind(mainMod .. " + E", hl.dsp.exec_cmd("dolphin"))|g' \
+      "$HOME/.config/hypr/hyprland-custom.lua"
+    ;;
+  "Nautilus")
+    yay -Syu --needed nautilus && \
+    sed -i 's|-- {{explorador}}|hl.bind(mainMod .. " + E", hl.dsp.exec_cmd("nautilus"))|g' \
+      "$HOME/.config/hypr/hyprland-custom.lua"
+    ;;
+  "Thunar")
+    yay -Syu --needed thunar && \
+    sed -i 's|-- {{explorador}}|hl.bind(mainMod .. " + E", hl.dsp.exec_cmd("thunar"))|g' \
+      "$HOME/.config/hypr/hyprland-custom.lua"
+    ;;
+  "Yazi")
+    yay -Syu --needed yazi && \
+    sed -i 's|-- {{explorador}}|hl.bind(mainMod .. " + E", hl.dsp.exec_cmd("kitty -e yazi"))|g' \
+      "$HOME/.config/hypr/hyprland-custom.lua"
+    ;;
+esac
+
+# Instalar editor de texto
+gum style --foreground="#90CDFF" --bold "Instalar editor de texto/código e configuralo" && echo
+gum style "Un editor de texto/código é casi imprescindible nun equipo. Instala o que elixas (ou ningún) de forma rápida dende aquí." && echo
+
+editor_texto=$(gum choose --header "Selecciona un editor de texto/código ou preme Esc para non instalar ningún:" \
+  "VS Code" \
+  "VSCodium" \
+  "Neovim" \
+  "Vim" \
+  "Zed" \
+  "Kate" \
+  "Sublime Text"
+)
+
+case "$editor_texto" in
+  "VS Code")
+    yay -Syu --needed visual-studio-code-bin && \
+    sed -i 's|-- {{editor_texto}}|hl.bind(mainMod .. " + C", hl.dsp.exec_cmd("code"))|g' \
+      "$HOME/.config/hypr/hyprland-custom.lua"
+    ;;
+  "VSCodium")
+    yay -Syu --needed vscodium-bin && \
+    sed -i 's|-- {{editor_texto}}|hl.bind(mainMod .. " + C", hl.dsp.exec_cmd("codium"))|g' \
+      "$HOME/.config/hypr/hyprland-custom.lua"
+    ;;
+  "Neovim")
+    yay -Syu --needed neovim && \
+    sed -i 's|-- {{editor_texto}}|hl.bind(mainMod .. " + C", hl.dsp.exec_cmd("kitty -e nvim"))|g' \
+      "$HOME/.config/hypr/hyprland-custom.lua"
+    ;;
+  "Vim")
+    yay -Syu --needed vim && \
+    sed -i 's|-- {{editor_texto}}|hl.bind(mainMod .. " + C", hl.dsp.exec_cmd("kitty -e vim"))|g' \
+      "$HOME/.config/hypr/hyprland-custom.lua"
+    ;;
+  "Zed")
+    yay -Syu --needed zed && \
+    sed -i 's|-- {{editor_texto}}|hl.bind(mainMod .. " + C", hl.dsp.exec_cmd("zed"))|g' \
+      "$HOME/.config/hypr/hyprland-custom.lua"
+    ;;
+  "Kate")
+    yay -Syu --needed kate && \
+    sed -i 's|-- {{editor_texto}}|hl.bind(mainMod .. " + C", hl.dsp.exec_cmd("kate"))|g' \
+      "$HOME/.config/hypr/hyprland-custom.lua"
+    ;;
+  "Sublime Text")
+    yay -Syu --needed sublime-text-4 && \
+    sed -i 's|-- {{editor_texto}}|hl.bind(mainMod .. " + C", hl.dsp.exec_cmd("subl"))|g' \
+      "$HOME/.config/hypr/hyprland-custom.lua"
+    ;;
+esac
+
+# Instalar visualizador de imaxes
+gum style --foreground="#90CDFF" --bold "Instalar visualizador de imaxes e configuralo" && echo
+gum style "Un visualizador de imaxes permite abrir e consultar imaxes de forma rápida e cómoda. Instala o que elixas (ou ningún) de forma rápida dende aquí." && echo
+
+visualizador_imaxes=$(gum choose --header "Selecciona un visualizador de imaxes ou preme Esc para non instalar ningún:" \
+  "Gwenview" \
+  "Loupe" \
+  "imv" \
+  "qimgv" \
+  "Ristretto"
+)
+
+case "$visualizador_imaxes" in
+  "Gwenview")
+    yay -Syu --needed gwenview
+    ;;
+  "Loupe")
+    yay -Syu --needed loupe
+    ;;
+  "imv")
+    yay -Syu --needed imv
+    ;;
+  "qimgv")
+    yay -Syu --needed qimgv
+    ;;
+  "Ristretto")
+    yay -Syu --needed ristretto
+    ;;
+esac
+
+# Instalar reprodutor de vídeo
+gum style --foreground="#90CDFF" --bold "Instalar reprodutor de vídeo e configuralo" && echo
+gum style "Un reprodutor de vídeo permite reproducir contido multimedia de forma rápida e cómoda. Instala o que elixas (ou ningún) de forma rápida dende aquí." && echo
+
+reprodutor_video=$(gum choose --header "Selecciona un reprodutor de vídeo ou preme Esc para non instalar ningún:" \
+  "VLC" \
+  "MPV" \
+  "Haruna" \
+  "Celluloid" \
+  "SMPlayer"
+)
+
+case "$reprodutor_video" in
+  "VLC")
+    yay -Syu --needed vlc
+    ;;
+  "MPV")
+    yay -Syu --needed mpv
+    ;;
+  "Haruna")
+    yay -Syu --needed haruna
+    ;;
+  "Celluloid")
+    yay -Syu --needed celluloid
+    ;;
+  "SMPlayer")
+    yay -Syu --needed smplayer
+    ;;
+esac
+
+# Instalar visor de PDF
+gum style --foreground="#90CDFF" --bold "Instalar visor de PDF" && echo
+gum style "Un visor de PDF permite abrir e consultar documentos PDF de forma rápida e cómoda. Instala o que elixas (ou ningún) de forma rápida dende aquí." && echo
+
+visor_pdf=$(gum choose --header "Selecciona un visor de PDF ou preme Esc para non instalar ningún:" \
+  "Okular" \
+  "Papers" \
+  "Zathura" \
+  "MuPDF" \
+  "Xreader"
+)
+
+case "$visor_pdf" in
+  "Okular")
+    yay -Syu --needed okular
+    ;;
+  "Papers")
+    yay -Syu --needed papers
+    ;;
+  "Zathura")
+    yay -Syu --needed zathura zathura-pdf-mupdf
+    ;;
+  "MuPDF")
+    yay -Syu --needed mupdf
+    ;;
+  "Xreader")
+    yay -Syu --needed xreader
+    ;;
+esac
+
+# Instalar xestor de arquivos comprimidos
+gum style --foreground="#90CDFF" --bold "Instalar xestor de arquivos comprimidos" && echo
+gum style "Un xestor de arquivos comprimidos permite crear, abrir e extraer arquivos comprimidos mediante unha interface gráfica. Instala o que elixas (ou ningún) de forma rápida dende aquí." && echo
+
+xestor_comprimidos=$(gum choose --header "Selecciona un xestor de arquivos comprimidos ou preme Esc para non instalar ningún:" \
+  "File Roller" \
+  "Ark" \
+  "Xarchiver" \
+  "Engrampa" \
+  "PeaZip"
+)
+
+case "$xestor_comprimidos" in
+  "File Roller")
+    yay -Syu --needed file-roller
+    ;;
+  "Ark")
+    yay -Syu --needed ark
+    ;;
+  "Xarchiver")
+    yay -Syu --needed xarchiver
+    ;;
+  "Engrampa")
+    yay -Syu --needed engrampa
+    ;;
+  "PeaZip")
+    yay -Syu --needed peazip-qt-bin
+    ;;
+esac
+
+# Instalar xestor de discos e particións
+gum style --foreground="#90CDFF" --bold "Instalar xestor de discos e particións" && echo
+gum style "Un xestor de discos e particións permite administrar unidades, particións e sistemas de arquivos mediante unha interface gráfica. Instala o que elixas (ou ningún) de forma rápida dende aquí." && echo
+
+xestor_discos=$(gum choose --header "Selecciona un xestor de discos e particións ou preme Esc para non instalar ningún:" \
+  "GNOME Disks" \
+  "GParted" \
+  "KDE Partition Manager"
+)
+
+case "$xestor_discos" in
+  "GNOME Disks")
+    yay -Syu --needed gnome-disk-utility
+    ;;
+  "GParted")
+    yay -Syu --needed gparted
+    ;;
+  "KDE Partition Manager")
+    yay -Syu --needed partitionmanager
+    ;;
+esac
+
+# Instalar calculadora
+gum style --foreground="#90CDFF" --bold "Instalar calculadora" && echo
+gum style "Unha calculadora permite realizar cálculos básicos, científicos e avanzados directamente dende o escritorio. Instala a que elixas (ou ningunha) de forma rápida dende aquí." && echo
+
+calculadora=$(gum choose --header "Selecciona unha calculadora ou preme Esc para non instalar ningunha:" \
+  "GNOME Calculator" \
+  "KCalc" \
+  "Qalculate!" \
+  "SpeedCrunch" \
+  "Galculator"
+)
+
+case "$calculadora" in
+  "GNOME Calculator")
+    yay -Syu --needed gnome-calculator
+    ;;
+  "KCalc")
+    yay -Syu --needed kcalc
+    ;;
+  "Qalculate!")
+    yay -Syu --needed qalculate-gtk
+    ;;
+  "SpeedCrunch")
+    yay -Syu --needed speedcrunch
+    ;;
+  "Galculator")
+    yay -Syu --needed galculator
+    ;;
+esac
+
+# Instalar cliente de correo
+gum style --foreground="#90CDFF" --bold "Instalar cliente de correo" && echo
+gum style "Un cliente de correo permite xestionar as túas contas e mensaxes directamente dende o escritorio. Instala o que elixas (ou ningún) de forma rápida dende aquí." && echo
+
+cliente_correo=$(gum choose --header "Selecciona un cliente de correo ou preme Esc para non instalar ningún:" \
+  "Thunderbird" \
+  "Betterbird" \
+  "Geary" \
+  "Evolution"
+)
+
+case "$cliente_correo" in
+  "Thunderbird")
+    yay -Syu --needed thunderbird
+    ;;
+  "Betterbird")
+    yay -Syu --needed betterbird-bin
+    ;;
+  "Geary")
+    yay -Syu --needed geary
+    ;;
+  "Evolution")
+    yay -Syu --needed evolution
+    ;;
+esac
+
+# Instalar suite ofimática
+gum style --foreground="#90CDFF" --bold "Instalar suite ofimática" && echo
+gum style "Unha suite ofimática permite crear e editar documentos, follas de cálculo e presentacións. Instala a que elixas (ou ningunha) de forma rápida dende aquí." && echo
+
+suite_ofimatica=$(gum choose --header "Selecciona unha suite ofimática ou preme Esc para non instalar ningunha:" \
+  "LibreOffice" \
+  "ONLYOFFICE" \
+  "Calligra"
+)
+
+case "$suite_ofimatica" in
+  "LibreOffice")
+    yay -Syu --needed libreoffice-fresh
+    ;;
+  "ONLYOFFICE")
+    yay -Syu --needed onlyoffice-bin
+    ;;
+  "Calligra")
+    yay -Syu --needed calligra
+    ;;
+esac
+
+# Instalar aplicación de notas
+gum style --foreground="#90CDFF" --bold "Instalar aplicación de notas" && echo
+gum style "Unha aplicación de notas permite organizar ideas, apuntes e documentación persoal. Instala a que elixas (ou ningunha) de forma rápida dende aquí." && echo
+
+app_notas=$(gum choose --header "Selecciona unha aplicación de notas ou preme Esc para non instalar ningunha:" \
+  "Obsidian" \
+  "Joplin" \
+  "MarkText" \
+  "Apostrophe"
+)
+
+case "$app_notas" in
+  "Obsidian")
+    yay -Syu --needed obsidian
+    ;;
+  "Joplin")
+    yay -Syu --needed joplin-desktop
+    ;;
+  "MarkText")
+    yay -Syu --needed marktext-bin
+    ;;
+  "Apostrophe")
+    yay -Syu --needed apostrophe
+    ;;
+esac
+
+# Instalar xestor de contrasinais
+gum style --foreground="#90CDFF" --bold "Instalar xestor de contrasinais" && echo
+gum style "Un xestor de contrasinais permite gardar e organizar credenciais de forma segura. Instala o que elixas (ou ningún) de forma rápida dende aquí." && echo
+
+xestor_contrasinais=$(gum choose --header "Selecciona un xestor de contrasinais ou preme Esc para non instalar ningún:" \
+  "KeePassXC" \
+  "Bitwarden" \
+  "1Password"
+)
+
+case "$xestor_contrasinais" in
+  "KeePassXC")
+    yay -Syu --needed keepassxc
+    ;;
+  "Bitwarden")
+    yay -Syu --needed bitwarden
+    ;;
+  "1Password")
+    yay -Syu --needed 1password
+    ;;
+esac
+
+# Instalar cliente Torrent
+gum style --foreground="#90CDFF" --bold "Instalar cliente Torrent" && echo
+gum style "Un cliente Torrent permite descargar e compartir arquivos mediante o protocolo BitTorrent. Instala o que elixas (ou ningún) de forma rápida dende aquí." && echo
+
+cliente_torrent=$(gum choose --header "Selecciona un cliente Torrent ou preme Esc para non instalar ningún:" \
+  "qBittorrent" \
+  "Transmission" \
+  "Deluge" \
+  "Fragments"
+)
+
+case "$cliente_torrent" in
+  "qBittorrent")
+    yay -Syu --needed qbittorrent
+    ;;
+  "Transmission")
+    yay -Syu --needed transmission-gtk
+    ;;
+  "Deluge")
+    yay -Syu --needed deluge
+    ;;
+  "Fragments")
+    yay -Syu --needed fragments
+    ;;
+esac
+
+# Instalar aplicacións populares
+gum style --foreground="#90CDFF" --bold "Instalar outras aplicacións populares" && echo
+gum style "Selecciona outras aplicacións populares que queiras instalar no teu equipo. Podes seleccionar varias opcións ou non instalar ningunha." && echo
+
+apps_populares=$(gum choose --no-limit --header "Selecciona as aplicacións que queiras instalar ou preme Esc para non instalar ningunha:" \
+  "Discord" \
+  "Vesktop" \
+  "OBS Studio" \
+  "Krita" \
+  "GIMP" \
+  "Inkscape" \
+  "Blender" \
+  "Kdenlive" \
+  "Steam (Pacman)" \
+  "Steam (Flatpak)" \
+  "Spotify"
+)
+
+pkgs_apps_populares=()
+flatpaks_apps_populares=()
+
+while IFS= read -r app; do
+  case "$app" in
+    "Discord")
+      pkgs_apps_populares+=("discord")
+      ;;
+    "Vesktop")
+      pkgs_apps_populares+=("vesktop")
+      ;;
+    "OBS Studio")
+      pkgs_apps_populares+=("obs-studio")
+      ;;
+    "Krita")
+      pkgs_apps_populares+=("krita")
+      ;;
+    "GIMP")
+      pkgs_apps_populares+=("gimp")
+      ;;
+    "Inkscape")
+      pkgs_apps_populares+=("inkscape")
+      ;;
+    "Blender")
+      pkgs_apps_populares+=("blender")
+      ;;
+    "Kdenlive")
+      pkgs_apps_populares+=("kdenlive")
+      ;;
+    "Steam (Pacman)")
+      pkgs_apps_populares+=("steam")
+      ;;
+    "Steam (Flatpak)")
+      flatpaks_apps_populares+=("com.valvesoftware.Steam")
+      ;;
+    "Spotify")
+      pkgs_apps_populares+=("spotify")
+      ;;
+  esac
+done <<< "$apps_populares"
+
+if [ ${#pkgs_apps_populares[@]} -gt 0 ]; then
+  yay -Syu --needed "${pkgs_apps_populares[@]}"
+fi
+
+if [ ${#flatpaks_apps_populares[@]} -gt 0 ]; then
+  flatpak install -y flathub "${flatpaks_apps_populares[@]}"
+fi
 
 # Instalar yt-dlp?
 gum style --foreground="#90CDFF" --bold "Instalar yt-dlp e configuralo" && echo
@@ -339,4 +843,13 @@ if gum confirm --affirmative="Si" --negative="No" "Instalar yt-dlp?"; then
   fi
 fi
 
+# Xerar MIME types
+gum style --foreground="#90CDFF" --bold "Xerar os MIME types rexistrados" && echo
+gum style "Os MIME types son os que lle indican ao sistema que aplicación por defecto usa cada arquivo, por exemplo, que aplicación abre os .mp4." && echo
+gum style "Isto engadirá os mimes que necesitan as aplcacións que instalaches en ~/.config/mimeapps.list para que logo poidas editala manualmente e asociar as apps que queiras a cada un." && echo
 
+if "$HOME/.config/gallaecia-dots/scripts/mime-merge.sh"; then
+  echo && gum style --foreground="#2baf03" --bold "MIME types agregados con éxito!" && echo
+else
+  echo && gum style --foreground="#cc2508" --bold "Algo fallou ao xerar os novos MIME types!" && echo
+fi
