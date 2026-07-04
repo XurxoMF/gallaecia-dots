@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Versión do instalador e dot dotfiles
-version="2.1.0-04-07-2026"
+version="2.1.1-05-07-2026"
 
 # Limpiamos o terminal
 clear

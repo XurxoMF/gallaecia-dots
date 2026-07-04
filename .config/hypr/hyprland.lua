@@ -213,7 +213,7 @@ hl.bind(mainMod .. " + V",     hl.dsp.exec_cmd("noctalia msg panel-toggle clipbo
 
 -- Screenshot keybinds
 hl.bind("Print",          hl.dsp.exec_cmd("noctalia msg screenshot-region"))
-hl.bind("SHIFT + Print",  hl.dsp.exec_cmd("noctalia msg screenshot-fullscreen allw"))
+hl.bind("SHIFT + Print",  hl.dsp.exec_cmd("noctalia msg screenshot-fullscreen all"))
 hl.bind("ALT + Print",    hl.dsp.exec_cmd("noctalia msg screenshot-fullscreen"))
 
 -- Move focus with mainMod + arrow keys

@@ -70,3 +70,22 @@ rm -rf "$HOME/.config/spotdl" && cp -r "$HOME/.dotfiles/optional/.config/spotdl"
 > ```bash
 > echo "2.1.0-04-07-2026 | Actualizado o $(date +%d-%m-%Y)" > "$HOME/.local/share/gallaecia-dots/version"
 > ```
+
+## 2.1.1-05-07-2026
+
+Pequeno arreglo dun bug cun keybind de hyprland.
+
+### Modificado ~/.config/hypr/hyprland.lua
+
+```bash
+hl.bind("SHIFT + Print",  hl.dsp.exec_cmd("noctalia msg screenshot-fullscreen allw"))
+                                                                                 |
+                                                                          Eliminada esta w
+```
+
+> [!TIP]  
+> Actualiza a versión e data de actualización dos dotfiles con este comando:
+>
+> ```bash
+> echo "2.1.1-05-07-2026 | Actualizado o $(date +%d-%m-%Y)" > "$HOME/.local/share/gallaecia-dots/version"
+> ```
