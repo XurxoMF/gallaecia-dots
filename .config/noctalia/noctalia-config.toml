@@ -48,7 +48,7 @@ enabled = []
 
 [shell]
 font_family = "Adwaita Sans"
-lang = "es"
+lang = "gl-ES"
 launch_apps_as_systemd_services = true
 polkit_agent = true
 settings_show_advanced = true
