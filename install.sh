@@ -507,7 +507,7 @@ reprodutor_video=$(gum choose --header "Selecciona un reprodutor de vídeo ou pr
 
 case "$reprodutor_video" in
   "VLC")
-    yay -Syu --needed vlc
+    yay -Syu --needed vlc vlc-plugins-all
     ;;
   "MPV")
     yay -Syu --needed mpv
