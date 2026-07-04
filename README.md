@@ -105,7 +105,7 @@ Gallaecia Dots non intenta construír o sistema por ti.
 Executa:
 
 ```bash
-bash <(curl -fsSL https://github.com/XurxoMF/gallaecia-dots/releases/latest/download/install.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/XurxoMF/gallaecia-dots/main/install.sh)
 ```
 
 O instalador guiarate paso a paso mediante unha interface interactiva.
