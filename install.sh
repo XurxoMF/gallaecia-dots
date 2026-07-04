@@ -424,7 +424,7 @@ case "$explorador" in
       "$HOME/.config/hypr/hyprland.lua"
     ;;
   "Yazi")
-    yay -Syu --needed yazi && \
+    yay -Syu --needed ttf-noto-nerd yazi && \
     sed -i 's|-- {{explorador}}|hl.bind(mainMod .. " + E", hl.dsp.exec_cmd("kitty -e yazi"))|g' \
       "$HOME/.config/hypr/hyprland.lua"
     ;;
