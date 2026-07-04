@@ -1,6 +1,3 @@
--- Import Noctalia Color templates
-require("noctalia").apply_theme()
-
 -------------------
 ---- MONITORES ----
 -------------------
@@ -301,3 +298,10 @@ hl.window_rule({
     move  = "20 monitor_h-120",
     float = true,
 })
+
+------------------
+---- REQUIRES ----
+------------------
+
+-- Import Noctalia Color templates
+require("noctalia").apply_theme()
