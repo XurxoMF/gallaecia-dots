@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Versión do instalador e dot dotfiles
-version="2.1.1-05-07-2026"
+version="2.2.0-06-07-2026"
 
 # Limpiamos o terminal
 clear
@@ -156,19 +156,20 @@ if gum confirm --affirmative="Si" --negative="No" "Instalar YAY? (Obligatorio)";
   fi
 
   # Instalar paquetes obligatorios
-  if yay -Syu --needed noto-fonts-cjk noto-fonts-emoji noto-fonts \
+  if yay -Syu --needed noto-fonts-cjk noto-fonts-emoji noto-fonts papirus-icon-theme breeze breeze-icons \
      flatpak util-linux pipewire gnome-keyring libsecret greetd cage wlr-randr dbus polkit libnewt ddcutil power-profiles-daemon \
      python pip pipx ffmpeg \
      hyprland uwsm \
      noctalia-git noctalia-greeter-git \
-     qt5-base qt6-base qt5ct qt6ct qt5-wayland qt6-wayland xsettingsd hyprland-qt-support \
-     xdg-utils xdg-desktop-portal xdg-desktop-portal-hyprland xdg-desktop-portal-gtk xdg-user-dirs \
+     qt5-base qt6-base qt5ct qt6ct qt5-wayland qt6-wayland xsettingsd hyprland-qt-support kservice \
+     xdg-utils xdg-desktop-portal xdg-desktop-portal-hyprland xdg-desktop-portal-gtk xdg-user-dirs archlinux-xdg-menu \
      xorg-xrandr \
      adw-gtk-theme \
      kitty seahorse && \
      flatpak install org.gtk.Gtk3theme.adw-gtk3-dark org.gtk.Gtk3theme.adw-gtk3 && \
      systemctl --user enable gnome-keyring-daemon.service && \
-     systemctl --user start gnome-keyring-daemon.service
+     systemctl --user start gnome-keyring-daemon.service && \
+     XDG_MENU_PREFIX=arch- kbuildsycoca6 --noincremental
   then
     echo && gum style --foreground="#2baf03" --bold "Paquetes requeridos instalados con éxito!" && echo
   else
@@ -206,7 +207,6 @@ gum style --foreground="#D6C104" --bold "Isto eliminará e modificará multiples
 gum style --foreground="#D6C104" --bold "· Sobreescríbese o ficheiro /etc/greetd/config.toml"
 gum style --foreground="#D6C104" --bold "· Sobreescríbese o ficheiro ~/.bashrc"
 gum style --foreground="#D6C104" --bold "· Sobreescríbese o ficheiro ~/.config/mimeapps.list"
-gum style --foreground="#D6C104" --bold "· Sobreescríbese o ficheiro ~/.config/code-flags.conf"
 gum style --foreground="#D6C104" --bold "· Sobreescríbese o ficheiro ~/.config/user-dirs.conf"
 gum style --foreground="#D6C104" --bold "· Sobreescríbese o ficheiro ~/.config/user-dirs.dirs"
 gum style --foreground="#D6C104" --bold "· Sobreescríbense os ficheiros ~/.wallpapers/Gallaecia - XXXXXX.jpg"
@@ -251,15 +251,6 @@ if gum confirm --affirmative="Si" --negative="No" "Instalar dotfiles? (Obligator
     echo && gum style --foreground="#cc2508" --bold "Algo fallou ao instalar as configs propias de Gallaecia Dots! Abortando instalación..." && exit 1
   fi
 
-  # Instalar MIME types
-  if rm -rf "$HOME/.config/mimeapps.list" && \
-     cp -r "$HOME/.dotfiles/.config/mimeapps.list" "$HOME/.config/mimeapps.list"
-  then
-    echo && gum style --foreground="#2baf03" --bold "MIME types instalados con éxito!" && echo
-  else
-    echo && gum style --foreground="#cc2508" --bold "Algo fallou ao instalar os MIME types! Abortando instalación..." && exit 1
-  fi
-
   # Instalar bashrc
   if rm -rf "$HOME/.bashrc" "$HOME/.config/bashrc" && \
      cp -r "$HOME/.dotfiles/.bashrc" "$HOME/.bashrc" && \
@@ -290,16 +281,19 @@ if gum confirm --affirmative="Si" --negative="No" "Instalar dotfiles? (Obligator
   fi
 
   # Configuración de GTK3 e GTK4
-  if rm -rf "$HOME/.config/gtk-3.0" "$HOME/.config/gtk-4.0"; then
+  if rm -rf "$HOME/.config/gtk-3.0" "$HOME/.config/gtk-4.0"&& \
+     cp -r "$HOME/.dotfiles/.config/gtk-3.0d" "$HOME/.config/gtk-3.0"
+  then
     echo && gum style --foreground="#2baf03" --bold "GTK3 e GTK4 configurados con éxito!" && echo
   else
     echo && gum style --foreground="#cc2508" --bold "Algo fallou ao configurar GTK3 e GTK4! Abortando instalación..." && exit 1
   fi
 
-  # Configuración de QT5 e QT6
-  if rm -rf "$HOME/.config/qt6ct" "$HOME/.config/qt5ct" && \
+  # Configuración de QT5, QT6 e KDE
+  if rm -rf "$HOME/.config/qt6ct" "$HOME/.config/qt5ct" "$HOME/.config/kdeglobals" && \
      cp -r "$HOME/.dotfiles/.config/qt6ct" "$HOME/.config/qt6ct" && \
-     cp -r "$HOME/.dotfiles/.config/qt5ct" "$HOME/.config/qt5ct"
+     cp -r "$HOME/.dotfiles/.config/qt5ct" "$HOME/.config/qt5ct" && \
+     cp "$HOME/.dotfiles/.config/kdeglobals" "$HOME/.config/kdeglobals"
   then
     echo && gum style --foreground="#2baf03" --bold "QT5 e QT6 configurados con éxito!" && echo
   else
@@ -395,22 +389,27 @@ gum style --foreground="#90CDFF" --bold "Instalar explorador de arquivos e confi
 gum style "Igual que sin navegador é complicado traballar, sin explorador de arquivos inda máis. Instala o que elixas (ou ningún) de forma rápida dende aquí." && echo
 
 explorador=$(gum choose --header "Selecciona un explorador de arquivos ou preme Esc para non instalar ningún:" \
-  "Nemo" \
   "Dolphin" \
+  "Nemo" \
   "Nautilus" \
   "Thunar" \
   "Yazi"
 )
 
 case "$explorador" in
-  "Nemo")
-    yay -Syu --needed nemo && \
-    sed -i 's|-- {{explorador}}|hl.bind(mainMod .. " + E", hl.dsp.exec_cmd("nemo"))|g' \
-      "$HOME/.config/hypr/hyprland.lua"
-    ;;
   "Dolphin")
     yay -Syu --needed dolphin && \
     sed -i 's|-- {{explorador}}|hl.bind(mainMod .. " + E", hl.dsp.exec_cmd("dolphin"))|g' \
+      "$HOME/.config/hypr/hyprland.lua" && \
+    rm -rf "$HOME/.config/dophinrc" "$HOME/.config/baloofileinformationrc" "$HOME/.config/kservicemenurc" "$HOME/.local/share/kxmlgui5/dolphin"  && \
+    cp "$HOME/.dotfiles/optional/.config/dolphinrc" "$HOME/.config/dophinrc" && \
+    cp "$HOME/.dotfiles/optional/.config/baloofileinformationrc" "$HOME/.config/baloofileinformationrc" && \
+    cp "$HOME/.dotfiles/optional/.config/kservicemenurc" "$HOME/.config/kservicemenurc" && \
+    cp "$HOME/.dotfiles/optional/.local/share/kxmlgui5/dolphin" "$HOME/.local/share/kxmlgui5/dolphin"
+    ;;
+  "Nemo")
+    yay -Syu --needed nemo && \
+    sed -i 's|-- {{explorador}}|hl.bind(mainMod .. " + E", hl.dsp.exec_cmd("nemo"))|g' \
       "$HOME/.config/hypr/hyprland.lua"
     ;;
   "Nautilus")
@@ -448,7 +447,9 @@ case "$editor_texto" in
   "VS Code")
     yay -Syu --needed visual-studio-code-bin && \
     sed -i 's|-- {{editor_texto}}|hl.bind(mainMod .. " + C", hl.dsp.exec_cmd("code"))|g' \
-      "$HOME/.config/hypr/hyprland.lua"
+      "$HOME/.config/hypr/hyprland.lua" && \
+    rm -rf "$HOME/.config/code-flags.conf"  && \
+    cp "$HOME/.dotfiles/optional/.config/code-flags.conf" "$HOME/.config/code-flags.conf"
     ;;
   "VSCodium")
     yay -Syu --needed vscodium-bin && \
@@ -487,19 +488,19 @@ gum style --foreground="#90CDFF" --bold "Instalar visualizador de imaxes e confi
 gum style "Un visualizador de imaxes permite abrir e consultar imaxes de forma rápida e cómoda. Instala o que elixas (ou ningún) de forma rápida dende aquí." && echo
 
 visualizador_imaxes=$(gum choose --header "Selecciona un visualizador de imaxes ou preme Esc para non instalar ningún:" \
-  "Gwenview" \
   "Loupe" \
+  "Gwenview" \
   "imv" \
   "qimgv" \
   "Ristretto"
 )
 
 case "$visualizador_imaxes" in
-  "Gwenview")
-    yay -Syu --needed gwenview
-    ;;
   "Loupe")
     yay -Syu --needed loupe
+    ;;
+  "Gwenview")
+    yay -Syu --needed gwenview
     ;;
   "imv")
     yay -Syu --needed imv
@@ -547,14 +548,17 @@ gum style --foreground="#90CDFF" --bold "Instalar reprodutor de música e config
 gum style "Un reprodutor de música permite escoitar e organizar a túa biblioteca musical de forma rápida e cómoda. Instala o que elixas (ou ningún) de forma rápida dende aquí." && echo
 
 reprodutor_musica=$(gum choose --header "Selecciona un reprodutor de música ou preme Esc para non instalar ningún:" \
+  "Amberol" \
   "Tauon Music Box" \
   "Strawberry" \
   "Lollypop" \
-  "Audacious" \
-  "Amberol"
+  "Audacious"
 )
 
 case "$reprodutor_musica" in
+  "Amberol")
+    yay -Syu --needed amberol
+    ;;
   "Tauon Music Box")
     yay -Syu --needed tauon-music-box
     ;;
@@ -566,9 +570,6 @@ case "$reprodutor_musica" in
     ;;
   "Audacious")
     yay -Syu --needed audacious
-    ;;
-  "Amberol")
-    yay -Syu --needed amberol
     ;;
 esac
 

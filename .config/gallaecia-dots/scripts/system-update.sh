@@ -24,11 +24,9 @@ if gum confirm --affirmative="Si" --negative="No" "Actualizar Flatpak?"; then
   printf "\n:: Actualizado Flatpak!\n\n"
 fi
 
-# Actualizar MIME types?
-if gum confirm --affirmative="Si" --negative="No" "Actualizar MIME types?"; then
-  printf ":: Actualizando MIME types...\n"
-  "$HOME/.config/gallaecia-dots/scripts/mime-merge.sh"
-  printf "\n:: Actualizados os MIME types!\n\n"
-fi
+kbuildsycoca6 --noincremental
 
-read -rsn 1 -p ":: Actualización completada! Presiona [ENTER] para cerrar..."
+# Reiniciar
+if gum confirm --affirmative="Si" --negative="No" "Reinciar sistema? (Recomendado si se actualizaron paquetes)"; then
+  systemctl reboot
+fi

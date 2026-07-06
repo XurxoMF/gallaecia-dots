@@ -10,13 +10,13 @@ hl.monitor({ output = "", mode = "preffered", position = "auto", scale = "auto" 
 
 hl.on("hyprland.start", function ()
     -- Set D-Bus and systemd ENVs
-    hl.exec_cmd("dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=hyprland")
+    hl.exec_cmd("dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_MENU_PREFIX=arch- XDG_CURRENT_DESKTOP=hyprland")
 
     -- Start xsettingsd
     hl.exec_cmd("xsettingsd")
 
     -- Set GTK themes
-    hl.exec_cmd("gsettings set org.gnome.desktop.interface gtk-theme 'adw-gtk3'")
+    hl.exec_cmd("gsettings set org.gnome.desktop.interface icon-theme 'Papirus-Dark'")
 
     -- Start Noctalia
     hl.exec_cmd("noctalia")
@@ -41,6 +41,9 @@ hl.env("QT_QPA_PLATFORMTHEME", "qt6ct")
 hl.env("QT_QPA_PLATFORM", "wayland;xcb")
 hl.env("QT_WAYLAND_DISABLE_WINDOWDECORATION", "1")
 hl.env("QT_AUTO_SCREEN_SCALE_FACTOR", "1")
+
+-- KDE
+hl.env("XDG_MENU_PREFIX", "arch-")
 
 -- Mozilla
 hl.env("MOZ_ENABLE_WAYLAND", "1")

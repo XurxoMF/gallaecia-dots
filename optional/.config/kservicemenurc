@@ -1,0 +1,8 @@
+[Show]
+forgetfileitemaction=false
+hidefileitemaction=false
+kactivitymanagerd_fileitem_linking_plugin=false
+movetonewfolderitemaction=true
+setfoldericonitemaction=true
+sharefileitemaction=true
+tagsfileitemaction=true

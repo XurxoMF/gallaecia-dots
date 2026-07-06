@@ -1,0 +1,19 @@
+[General]
+ColorScheme=Noctalia
+Name=noctalia
+
+[Icons]
+Theme=Papirus-Dark
+
+[KDE]
+ShowDeleteCommand=true
+contrast=4
+widgetStyle=Breeze
+
+[PreviewSettings]
+EnableRemoteFolderThumbnail=false
+MaximumRemoteSize=0
+
+[KFileDialog Settings]
+Maximum of recent URLs=0
+Maximum of recent files=0
