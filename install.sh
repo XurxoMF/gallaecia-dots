@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-# Versión do instalador e dot dotfiles
-version="2.2.0-06-07-2026"
-
 # Limpiamos o terminal
 clear
 
@@ -163,7 +160,7 @@ if gum confirm --affirmative="Si" --negative="No" "Instalar YAY? (Obligatorio)";
      noctalia-git noctalia-greeter-git \
      qt5-base qt6-base qt5ct qt6ct qt5-wayland qt6-wayland xsettingsd hyprland-qt-support kservice \
      xdg-utils xdg-desktop-portal xdg-desktop-portal-hyprland xdg-desktop-portal-gtk xdg-user-dirs archlinux-xdg-menu \
-     xorg-xrandr \
+     xorg-xrandr xorg-xwayland \
      adw-gtk-theme \
      kitty seahorse && \
      flatpak install org.gtk.Gtk3theme.adw-gtk3-dark org.gtk.Gtk3theme.adw-gtk3 && \
@@ -919,9 +916,6 @@ gum style "Recoméndase reiniciar o sistema para aplicar correctamente todos os 
 if gum confirm --affirmative="Si" --negative="No" "Reiniciar o sistema agora?"; then
   systemctl reboot
 fi
-
-# Gardar versión instalada para futuros usos
-mkdir -p "$HOME/.local/share/gallaecia-dots" && echo "$version | Instalado o $(date +%d-%m-%Y)" > "$HOME/.local/share/gallaecia-dots/version"
 
 # Reiniciar o sistema?
 gum style --foreground="#90CDFF" --bold "Reiniciar o sistema" && echo

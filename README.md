@@ -134,12 +134,6 @@ Instálalo. Personalízalo. Rómpeo. Arránxao.
 
 **É o teu sistema.**
 
-O que si se proporcionará entre versións é un **changelog** para que poidas manterte ao día cos cambios realizados si así o desexas.
-
-Nestes changelogs atoparás as aplicacións novas ou eliminadas, cambios nos arquivos de configuración, novos arquivos como fondos de pantalla, bashrc...
-
-Ti serás responsable de agregar estes cambios manualmente.
-
 ## ⚠️ Estado do proxecto
 
 Gallaecia Dots é un proxecto persoal en desenvolvemento.

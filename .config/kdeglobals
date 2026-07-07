@@ -1,4 +1,5 @@
 [General]
+TerminalApplication=kitty
 ColorScheme=Noctalia
 Name=noctalia
 

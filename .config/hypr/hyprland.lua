@@ -9,8 +9,8 @@ hl.monitor({ output = "", mode = "preffered", position = "auto", scale = "auto" 
 --------------------
 
 hl.on("hyprland.start", function ()
-    -- Set D-Bus and systemd ENVs
-    hl.exec_cmd("dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_MENU_PREFIX=arch- XDG_CURRENT_DESKTOP=hyprland")
+    -- dbus envs
+    hl.exec_cmd("dbus-update-activation-environment --all WAYLAND_DISPLAY XDG_CURRENT_DESKTOP")
 
     -- Start xsettingsd
     hl.exec_cmd("xsettingsd")
@@ -25,6 +25,10 @@ end)
 ------------------------------
 ---- VARIABLES DE ENTORNO ----
 ------------------------------
+
+-- NVIDIA
+hl.env("LIBVA_DRIVER_NAME", "nvidia")
+hl.env("__GLX_VENDOR_LIBRARY_NAME", "nvidia")
 
 -- Editor
 hl.env("EDITOR", "code")
@@ -70,7 +74,6 @@ hl.env("SDL_VIDEODRIVER", "wayland")
 hl.env("XCURSOR_SIZE", "24")
 hl.env("HYPRCURSOR_SIZE", "24")
 
-
 --------------------
 ----- PERMISOS -----
 --------------------
@@ -85,6 +88,10 @@ hl.config({
   general = {
     gaps_in = 5,
     gaps_out = 10,
+  },
+
+  xwayland = {
+    force_zero_scaling = true
   },
 
   decoration = {
