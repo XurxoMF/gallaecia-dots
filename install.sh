@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# Versión do instalador e dot dotfiles
+version="2.2.0-06-07-2026"
+
 # Limpiamos o terminal
 clear
 
@@ -916,6 +919,9 @@ gum style "Recoméndase reiniciar o sistema para aplicar correctamente todos os 
 if gum confirm --affirmative="Si" --negative="No" "Reiniciar o sistema agora?"; then
   systemctl reboot
 fi
+
+# Gardar versión instalada para futuros usos
+mkdir -p "$HOME/.local/share/gallaecia-dots" && echo "$version | Instalado o $(date +%d-%m-%Y)" > "$HOME/.local/share/gallaecia-dots/version"
 
 # Reiniciar o sistema?
 gum style --foreground="#90CDFF" --bold "Reiniciar o sistema" && echo
