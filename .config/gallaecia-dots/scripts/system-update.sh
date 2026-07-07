@@ -24,8 +24,6 @@ if gum confirm --affirmative="Si" --negative="No" "Actualizar Flatpak?"; then
   printf "\n:: Actualizado Flatpak!\n\n"
 fi
 
-kbuildsycoca6 --noincremental
-
 # Reiniciar
 if gum confirm --affirmative="Si" --negative="No" "Reinciar sistema? (Recomendado si se actualizaron paquetes)"; then
   systemctl reboot

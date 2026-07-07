@@ -820,8 +820,7 @@ apps_populares=$(gum choose --no-limit --header "Selecciona as aplicacións que 
   "Inkscape" \
   "Blender" \
   "Kdenlive" \
-  "Steam (Pacman)" \
-  "Steam (Flatpak)" \
+  "Steam" \
   "Spotify"
 )
 
@@ -854,11 +853,8 @@ while IFS= read -r app; do
     "Kdenlive")
       pkgs_apps_populares+=("kdenlive")
       ;;
-    "Steam (Pacman)")
+    "Steam")
       pkgs_apps_populares+=("steam")
-      ;;
-    "Steam (Flatpak)")
-      flatpaks_apps_populares+=("com.valvesoftware.Steam")
       ;;
     "Spotify")
       pkgs_apps_populares+=("spotify")
