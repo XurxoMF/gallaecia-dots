@@ -1,26 +1,20 @@
 -------------------
+---- VARIABLES ----
+-------------------
+
+local mainMod = "SUPER"
+
+local terminal = "kitty"
+local editor = "nvim"
+local ide = "code"
+local browser = "firefox"
+local file_explorer = "dolphin"
+
+-------------------
 ---- MONITORES ----
 -------------------
 
 hl.monitor({ output = "", mode = "preffered", position = "auto", scale = "auto" })
-
---------------------
----- AUTOINICIO ----
---------------------
-
-hl.on("hyprland.start", function ()
-    -- dbus envs
-    hl.exec_cmd("dbus-update-activation-environment --all WAYLAND_DISPLAY XDG_CURRENT_DESKTOP")
-
-    -- Start xsettingsd
-    hl.exec_cmd("xsettingsd")
-
-    -- Set GTK themes
-    hl.exec_cmd("gsettings set org.gnome.desktop.interface icon-theme 'Papirus-Dark'")
-
-    -- Start Noctalia
-    hl.exec_cmd("noctalia")
-end)
 
 ------------------------------
 ---- VARIABLES DE ENTORNO ----
@@ -31,7 +25,11 @@ hl.env("LIBVA_DRIVER_NAME", "nvidia")
 hl.env("__GLX_VENDOR_LIBRARY_NAME", "nvidia")
 
 -- Editor
-hl.env("EDITOR", "code")
+hl.env("TERMINAL", terminal)
+hl.env("EDITOR", editor)
+hl.env("IDE", ide)
+hl.env("BROWSER", browser)
+hl.env("FILE_EXPLORER", file_explorer)
 
 -- GDK configs
 hl.env("GDK_SCALE", "1")
@@ -73,6 +71,24 @@ hl.env("SDL_VIDEODRIVER", "wayland")
 -- Cursors
 hl.env("XCURSOR_SIZE", "24")
 hl.env("HYPRCURSOR_SIZE", "24")
+
+--------------------
+---- AUTOINICIO ----
+--------------------
+
+hl.on("hyprland.start", function ()
+    -- dbus envs
+    hl.exec_cmd("dbus-update-activation-environment --all WAYLAND_DISPLAY XDG_CURRENT_DESKTOP")
+
+    -- Start xsettingsd
+    hl.exec_cmd("xsettingsd")
+
+    -- Set GTK themes
+    hl.exec_cmd("gsettings set org.gnome.desktop.interface icon-theme 'Papirus-Dark'")
+
+    -- Start Noctalia
+    hl.exec_cmd("noctalia")
+end)
 
 --------------------
 ----- PERMISOS -----
@@ -203,13 +219,11 @@ hl.gesture({
 ---- ATALLOS DE TECLADO ----
 ----------------------------
 
-local mainMod = "SUPER"
-
 -- Applications
-hl.bind(mainMod .. " + T", hl.dsp.exec_cmd("kitty"))
--- {{navegador}}
--- {{explorador}}
--- {{editor_texto}}
+hl.bind(mainMod .. " + T", hl.dsp.exec_cmd(terminal))
+hl.bind(mainMod .. " + B", hl.dsp.exec_cmd(browser))
+hl.bind(mainMod .. " + E", hl.dsp.exec_cmd(file_explorer))
+hl.bind(mainMod .. " + C", hl.dsp.exec_cmd(ide))
 
 -- Basic keybinds
 hl.bind(mainMod .. " + Q", hl.dsp.window.close())

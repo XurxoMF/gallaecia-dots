@@ -88,6 +88,7 @@ wallpaper_scheme = "vibrant"
 
     [theme.templates]
     builtin_ids = [ "gtk3", "gtk4", "hyprland", "kcolorscheme", "qt" ]
+    community_ids = [ "neovim", "vscode", "discord", "steam", "yazi", "hyprtoolkit" ]
 
 [wallpaper]
 directory = "~/.wallpapers"
@@ -108,8 +109,8 @@ title_scroll = "always"
 show_label = false
 
 [widget.system_update]
-command = "kitty -e sh -c '~/.config/gallaecia-dots/scripts/system-update.sh'"
+command = "$TERMINAL -e sh -c '~/.config/gallaecia-dots/scripts/system-update.sh'"
 glyph = "cloud-download"
-middle_command = "kitty -e sh -c '~/.config/gallaecia-dots/scripts/system-update.sh'"
-right_command = "kitty -e sh -c '~/.config/gallaecia-dots/scripts/system-update.sh'"
+middle_command = "$TERMINAL -e sh -c '~/.config/gallaecia-dots/scripts/system-update.sh'"
+right_command = "$TERMINAL -e sh -c '~/.config/gallaecia-dots/scripts/system-update.sh'"
 type = "custom_button"

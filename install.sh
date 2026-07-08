@@ -1,928 +1,661 @@
 #!/usr/bin/env bash
 
-# Versión do instalador e dot dotfiles
-version="2.2.0-06-07-2026"
+set -u
+set -o pipefail
 
-# Limpiamos o terminal
-clear
+VERSION="2.2.0-09-07-2026"
+DOTFILES_DIR="$HOME/.dotfiles"
+GREEN="#2baf03"
+RED="#cc2508"
+BLUE="#90CDFF"
+YELLOW="#D6C104"
 
-# Instalamos gum si non está instalado
-if ! command -v gum &> /dev/null || ! command -v git &> /dev/null; then
-  echo ":: Instalando programas requeridos para executar este script (gum e git)..." && echo
-  sudo pacman -Sy --needed gum git
-fi
+REQUIRED_PACKAGES=(
+  noto-fonts-cjk noto-fonts-emoji noto-fonts ttf-noto-nerd
+  papirus-icon-theme breeze breeze-icons
+  flatpak util-linux pipewire gnome-keyring libsecret greetd cage wlr-randr dbus polkit libnewt ddcutil power-profiles-daemon
+  python pip pipx ffmpeg udisksctl 7zip jq poppler fd ripgrep fzf zoxide resvg imagemagick
+  hyprland uwsm
+  noctalia-git noctalia-greeter-git
+  qt5-base qt6-base qt5ct qt6ct qt5-wayland qt6-wayland xsettingsd hyprland-qt-support kservice
+  xdg-utils xdg-desktop-portal xdg-desktop-portal-hyprland xdg-desktop-portal-gtk xdg-user-dirs archlinux-xdg-menu
+  xorg-xrandr xorg-xwayland
+  adw-gtk-theme
+  kitty seahorse neovim visual-studio-code-bin dolphin yazi firefox tor-browser-bin
+)
 
-# Limpiamos o terminal
-clear
+PERSONAL_DIRS=(
+  "$HOME/Aplicacións"
+  "$HOME/Desarrollo"
+  "$HOME/Descargas"
+  "$HOME/Documentos"
+  "$HOME/Escritorio"
+  "$HOME/Imaxes"
+  "$HOME/Modelos"
+  "$HOME/Música"
+  "$HOME/Público"
+  "$HOME/Vídeos"
+  "$HOME/Xogos"
+)
 
-# Mostramos o banner
-echo '  _____       _ _                 _       '
-echo ' / ____|     | | |               (_)      '
-echo '| |  __  __ _| | | __ _  ___  ___ _  __ _ '
-echo '| | |_ |/ _` | | |/ _` |/ _ \/ __| |/ _` |'
-echo '| |__| | (_| | | | (_| |  __/ (__| | (_| |'
-echo ' \_____|\__,_|_|_|\__,_|\___|\___|_|\__,_|'
-echo '                                          '
+pkgs_apps=()
+flatpaks_apps=()
+pipx_apps=()
 
-# Exportamos variables de estilo de gum
-export GUM_CHOOSE_PADDING="0 0"
-export GUM_CHOOSE_CURSOR_FOREGROUND="#90cdff"
-export GUM_CHOOSE_CURSOR_BACKGROUND=""
-export GUM_CHOOSE_HEADER_FOREGROUND="#dbe3ed"
-export GUM_CHOOSE_HEADER_BACKGROUND=""
-export GUM_CHOOSE_ITEM_FOREGROUND="#dbe3ed"
-export GUM_CHOOSE_ITEM_BACKGROUND=""
-export GUM_CHOOSE_SELECTED_FOREGROUND="#90cdff"
-export GUM_CHOOSE_SELECTED_BACKGROUND=""
-export GUM_CONFIRM_PROMPT_FOREGROUND="#90cdff"
-export GUM_CONFIRM_PROMPT_BACKGROUND=""
-export GUM_CONFIRM_SELECTED_FOREGROUND="#003350"
-export GUM_CONFIRM_SELECTED_BACKGROUND="#90cdff"
-export GUM_CONFIRM_UNSELECTED_FOREGROUND="#cce6ff"
-export GUM_CONFIRM_UNSELECTED_BACKGROUND="#004b72"
-export GUM_CONFIRM_PADDING="0 0"
-export GUM_INPUT_PROMPT_FOREGROUND="#dbe3ed"
-export GUM_INPUT_PROMPT_BACKGROUND=""
-export GUM_INPUT_PLACEHOLDER_FOREGROUND="#dbe3ed"
-export GUM_INPUT_PLACEHOLDER_BACKGROUND=""
-export GUM_INPUT_CURSOR_FOREGROUND="#90cdff"
-export GUM_INPUT_CURSOR_BACKGROUND=""
-export GUM_INPUT_HEADER_FOREGROUND="#dbe3ed"
-export GUM_INPUT_HEADER_BACKGROUND=""
-export GUM_INPUT_PADDING="0 0"
-export GUM_SPIN_SPINNER_FOREGROUND="#90cdff"
-export GUM_SPIN_SPINNER_BACKGROUND=""
-export GUM_SPIN_TITLE_FOREGROUND="#dbe3ed"
-export GUM_SPIN_TITLE_BACKGROUND=""
-export GUM_SPIN_PADDING="0 0"
+banner() {
+  echo '  _____       _ _                 _       '
+  echo ' / ____|     | | |               (_)      '
+  echo '| |  __  __ _| | | __ _  ___  ___ _  __ _ '
+  echo '| | |_ |/ _` | | |/ _` |/ _ \/ __| |/ _` |'
+  echo '| |__| | (_| | | | (_| |  __/ (__| | (_| |'
+  echo ' \_____|\__,_|_|_|\__,_|\___|\___|_|\__,_|'
+  echo '                                          '
+}
 
-# Mostramos benvida ao usuario
-gum style --foreground="#90CDFF" --bold "BENVID@ AO INSTALADOR DE GALLAECIA DOTS!" && echo
-gum style --foreground="#90CDFF" --bold "VERSIÓN $version" && echo
-gum style "Con este script poderás instalar os dotfiles paso por paso para que poidas personalizar algunhas cousas e gardar copias de seguridade antes de que se sobreescriban polos dotfiles."
-gum style "Simplemente responde as preguntas que irán aparecendo en pantalla deixa que ocurra a maxia pagana." && echo
+gum_style() {
+  gum style \
+	--background="" \
+	--border-background="" \
+	--border-foreground="$BLUE" \
+	--margin="0 0" \
+	--padding="0 0" \
+	"$@"
+}
 
-# Mostramos alerta de arquivos e carpetas que poden ser eliminados
-gum style --foreground="#D6C104" --bold "IMPORTANTE"
-gum style --foreground="#D6C104" --bold "Ten en conta que algunhas das opcións durante a instalación borrarán ou editarán certas carpetas e arquivos no sistema!"
-gum style --foreground="#D6C104" --bold "Antes de borrar ou editar nada avisaráse de que arquivos se verán afectados e como." && echo
+info() {
+  gum_style \
+	--foreground="#dbe3ed" \
+	"$@"
+}
 
-# Descargar Gallaecia Dots
-gum style "Primeiro vamos a descargar Gallaecia Dots!" && echo
+title() {
+  gum_style \
+	--foreground="$BLUE" \
+	--bold \
+	"$1"
+  echo
+}
 
-if gum confirm --affirmative="Si" --negative="No" "Descargar Gallaecia Dots?"; then
-  if rm -rf "$HOME/.dotfiles" && \
-     git clone https://github.com/XurxoMF/gallaecia-dots.git "$HOME/.dotfiles"
-  then
-    echo && gum style --foreground="#2baf03" --bold "Gallaecia Dots descargado con éxito!" && echo
-  else
-    echo && gum style --foreground="#cc2508" --bold "Algo fallou ao descargar Gallaecia Dots! Abortando instalación..." && exit 1
-  fi
-else
-  gum style --foreground="#cc2508" --bold "Non se poden instalar os dotfiles sen descargalos primeiro! Abortando instalación..." && exit 1
-fi
+warning() {
+  gum_style \
+	--foreground="$YELLOW" \
+	--bold \
+	"$1"
+}
 
-gum style "Agora que temos os dotfiles descargados, vamos a instalalos!" && echo
+success() {
+  echo
+  gum_style \
+	--foreground="$GREEN" \
+	--bold \
+	"$1"
+  echo
+}
 
-# Cambiar idioma a Galego con fallback a Español e logo a Inglés
-gum style --foreground="#90CDFF" --bold "Cambiar idioma a Galego" && echo
-gum style "Como bos dotfiles en Galego, temos que cambiar o idioma a Galego. Se engade un fallback a Español e logo a Inglés en caso de non haber nigún dos dous." && echo
-gum style --foreground="#D6C104" --bold "Isto modificará o ficheiro /etc/locale.gen e sobreescribirá o ficheiro /etc/locale.conf!" && echo
+fail() {
+  echo
+  gum_style \
+	--foreground="$RED" \
+	--bold \
+	"$1"
+  exit 1
+}
 
-if gum confirm --affirmative="Si" --negative="No" "Cambiar idioma a Galego > Español > Inglés?"; then
-  if sudo sed -i 's/^#es_ES.UTF-8 UTF-8/es_ES.UTF-8 UTF-8/' /etc/locale.gen && \
-     sudo sed -i 's/^#gl_ES.UTF-8 UTF-8/gl_ES.UTF-8 UTF-8/' /etc/locale.gen && \
-     sudo sed -i 's/^#en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
-     sudo locale-gen && \
-     echo "LANG=gl_ES.UTF-8" | sudo tee /etc/locale.conf && \
-     echo "LANGUAGE=gl_ES:es_ES:en_US" | sudo tee -a /etc/locale.conf
-  then
-    echo && gum style --foreground="#2baf03" --bold "Idioma cambiado con éxito!" && echo
-  else
-    echo && gum style --foreground="#cc2508" --bold "Algo fallou ao cambiar o idioma! Abortando instalación..." && exit 1
-  fi
-fi
+gum_confirm() {
+  gum confirm \
+	--affirmative="Si" \
+	--negative="No" \
+	--prompt.foreground="#90cdff" \
+	--prompt.background="" \
+	--selected.foreground="#003350" \
+	--selected.background="#90cdff" \
+	--unselected.foreground="#cce6ff" \
+	--unselected.background="#004b72" \
+	--padding="0 0" \
+	"$@"
+}
 
-# Habilitar [multilib] en pacman
-gum style --foreground="#90CDFF" --bold "Habilitar [multilib] e cores en pacman" && echo
-gum style "Algúns dos paquetes obligatorios están en multilib polo que temos que habilitala." && echo
-gum style --foreground="#D6C104" --bold "Isto modificará o ficheiro /etc/pacman.conf!" && echo
+gum_choose() {
+  gum choose \
+	--cursor.foreground="#90cdff" \
+	--cursor.background="" \
+	--header.foreground="#dbe3ed" \
+	--header.background="" \
+	--item.foreground="#dbe3ed" \
+	--item.background="" \
+	--selected.foreground="#90cdff" \
+	--selected.background="" \
+	--padding="0 0" \
+	"$@"
+}
 
-if gum confirm --affirmative="Si" --negative="No" "Habilitar [multilib] e cores en pacman? (Obligatorio)"; then
-  if sudo sed -i \
-      -e 's/^#Color/Color/' \
-      -e 's/^#ILoveCandy/ILoveCandy/' \
-      -e '/^#Color/a ILoveCandy' \
-      -e 's/^#\[multilib\]/[multilib]/' \
-      -e '/^\[multilib\]/{n; s/^#Include/Include/}' \
-      /etc/pacman.conf && \
-     sudo pacman -Syy
-  then
-    echo && gum style --foreground="#2baf03" --bold "[multilib] habilitado con éxito e cores activadas!" && echo
-  else
-    echo && gum style --foreground="#cc2508" --bold "Algo fallou ao habilitar [multilib] ou activar cores! Abortando instalación..." && exit 1
-  fi
-else
-  gum style --foreground="#cc2508" --bold "Sen [multilib] algúns paquetes obligatorios non poderán ser instalados! Abortando instalación..." && exit 1
-fi
+confirm_or_abort() {
+  local question="$1"
+  local abort_message="$2"
 
-# Instalar obligatorios
-gum style --foreground="#90CDFF" --bold "Instalar paquetes obligatorios? (Obligatorio)" && echo
-gum style "Os programas obligatorios inclúen, entre outros, yay, Rust, Flatpak, Kitty, Hyprland..."
-gum style "Podes ver a lista de programas obligatorios en https://gallaecia-dots.xurxomf.xyz." && echo
-
-if gum confirm --affirmative="Si" --negative="No" "Instalar YAY? (Obligatorio)"; then
-  # Instalar YAY
-  if sudo pacman -Syu --needed base-devel && \
-     git clone https://aur.archlinux.org/yay.git ./yay && \
-     cd yay && \
-     makepkg -si && \
-     cd .. && \
-     sudo rm -rf yay && \
-     yay -Y --color always --save
-  then
-    echo && gum style --foreground="#2baf03" --bold "YAY instalado con éxito!" && echo
-  else
-    echo && gum style --foreground="#cc2508" --bold "Algo fallou ao instalar YAY! Abortando instalación..." && exit 1
-  fi
-
-  # Instalar Rust
-  if sudo pacman -Syu --needed rustup && \
-     rustup default stable
-  then
-    echo && gum style --foreground="#2baf03" --bold "Rust instalado con éxito!" && echo
-  else
-    echo && gum style --foreground="#cc2508" --bold "Algo fallou durante a instalación de Rust! Abortando instalación..." && exit 1
-  fi
-
-  # Instalar paquetes obligatorios
-  if yay -Syu --needed noto-fonts-cjk noto-fonts-emoji noto-fonts papirus-icon-theme breeze breeze-icons \
-     flatpak util-linux pipewire gnome-keyring libsecret greetd cage wlr-randr dbus polkit libnewt ddcutil power-profiles-daemon \
-     python pip pipx ffmpeg \
-     hyprland uwsm \
-     noctalia-git noctalia-greeter-git \
-     qt5-base qt6-base qt5ct qt6ct qt5-wayland qt6-wayland xsettingsd hyprland-qt-support kservice \
-     xdg-utils xdg-desktop-portal xdg-desktop-portal-hyprland xdg-desktop-portal-gtk xdg-user-dirs archlinux-xdg-menu \
-     xorg-xrandr xorg-xwayland \
-     adw-gtk-theme \
-     kitty seahorse && \
-     flatpak install org.gtk.Gtk3theme.adw-gtk3-dark org.gtk.Gtk3theme.adw-gtk3 && \
-     systemctl --user enable gnome-keyring-daemon.service && \
-     systemctl --user start gnome-keyring-daemon.service && \
-     XDG_MENU_PREFIX=arch- kbuildsycoca6 --noincremental
-  then
-    echo && gum style --foreground="#2baf03" --bold "Paquetes requeridos instalados con éxito!" && echo
-  else
-    echo && gum style --foreground="#cc2508" --bold "Algo fallou durante a instalación dos paquetes obligatorios! Abortando instalación..." && exit 1
-  fi
-else
-  gum style --foreground="#cc2508" --bold "Sen os paquetes obligatorios os dotfiles non funcionarán! Abortando instalación..." && exit 1
-fi
-
-# Crear carpetas personales e configurar xdg-user-dirs
-gum style --foreground="#90CDFF" --bold "Crear carpetas personales e configuralas" && echo
-gum style "Os dotfiles necesitan multiples carpetas para certas cousas polo que é necesario crealas e configuralas."
-gum style "Estas carpetas son Aplicacións, Desarrollo, Descargas, Documentos, Escritorio, Imaxes, Modelos, Música, Público, Vídeos, e Xogos."
-gum style "Inda que como usuario non precises estas carpetas, certas funcionalidades incluídas nestes dotfiles e en certas aplicacións precisan que esas carpetas existan se non poden fallar ou non funcionar correctamente." && echo
-gum style --foreground="#D6C104" --bold "Isto substituirá os ficheiros ~/.config/user-dirs.dirs e ~/.config/user-dirs.conf!" && echo
-
-if gum confirm --affirmative="Si" --negative="No" "Crear carpetas? (Obligatorio)"; then
-  if mkdir -p "$HOME/Aplicacións" "$HOME/Desarrollo" "$HOME/Descargas" "$HOME/Documentos" "$HOME/Escritorio" "$HOME/Imaxes" "$HOME/Modelos" "$HOME/Música" "$HOME/Público" "$HOME/Vídeos" "$HOME/Xogos" && \
-     rm -rf "$HOME/.config/user-dirs.dirs" "$HOME/.config/user-dirs.conf" && \
-     cp -r "$HOME/.dotfiles/.config/user-dirs.dirs" "$HOME/.config/user-dirs.dirs" && \
-     cp -r "$HOME/.dotfiles/.config/user-dirs.conf" "$HOME/.config/user-dirs.conf"
-  then
-    echo && gum style --foreground="#2baf03" --bold "Carpetas creadas con éxito!" && echo
-  else
-    echo && gum style --foreground="#cc2508" --bold "Algo fallou durante a creación das carpetas! Abortando instalación..." && exit 1
-  fi
-else
-  gum style --foreground="#cc2508" --bold "Sen estas carpetas algunhas aplicacións e programas non funcionrán correctamente! Abortando instalación..." && exit 1
-fi
-
-# Instalar dotfiles
-gum style --foreground="#90CDFF" --bold "Instalar dotfiles" && echo
-gum style "Todos os paquetes necesitan unha configuración tanto para o funcionamento como para os estilos. Iso mismo son os dotfiles." && echo
-gum style --foreground="#D6C104" --bold "Isto eliminará e modificará multiples ficheiros en ~/.config/ e ~/. Lista de cambios:" && echo
-gum style --foreground="#D6C104" --bold "· Sobreescríbese o ficheiro /etc/greetd/config.toml"
-gum style --foreground="#D6C104" --bold "· Sobreescríbese o ficheiro ~/.bashrc"
-gum style --foreground="#D6C104" --bold "· Sobreescríbese o ficheiro ~/.config/mimeapps.list"
-gum style --foreground="#D6C104" --bold "· Sobreescríbese o ficheiro ~/.config/user-dirs.conf"
-gum style --foreground="#D6C104" --bold "· Sobreescríbese o ficheiro ~/.config/user-dirs.dirs"
-gum style --foreground="#D6C104" --bold "· Sobreescríbense os ficheiros ~/.wallpapers/Gallaecia - XXXXXX.jpg"
-gum style --foreground="#D6C104" --bold "· Sobreescríbese a carpeta ~/.config/bashrc/"
-gum style --foreground="#D6C104" --bold "· Sobreescríbese a carpeta ~/.config/gallaecia-dots/"
-gum style --foreground="#D6C104" --bold "· Sobreescríbese a carpeta ~/.config/xdg-desktop-portal/"
-gum style --foreground="#D6C104" --bold "· Sobreescríbese a carpeta ~/.config/xsettingsd/"
-gum style --foreground="#D6C104" --bold "· Sobreescríbese a carpeta ~/.config/gtk-3.0/"
-gum style --foreground="#D6C104" --bold "· Sobreescríbese a carpeta ~/.config/gtk-4.0/"
-gum style --foreground="#D6C104" --bold "· Sobreescríbese a carpeta ~/.config/qt5ct/"
-gum style --foreground="#D6C104" --bold "· Sobreescríbese a carpeta ~/.config/qt6ct/"
-gum style --foreground="#D6C104" --bold "· Sobreescríbese a carpeta ~/.config/hypr/"
-gum style --foreground="#D6C104" --bold "· Sobreescríbese a carpeta ~/.config/noctalia/"
-gum style --foreground="#D6C104" --bold "· Sobreescríbese a carpeta ~/.config/kitty/" && echo
-
-if gum confirm --affirmative="Si" --negative="No" "Instalar dotfiles? (Obligatorio)"; then
-  # Instalar config de greetd
-  if sudo rm -rf "/etc/greetd" "/var/lib/noctalia-greeter" && \
-    sudo cp -r "$HOME/.dotfiles/others/greetd" "/etc/greetd" && \
-    sudo cp -r "$HOME/.dotfiles/others/noctalia-greeter" "/var/lib/noctalia-greeter" && \
-    { sudo useradd -r -s /usr/bin/nologin -d /var/lib/noctalia-greeter greeter 2>/dev/null || true; } && \
-    sudo systemctl enable greetd
-  then
-    echo
-    gum style --foreground="#2baf03" --bold "Configuración de greetd instalada con éxito!"
-    echo
-  else
-    echo
-    gum style --foreground="#cc2508" --bold "Algo fallou ao instalar a configuración de greetd! Abortando instalación..."
+  if ! gum_confirm "$question"; then
+    gum_style \
+		--foreground="$RED" \
+		--bold \
+		"$abort_message"
     exit 1
   fi
+}
 
-  # Instalar configs propias de Gallaecia Dots como scripts e wallpapers
-  if rm -rf "$HOME/.config/gallaecia-dots" && \
-     cp -r "$HOME/.dotfiles/.config/gallaecia-dots" "$HOME/.config/gallaecia-dots" && \
-     sudo chmod +x -R "$HOME/.config/gallaecia-dots/scripts"
-     mkdir -p "$HOME/.wallpapers"
-     cp -rf "$HOME/.dotfiles/.wallpapers/." "$HOME/.wallpapers/"
-  then
-    echo && gum style --foreground="#2baf03" --bold "Configs propias de Gallaecia Dots instaladas con éxito!" && echo
+confirm_step() {
+  local question="$1"
+  local success_message="$2"
+  local error_message="$3"
+  local step="$4"
+
+  if gum_confirm "$question"; then
+    run_step \
+		"$success_message" \
+		"$error_message" \
+		"$step"
+  fi
+}
+
+run_step() {
+  local success_message="$1"
+  local error_message="$2"
+  local step="$3"
+
+  if "$step"; then
+    success "$success_message"
   else
-    echo && gum style --foreground="#cc2508" --bold "Algo fallou ao instalar as configs propias de Gallaecia Dots! Abortando instalación..." && exit 1
+    fail "$error_message"
+  fi
+}
+
+replace_path() {
+  local source="$1"
+  local target="$2"
+
+  rm -rf "$target" && cp -r "$source" "$target"
+}
+
+replace_file() {
+  local source="$1"
+  local target="$2"
+
+  rm -f "$target" && cp "$source" "$target"
+}
+
+ensure_command() {
+  local command_name="$1"
+  local package_name="$2"
+
+  if ! command -v "$command_name" &> /dev/null; then
+    sudo pacman -Sy --needed "$package_name"
+  fi
+}
+
+install_prerequisites() {
+  if ! command -v gum &> /dev/null || ! command -v git &> /dev/null; then
+    echo ":: Instalando programas requeridos para executar este script (gum e git)..."
+    echo
+    ensure_command gum gum &&
+    ensure_command git git
+  fi
+}
+
+download_dotfiles() {
+  rm -rf "$DOTFILES_DIR" &&
+  git clone https://github.com/XurxoMF/gallaecia-dots.git "$DOTFILES_DIR"
+}
+
+configure_locale() {
+  sudo sed -i \
+	-e 's/^#es_ES.UTF-8 UTF-8/es_ES.UTF-8 UTF-8/' \
+	-e 's/^#gl_ES.UTF-8 UTF-8/gl_ES.UTF-8 UTF-8/' \
+	-e 's/^#en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' \
+	/etc/locale.gen &&
+  sudo locale-gen &&
+  echo "LANG=gl_ES.UTF-8" | sudo tee /etc/locale.conf &&
+  echo "LANGUAGE=gl_ES:es_ES:en_US" | sudo tee -a /etc/locale.conf
+}
+
+configure_pacman() {
+  sudo sed -i \
+	-e 's/^#Color/Color/' \
+	-e 's/^#ILoveCandy/ILoveCandy/' \
+	-e '/^#Color/a ILoveCandy' \
+	-e 's/^#\[multilib\]/[multilib]/' \
+	-e '/^\[multilib\]/{n; s/^#Include/Include/}' \
+	/etc/pacman.conf &&
+  sudo pacman -Syy
+}
+
+install_yay() {
+  if command -v yay &> /dev/null; then
+    yay -Y --color always --save
+    return 0
   fi
 
-  # Instalar bashrc
-  if rm -rf "$HOME/.bashrc" "$HOME/.config/bashrc" && \
-     cp -r "$HOME/.dotfiles/.bashrc" "$HOME/.bashrc" && \
-     cp -r "$HOME/.dotfiles/.config/bashrc" "$HOME/.config/bashrc" && \
-     source "$HOME/.bashrc"
-  then
-    echo && gum style --foreground="#2baf03" --bold "Bashrc instalado con éxito!" && echo
-  else
-    echo && gum style --foreground="#cc2508" --bold "Algo fallou ao instalar o bashrc! Abortando instalación..." && exit 1
+  sudo pacman -Syu --needed base-devel &&
+  rm -rf ./yay &&
+  git clone https://aur.archlinux.org/yay.git ./yay &&
+  (
+    cd yay &&
+    makepkg -si
+  ) &&
+  sudo rm -rf yay &&
+  yay -Y --color always --save
+}
+
+install_rust() {
+  sudo pacman -Syu --needed rustup &&
+  rustup default stable
+}
+
+install_required_packages() {
+  yay -Syu --needed "${REQUIRED_PACKAGES[@]}" &&
+  flatpak install -y flathub org.gtk.Gtk3theme.adw-gtk3-dark org.gtk.Gtk3theme.adw-gtk3
+}
+
+configure_required_services() {
+  systemctl --user enable gnome-keyring-daemon.service &&
+  systemctl --user start gnome-keyring-daemon.service
+}
+
+create_personal_dirs() {
+  mkdir -p "${PERSONAL_DIRS[@]}" "$HOME/.config" &&
+  replace_file "$DOTFILES_DIR/.config/user-dirs.dirs" "$HOME/.config/user-dirs.dirs" &&
+  replace_file "$DOTFILES_DIR/.config/user-dirs.conf" "$HOME/.config/user-dirs.conf"
+}
+
+install_greetd_config() {
+  sudo rm -rf "/etc/greetd" "/var/lib/noctalia-greeter" &&
+  sudo cp -r "$DOTFILES_DIR/others/greetd" "/etc/greetd" &&
+  sudo cp -r "$DOTFILES_DIR/others/noctalia-greeter" "/var/lib/noctalia-greeter" &&
+  { sudo useradd -r -s /usr/bin/nologin -d /var/lib/noctalia-greeter greeter 2> /dev/null || true; } &&
+  sudo systemctl enable greetd
+}
+
+install_gallaecia_config() {
+  replace_path "$DOTFILES_DIR/.config/gallaecia-dots" "$HOME/.config/gallaecia-dots" &&
+  sudo chmod +x -R "$HOME/.config/gallaecia-dots/scripts" &&
+  mkdir -p "$HOME/.wallpapers" &&
+  cp -rf "$DOTFILES_DIR/.wallpapers/." "$HOME/.wallpapers/"
+}
+
+install_bashrc() {
+  replace_file "$DOTFILES_DIR/.bashrc" "$HOME/.bashrc" &&
+  replace_path "$DOTFILES_DIR/.config/bashrc" "$HOME/.config/bashrc" &&
+  source "$HOME/.bashrc"
+}
+
+install_gtk_config() {
+  rm -rf "$HOME/.config/gtk-3.0" "$HOME/.config/gtk-4.0" &&
+  cp -r "$DOTFILES_DIR/.config/gtk-3.0" "$HOME/.config/gtk-3.0" &&
+  cp -r "$DOTFILES_DIR/.config/gtk-4.0" "$HOME/.config/gtk-4.0"
+}
+
+install_qt_config() {
+  rm -rf "$HOME/.config/qt6ct" "$HOME/.config/qt5ct" "$HOME/.config/kdeglobals" &&
+  cp -r "$DOTFILES_DIR/.config/qt6ct" "$HOME/.config/qt6ct" &&
+  cp -r "$DOTFILES_DIR/.config/qt5ct" "$HOME/.config/qt5ct" &&
+  cp "$DOTFILES_DIR/.config/kdeglobals" "$HOME/.config/kdeglobals"
+}
+
+install_xdg_portals() {
+  replace_path "$DOTFILES_DIR/.config/xdg-desktop-portal" "$HOME/.config/xdg-desktop-portal"
+}
+
+install_xsettingsd() {
+  replace_path "$DOTFILES_DIR/.config/xsettingsd" "$HOME/.config/xsettingsd"
+}
+
+install_kitty() {
+  replace_path "$DOTFILES_DIR/.config/kitty" "$HOME/.config/kitty"
+}
+
+install_dolphin() {
+  replace_file "$DOTFILES_DIR/.config/dolphinrc" "$HOME/.config/dolphinrc"
+}
+
+install_yazi() {
+  replace_path "$DOTFILES_DIR/.config/yazi" "$HOME/.config/yazi"
+}
+
+install_vscode() {
+  replace_file "$DOTFILES_DIR/.config/code-flags.conf" "$HOME/.config/code-flags.conf"
+}
+
+install_hyprland() {
+  replace_path "$DOTFILES_DIR/.config/hypr" "$HOME/.config/hypr"
+}
+
+install_noctalia() {
+  replace_path "$DOTFILES_DIR/.config/noctalia" "$HOME/.config/noctalia"
+}
+
+install_dotfiles() {
+  run_step \
+	"Configuración de greetd instalada con éxito!" \
+	"Algo fallou ao instalar a configuración de greetd! Abortando instalación..." \
+	install_greetd_config
+
+  run_step \
+	"Configs propias de Gallaecia Dots instaladas con éxito!" \
+	"Algo fallou ao instalar as configs propias de Gallaecia Dots! Abortando instalación..." \
+	install_gallaecia_config
+
+  run_step \
+	"Bashrc instalado con éxito!" \
+	"Algo fallou ao instalar o bashrc! Abortando instalación..." \
+	install_bashrc
+
+  run_step \
+	"XDG Desktop Portals configurados con éxito!" \
+	"Algo fallou ao configurar os XDG Desktop Portals! Abortando instalación..." \
+	install_xdg_portals
+
+  run_step \
+	"XSettingsd configurado con éxito!" \
+	"Algo fallou ao configurar o XSettingsd! Abortando instalación..." \
+	install_xsettingsd
+
+  run_step \
+	"GTK3 e GTK4 configurados con éxito!" \
+	"Algo fallou ao configurar GTK3 e GTK4! Abortando instalación..." \
+	install_gtk_config
+
+  run_step \
+	"QT5 e QT6 configurados con éxito!" \
+	"Algo fallou ao configurar QT5 e QT6! Abortando instalación..." \
+	install_qt_config
+
+  run_step \
+	"Kitty configurado con éxito!" \
+	"Algo fallou ao configurar Kitty! Abortando instalación..." \
+	install_kitty
+
+  run_step \
+	"Dolphin configurado con éxito!" \
+	"Algo fallou ao configurar Dolphin! Abortando instalación..." \
+	install_dolphin
+
+  run_step \
+	"Yazi configurado con éxito!" \
+	"Algo fallou ao configurar Yazi! Abortando instalación..." \
+	install_yazi
+
+  run_step \
+	"VS Code configurado con éxito!" \
+	"Algo fallou ao configurar VS Code! Abortando instalación..." \
+	install_vscode
+
+  run_step \
+	"Hyprland configurado con éxito!" \
+	"Algo fallou ao configurar Hyprland! Abortando instalación..." \
+	install_hyprland
+
+  run_step \
+	"Noctalia configurado con éxito!" \
+	"Algo fallou ao configurar Noctalia! Abortando instalación..." \
+	install_noctalia
+}
+
+configure_yt_dlp() {
+  replace_path "$DOTFILES_DIR/optional/.config/yt-dlp" "$HOME/.config/yt-dlp" &&
+  replace_file "$DOTFILES_DIR/optional/.config/bashrc/201-yt-dlp" "$HOME/.config/bashrc/201-yt-dlp" &&
+  source "$HOME/.bashrc"
+}
+
+configure_spotdl() {
+  replace_path "$DOTFILES_DIR/optional/.config/spotdl" "$HOME/.config/spotdl"
+}
+
+choose_optional_apps() {
+  local apps_populares app
+
+  apps_populares=$(gum_choose \
+	--no-limit \
+	--header "Selecciona as aplicacións que queiras instalar ou preme Esc para non instalar ningunha:" \
+	"Discord" \
+	"Vesktop" \
+	"OBS Studio" \
+	"Krita" \
+	"GIMP" \
+	"Inkscape" \
+	"qBittorrent" \
+	"Blender" \
+	"Kdenlive" \
+	"Steam" \
+	"Spotify" \
+	"KeePassXC" \
+	"LibreOffice" \
+	"Thunderbird" \
+	"Okular" \
+	"Amberol" \
+	"VLC" \
+	"MPV" \
+	"Loupe" \
+	"yt-dlp" \
+	"SpotDL")
+
+  while IFS= read -r app; do
+    case "$app" in
+      "Discord") pkgs_apps+=("discord") ;;
+      "Vesktop") pkgs_apps+=("vesktop") ;;
+      "OBS Studio") pkgs_apps+=("obs-studio") ;;
+      "Krita") pkgs_apps+=("krita") ;;
+      "GIMP") pkgs_apps+=("gimp") ;;
+      "Inkscape") pkgs_apps+=("inkscape") ;;
+      "qBittorrent") pkgs_apps+=("qbittorrent") ;;
+      "Blender") pkgs_apps+=("blender") ;;
+      "Kdenlive") pkgs_apps+=("kdenlive") ;;
+      "Steam") pkgs_apps+=("steam") ;;
+      "Spotify") pkgs_apps+=("spotify") ;;
+      "KeePassXC") pkgs_apps+=("keepassxc") ;;
+      "LibreOffice") pkgs_apps+=("libreoffice-still" "libreoffice-still-gl" "libreoffice-still-es") ;;
+      "Thunderbird") pkgs_apps+=("thunderbird") ;;
+      "Okular") pkgs_apps+=("okular") ;;
+      "Amberol") pkgs_apps+=("amberol") ;;
+      "VLC") pkgs_apps+=("vlc" "vlc-plugins-all") ;;
+      "MPV") pkgs_apps+=("mpv") ;;
+      "Loupe") pkgs_apps+=("loupe") ;;
+      "yt-dlp")
+        pkgs_apps+=("yt-dlp")
+        run_step \
+		"yt-dlp configurado con éxito!" \
+		"Algo fallou ao configurar yt-dlp! Abortando instalación..." \
+		configure_yt_dlp
+        ;;
+      "SpotDL")
+        pipx_apps+=("spotdl")
+        run_step \
+		"SpotDL configurado con éxito!" \
+		"Algo fallou ao configurar SpotDL! Abortando instalación..." \
+		configure_spotdl
+        ;;
+    esac
+  done <<< "$apps_populares"
+}
+
+install_optional_apps() {
+  if [ ${#pkgs_apps[@]} -gt 0 ]; then
+    yay -Syu --needed "${pkgs_apps[@]}"
   fi
 
-  # Configuración dos XDG Desktop Portals
-  if rm -rf "$HOME/.config/xdg-desktop-portal" && \
-     cp -r "$HOME/.dotfiles/.config/xdg-desktop-portal" "$HOME/.config/xdg-desktop-portal"
-  then
-    echo && gum style --foreground="#2baf03" --bold "XDG Desktop Portals configurados con éxito!" && echo
-  else
-    echo && gum style --foreground="#cc2508" --bold "Algo fallou ao configurar os XDG Desktop Portals! Abortando instalación..." && exit 1
+  if [ ${#flatpaks_apps[@]} -gt 0 ]; then
+    flatpak install -y flathub "${flatpaks_apps[@]}"
   fi
 
-  # Configuración de XSettingsd
-  if rm -rf "$HOME/.config/xsettingsd" && \
-     cp -r "$HOME/.dotfiles/.config/xsettingsd" "$HOME/.config/xsettingsd"
-  then
-    echo && gum style --foreground="#2baf03" --bold "XSettingsd configurado con éxito!" && echo
-  else  
-    echo && gum style --foreground="#cc2508" --bold "Algo fallou ao configurar o XSettingsd! Abortando instalación..." && exit 1
+  if [ ${#pipx_apps[@]} -gt 0 ]; then
+    pipx install "${pipx_apps[@]}"
   fi
+}
 
-  # Configuración de GTK3 e GTK4
-  if rm -rf "$HOME/.config/gtk-3.0" "$HOME/.config/gtk-4.0"&& \
-     cp -r "$HOME/.dotfiles/.config/gtk-3.0d" "$HOME/.config/gtk-3.0"
-  then
-    echo && gum style --foreground="#2baf03" --bold "GTK3 e GTK4 configurados con éxito!" && echo
-  else
-    echo && gum style --foreground="#cc2508" --bold "Algo fallou ao configurar GTK3 e GTK4! Abortando instalación..." && exit 1
+save_install_version() {
+  mkdir -p "$HOME/.local/share/gallaecia-dots" &&
+  echo "$VERSION" > "$HOME/.local/share/gallaecia-dots/version" &&
+  date +%d-%m-%Y > "$HOME/.local/share/gallaecia-dots/instalado"
+}
+
+main() {
+  clear
+  install_prerequisites
+  clear
+
+  banner
+
+  title "BENVID@ AO INSTALADOR DE GALLAECIA DOTS!"
+  info "Con este script poderás instalar os dotfiles paso por paso para que poidas personalizar algunhas cousas e gardar copias de seguridade antes de que se sobreescriban polos dotfiles."
+  info "Simplemente responde as preguntas que irán aparecendo en pantalla deixa que ocurra a maxia pagana."
+
+  echo
+
+  warning "IMPORTANTE"
+  warning "Ten en conta que algunhas das opcións durante a instalación borrarán ou editarán certas carpetas e arquivos no sistema!"
+  warning "Antes de borrar ou editar nada avisaráse de que arquivos se verán afectados e como."
+
+  echo
+
+  info "Primeiro vamos a descargar Gallaecia Dots!"
+
+  echo
+
+  confirm_or_abort \
+    "Descargar Gallaecia Dots?" \
+    "Non se poden instalar os dotfiles sen descargalos primeiro! Abortando instalación..."
+
+  run_step \
+    "Gallaecia Dots descargado con éxito!" \
+    "Algo fallou ao descargar Gallaecia Dots! Abortando instalación..." \
+    download_dotfiles
+
+  info "Agora que temos os dotfiles descargados, vamos a instalalos!"
+
+  echo
+
+  title "Cambiar idioma a Galego"
+  info "Como bos dotfiles en Galego, temos que cambiar o idioma a Galego. Se engade un fallback a Español e logo a Inglés en caso de non haber nigún dos dous."
+
+  echo
+
+  warning "Isto modificará o ficheiro /etc/locale.gen e sobreescribirá o ficheiro /etc/locale.conf!"
+
+  echo
+
+  confirm_step \
+    "Cambiar idioma a Galego > Español > Inglés?" \
+    "Idioma cambiado con éxito!" \
+    "Algo fallou ao cambiar o idioma! Abortando instalación..." \
+    configure_locale
+
+  title "Habilitar [multilib] e cores en pacman"
+  info "Algúns dos paquetes obligatorios están en multilib polo que temos que habilitala."
+
+  echo
+
+  warning "Isto modificará o ficheiro /etc/pacman.conf!"
+
+  echo
+
+  confirm_or_abort \
+    "Habilitar [multilib] e cores en pacman? (Obligatorio)" \
+    "Sen [multilib] algúns paquetes obligatorios non poderán ser instalados! Abortando instalación..."
+
+  run_step \
+    "[multilib] habilitado con éxito e cores activadas!" \
+    "Algo fallou ao habilitar [multilib] ou activar cores! Abortando instalación..." \
+    configure_pacman
+
+  title "Instalar paquetes obligatorios? (Obligatorio)"
+  info "Os programas obligatorios inclúen, entre outros, yay, Rust, Flatpak, Kitty, Hyprland..."
+
+  echo
+
+  confirm_or_abort \
+    "Instalar YAY? (Obligatorio)" \
+    "Sen os paquetes obligatorios os dotfiles non funcionarán! Abortando instalación..."
+
+  run_step \
+    "YAY instalado con éxito!" \
+    "Algo fallou ao instalar YAY! Abortando instalación..." \
+    install_yay
+
+  run_step \
+    "Rust instalado con éxito!" \
+    "Algo fallou durante a instalación de Rust! Abortando instalación..." \
+    install_rust
+
+  run_step \
+	"Paquetes requeridos instalados con éxito!" \
+	"Algo fallou durante a instalación dos paquetes obligatorios! Abortando instalación..." \
+	install_required_packages
+
+  run_step \
+	"Servizos requeridos configurados con éxito!" \
+	"Algo fallou durante a configuración dos servizos obligatorios! Abortando instalación..." \
+	configure_required_services
+
+  title "Crear carpetas personales e configuralas"
+  info "Os dotfiles necesitan multiples carpetas para certas cousas polo que é necesario crealas e configuralas."
+  info "Estas carpetas son Aplicacións, Desarrollo, Descargas, Documentos, Escritorio, Imaxes, Modelos, Música, Público, Vídeos, e Xogos."
+  info "Inda que como usuario non precises estas carpetas, certas funcionalidades incluídas nestes dotfiles e en certas aplicacións precisan que esas carpetas existan se non poden fallar ou non funcionar correctamente."
+
+  echo
+
+  warning "Isto substituirá os ficheiros ~/.config/user-dirs.dirs e ~/.config/user-dirs.conf!"
+
+  echo
+
+  confirm_or_abort \
+    "Crear carpetas? (Obligatorio)" \
+    "Sen estas carpetas algunhas aplicacións e programas non funcionrán correctamente! Abortando instalación..."
+
+  run_step \
+    "Carpetas creadas con éxito!" \
+    "Algo fallou durante a creación das carpetas! Abortando instalación..." \
+    create_personal_dirs
+
+  title "Instalar dotfiles"
+  info "Todos os paquetes necesitan unha configuración tanto para o funcionamento como para os estilos. Iso mismo son os dotfiles."
+
+  echo
+
+  warning "Isto eliminará e modificará multiples ficheiros en ~/.config/ e ~/."
+
+  echo
+
+  confirm_or_abort \
+    "Instalar dotfiles? (Obligatorio)" \
+    "Sen dotfiles... non hai dotfiles... curiosamente... Abortando instalación..."
+  install_dotfiles
+
+  info "Xa temos os dotfiles instalados e configurados! Agora solo faltan as partes opcionales!"
+
+  echo
+
+  title "Instalar outras aplicacións"
+  info "Selecciona outras aplicacións que queiras instalar no teu equipo. Podes seleccionar varias opcións ou non instalar ningunha."
+
+  echo
+
+  warning "Isto eliminará e modificará multiples ficheiros en ~/.config/ dependendo de que selecciones"
+
+  echo
+
+  choose_optional_apps
+  install_optional_apps
+
+  run_step \
+	"Versión instalada gardada con éxito!" \
+	"Algo fallou ao gardar a versión instalada! Abortando instalación..." \
+	save_install_version
+
+  title "Reiniciar o sistema"
+  info "Recoméndase reiniciar o sistema para aplicar correctamente todos os cambios."
+  
+  echo
+
+  if gum_confirm "Reiniciar o sistema agora?"; then
+    systemctl reboot
   fi
+}
 
-  # Configuración de QT5, QT6 e KDE
-  if rm -rf "$HOME/.config/qt6ct" "$HOME/.config/qt5ct" "$HOME/.config/kdeglobals" && \
-     cp -r "$HOME/.dotfiles/.config/qt6ct" "$HOME/.config/qt6ct" && \
-     cp -r "$HOME/.dotfiles/.config/qt5ct" "$HOME/.config/qt5ct" && \
-     cp "$HOME/.dotfiles/.config/kdeglobals" "$HOME/.config/kdeglobals"
-  then
-    echo && gum style --foreground="#2baf03" --bold "QT5 e QT6 configurados con éxito!" && echo
-  else
-    echo && gum style --foreground="#cc2508" --bold "Algo fallou ao configurar QT5 e QT6! Abortando instalación..." && exit 1
-  fi
-
-  # Configuiración de Kitty
-  if rm -rf "$HOME/.config/kitty" && \
-     cp -r "$HOME/.dotfiles/.config/kitty" "$HOME/.config/kitty"
-  then
-    echo && gum style --foreground="#2baf03" --bold "Kitty configurado con éxito!" && echo
-  else
-    echo && gum style --foreground="#cc2508" --bold "Algo fallou ao configurar Kitty! Abortando instalación..." && exit 1
-  fi
-
-  # Configuración de Hyprland
-  if rm -rf "$HOME/.config/hypr" && \
-     cp -r "$HOME/.dotfiles/.config/hypr" "$HOME/.config/hypr"
-  then
-    echo && gum style --foreground="#2baf03" --bold "Hyprland configurado con éxito!" && echo
-  else
-    echo && gum style --foreground="#cc2508" --bold "Algo fallou ao configurar Hyprland! Abortando instalación..." && exit 1
-  fi
-
-  # Configuración de Noctalia
-  if rm -rf "$HOME/.config/noctalia" && \
-     cp -r "$HOME/.dotfiles/.config/noctalia" "$HOME/.config/noctalia"
-  then
-    echo && gum style --foreground="#2baf03" --bold "Hyprland configurado con éxito!" && echo
-  else
-    echo && gum style --foreground="#cc2508" --bold "Algo fallou ao configurar Hyprland! Abortando instalación..." && exit 1
-  fi
-else
-  gum style --foreground="#cc2508" --bold "Sen dotfiles... non hai dotfiles... curiosamente... Abortando instalación..." && exit 1
-fi
-
-gum style "Xa temos os dotfiles instalados e configurados! Agora solo faltan as partes opcionales!" && echo
-
-# Instalar navegador
-gum style --foreground="#90CDFF" --bold "Instalar navegador web e configuralo" && echo
-gum style "É complicado hoxe en día usar un ordenador sin un navegador web. Instala o que elixas (ou ningún) de forma rápida dende aquí." && echo
-
-navegador=$(gum choose --header "Selecciona un navegador web ou preme Esc para non instalar ningún:" \
-  "Tor Browser" \
-  "Firefox" \
-  "Vivaldi" \
-  "Brave" \
-  "Opera" \
-  "LibreWolf" \
-  "Zen Browser"
-)
-
-case "$navegador" in
-  "Tor Browser")
-    yay -Syu --needed tor-browser-bin && \
-    sed -i 's|-- {{navegador}}|hl.bind(mainMod .. " + B", hl.dsp.exec_cmd("tor-browser"))|g' \
-      "$HOME/.config/hypr/hyprland.lua"
-    ;;
-  "Firefox")
-    yay -Syu --needed firefox && \
-    sed -i 's|-- {{navegador}}|hl.bind(mainMod .. " + B", hl.dsp.exec_cmd("firefox"))|g' \
-      "$HOME/.config/hypr/hyprland.lua"
-    ;;
-  "Vivaldi")
-    yay -Syu --needed vivaldi && \
-    sed -i 's|-- {{navegador}}|hl.bind(mainMod .. " + B", hl.dsp.exec_cmd("vivaldi-stable"))|g' \
-      "$HOME/.config/hypr/hyprland.lua"
-    ;;
-  "Brave")
-    yay -Syu --needed brave-bin && \
-    sed -i 's|-- {{navegador}}|hl.bind(mainMod .. " + B", hl.dsp.exec_cmd("brave"))|g' \
-      "$HOME/.config/hypr/hyprland.lua"
-    ;;
-  "Opera")
-    yay -Syu --needed opera && \
-    sed -i 's|-- {{navegador}}|hl.bind(mainMod .. " + B", hl.dsp.exec_cmd("opera"))|g' \
-      "$HOME/.config/hypr/hyprland.lua"
-    ;;
-  "LibreWolf")
-    yay -Syu --needed librewolf-bin && \
-    sed -i 's|-- {{navegador}}|hl.bind(mainMod .. " + B", hl.dsp.exec_cmd("librewolf"))|g' \
-      "$HOME/.config/hypr/hyprland.lua"
-    ;;
-  "Zen Browser")
-    yay -Syu --needed zen-browser-bin && \
-    sed -i 's|-- {{navegador}}|hl.bind(mainMod .. " + B", hl.dsp.exec_cmd("zen-browser"))|g' \
-      "$HOME/.config/hypr/hyprland.lua"
-    ;;
-esac
-
-# Instalar explorador de arquivos
-gum style --foreground="#90CDFF" --bold "Instalar explorador de arquivos e configuralo" && echo
-gum style "Igual que sin navegador é complicado traballar, sin explorador de arquivos inda máis. Instala o que elixas (ou ningún) de forma rápida dende aquí." && echo
-
-explorador=$(gum choose --header "Selecciona un explorador de arquivos ou preme Esc para non instalar ningún:" \
-  "Dolphin" \
-  "Nemo" \
-  "Nautilus" \
-  "Thunar" \
-  "Yazi"
-)
-
-case "$explorador" in
-  "Dolphin")
-    yay -Syu --needed dolphin && \
-    sed -i 's|-- {{explorador}}|hl.bind(mainMod .. " + E", hl.dsp.exec_cmd("dolphin"))|g' \
-      "$HOME/.config/hypr/hyprland.lua" && \
-    rm -rf "$HOME/.config/dophinrc" "$HOME/.config/baloofileinformationrc" "$HOME/.config/kservicemenurc" "$HOME/.local/share/kxmlgui5/dolphin"  && \
-    cp "$HOME/.dotfiles/optional/.config/dolphinrc" "$HOME/.config/dophinrc" && \
-    cp "$HOME/.dotfiles/optional/.config/baloofileinformationrc" "$HOME/.config/baloofileinformationrc" && \
-    cp "$HOME/.dotfiles/optional/.config/kservicemenurc" "$HOME/.config/kservicemenurc" && \
-    cp "$HOME/.dotfiles/optional/.local/share/kxmlgui5/dolphin" "$HOME/.local/share/kxmlgui5/dolphin"
-    ;;
-  "Nemo")
-    yay -Syu --needed nemo && \
-    sed -i 's|-- {{explorador}}|hl.bind(mainMod .. " + E", hl.dsp.exec_cmd("nemo"))|g' \
-      "$HOME/.config/hypr/hyprland.lua"
-    ;;
-  "Nautilus")
-    yay -Syu --needed nautilus && \
-    sed -i 's|-- {{explorador}}|hl.bind(mainMod .. " + E", hl.dsp.exec_cmd("nautilus"))|g' \
-      "$HOME/.config/hypr/hyprland.lua"
-    ;;
-  "Thunar")
-    yay -Syu --needed thunar && \
-    sed -i 's|-- {{explorador}}|hl.bind(mainMod .. " + E", hl.dsp.exec_cmd("thunar"))|g' \
-      "$HOME/.config/hypr/hyprland.lua"
-    ;;
-  "Yazi")
-    yay -Syu --needed ttf-noto-nerd yazi && \
-    sed -i 's|-- {{explorador}}|hl.bind(mainMod .. " + E", hl.dsp.exec_cmd("kitty -e yazi"))|g' \
-      "$HOME/.config/hypr/hyprland.lua"
-    ;;
-esac
-
-# Instalar editor de texto
-gum style --foreground="#90CDFF" --bold "Instalar editor de texto/código e configuralo" && echo
-gum style "Un editor de texto/código é casi imprescindible nun equipo. Instala o que elixas (ou ningún) de forma rápida dende aquí." && echo
-
-editor_texto=$(gum choose --header "Selecciona un editor de texto/código ou preme Esc para non instalar ningún:" \
-  "VS Code" \
-  "VSCodium" \
-  "Neovim" \
-  "Vim" \
-  "Zed" \
-  "Kate" \
-  "Sublime Text"
-)
-
-case "$editor_texto" in
-  "VS Code")
-    yay -Syu --needed visual-studio-code-bin && \
-    sed -i 's|-- {{editor_texto}}|hl.bind(mainMod .. " + C", hl.dsp.exec_cmd("code"))|g' \
-      "$HOME/.config/hypr/hyprland.lua" && \
-    rm -rf "$HOME/.config/code-flags.conf"  && \
-    cp "$HOME/.dotfiles/optional/.config/code-flags.conf" "$HOME/.config/code-flags.conf"
-    ;;
-  "VSCodium")
-    yay -Syu --needed vscodium-bin && \
-    sed -i 's|-- {{editor_texto}}|hl.bind(mainMod .. " + C", hl.dsp.exec_cmd("codium"))|g' \
-      "$HOME/.config/hypr/hyprland.lua"
-    ;;
-  "Neovim")
-    yay -Syu --needed neovim && \
-    sed -i 's|-- {{editor_texto}}|hl.bind(mainMod .. " + C", hl.dsp.exec_cmd("kitty -e nvim"))|g' \
-      "$HOME/.config/hypr/hyprland.lua"
-    ;;
-  "Vim")
-    yay -Syu --needed vim && \
-    sed -i 's|-- {{editor_texto}}|hl.bind(mainMod .. " + C", hl.dsp.exec_cmd("kitty -e vim"))|g' \
-      "$HOME/.config/hypr/hyprland.lua"
-    ;;
-  "Zed")
-    yay -Syu --needed zed && \
-    sed -i 's|-- {{editor_texto}}|hl.bind(mainMod .. " + C", hl.dsp.exec_cmd("zed"))|g' \
-      "$HOME/.config/hypr/hyprland.lua"
-    ;;
-  "Kate")
-    yay -Syu --needed kate && \
-    sed -i 's|-- {{editor_texto}}|hl.bind(mainMod .. " + C", hl.dsp.exec_cmd("kate"))|g' \
-      "$HOME/.config/hypr/hyprland.lua"
-    ;;
-  "Sublime Text")
-    yay -Syu --needed sublime-text-4 && \
-    sed -i 's|-- {{editor_texto}}|hl.bind(mainMod .. " + C", hl.dsp.exec_cmd("subl"))|g' \
-      "$HOME/.config/hypr/hyprland.lua"
-    ;;
-esac
-
-# Instalar visualizador de imaxes
-gum style --foreground="#90CDFF" --bold "Instalar visualizador de imaxes e configuralo" && echo
-gum style "Un visualizador de imaxes permite abrir e consultar imaxes de forma rápida e cómoda. Instala o que elixas (ou ningún) de forma rápida dende aquí." && echo
-
-visualizador_imaxes=$(gum choose --header "Selecciona un visualizador de imaxes ou preme Esc para non instalar ningún:" \
-  "Loupe" \
-  "Gwenview" \
-  "imv" \
-  "qimgv" \
-  "Ristretto"
-)
-
-case "$visualizador_imaxes" in
-  "Loupe")
-    yay -Syu --needed loupe
-    ;;
-  "Gwenview")
-    yay -Syu --needed gwenview
-    ;;
-  "imv")
-    yay -Syu --needed imv
-    ;;
-  "qimgv")
-    yay -Syu --needed qimgv
-    ;;
-  "Ristretto")
-    yay -Syu --needed ristretto
-    ;;
-esac
-
-# Instalar reprodutor de vídeo
-gum style --foreground="#90CDFF" --bold "Instalar reprodutor de vídeo e configuralo" && echo
-gum style "Un reprodutor de vídeo permite reproducir contido multimedia de forma rápida e cómoda. Instala o que elixas (ou ningún) de forma rápida dende aquí." && echo
-
-reprodutor_video=$(gum choose --header "Selecciona un reprodutor de vídeo ou preme Esc para non instalar ningún:" \
-  "VLC" \
-  "MPV" \
-  "Haruna" \
-  "Celluloid" \
-  "SMPlayer"
-)
-
-case "$reprodutor_video" in
-  "VLC")
-    yay -Syu --needed vlc vlc-plugins-all
-    ;;
-  "MPV")
-    yay -Syu --needed mpv
-    ;;
-  "Haruna")
-    yay -Syu --needed haruna
-    ;;
-  "Celluloid")
-    yay -Syu --needed celluloid
-    ;;
-  "SMPlayer")
-    yay -Syu --needed smplayer
-    ;;
-esac
-
-# Instalar reprodutor de música
-gum style --foreground="#90CDFF" --bold "Instalar reprodutor de música e configuralo" && echo
-gum style "Un reprodutor de música permite escoitar e organizar a túa biblioteca musical de forma rápida e cómoda. Instala o que elixas (ou ningún) de forma rápida dende aquí." && echo
-
-reprodutor_musica=$(gum choose --header "Selecciona un reprodutor de música ou preme Esc para non instalar ningún:" \
-  "Amberol" \
-  "Tauon Music Box" \
-  "Strawberry" \
-  "Lollypop" \
-  "Audacious"
-)
-
-case "$reprodutor_musica" in
-  "Amberol")
-    yay -Syu --needed amberol
-    ;;
-  "Tauon Music Box")
-    yay -Syu --needed tauon-music-box
-    ;;
-  "Strawberry")
-    yay -Syu --needed strawberry
-    ;;
-  "Lollypop")
-    yay -Syu --needed lollypop
-    ;;
-  "Audacious")
-    yay -Syu --needed audacious
-    ;;
-esac
-
-# Instalar visor de PDF
-gum style --foreground="#90CDFF" --bold "Instalar visor de PDF" && echo
-gum style "Un visor de PDF permite abrir e consultar documentos PDF de forma rápida e cómoda. Instala o que elixas (ou ningún) de forma rápida dende aquí." && echo
-
-visor_pdf=$(gum choose --header "Selecciona un visor de PDF ou preme Esc para non instalar ningún:" \
-  "Okular" \
-  "Papers" \
-  "Zathura" \
-  "MuPDF" \
-  "Xreader"
-)
-
-case "$visor_pdf" in
-  "Okular")
-    yay -Syu --needed okular
-    ;;
-  "Papers")
-    yay -Syu --needed papers
-    ;;
-  "Zathura")
-    yay -Syu --needed zathura zathura-pdf-mupdf
-    ;;
-  "MuPDF")
-    yay -Syu --needed mupdf
-    ;;
-  "Xreader")
-    yay -Syu --needed xreader
-    ;;
-esac
-
-# Instalar xestor de arquivos comprimidos
-gum style --foreground="#90CDFF" --bold "Instalar xestor de arquivos comprimidos" && echo
-gum style "Un xestor de arquivos comprimidos permite crear, abrir e extraer arquivos comprimidos mediante unha interface gráfica. Instala o que elixas (ou ningún) de forma rápida dende aquí." && echo
-
-xestor_comprimidos=$(gum choose --header "Selecciona un xestor de arquivos comprimidos ou preme Esc para non instalar ningún:" \
-  "File Roller" \
-  "Ark" \
-  "Xarchiver" \
-  "Engrampa" \
-  "PeaZip"
-)
-
-case "$xestor_comprimidos" in
-  "File Roller")
-    yay -Syu --needed file-roller
-    ;;
-  "Ark")
-    yay -Syu --needed ark
-    ;;
-  "Xarchiver")
-    yay -Syu --needed xarchiver
-    ;;
-  "Engrampa")
-    yay -Syu --needed engrampa
-    ;;
-  "PeaZip")
-    yay -Syu --needed peazip-qt-bin
-    ;;
-esac
-
-# Instalar xestor de discos e particións
-gum style --foreground="#90CDFF" --bold "Instalar xestor de discos e particións" && echo
-gum style "Un xestor de discos e particións permite administrar unidades, particións e sistemas de arquivos mediante unha interface gráfica. Instala o que elixas (ou ningún) de forma rápida dende aquí." && echo
-
-xestor_discos=$(gum choose --header "Selecciona un xestor de discos e particións ou preme Esc para non instalar ningún:" \
-  "GNOME Disks" \
-  "GParted" \
-  "KDE Partition Manager"
-)
-
-case "$xestor_discos" in
-  "GNOME Disks")
-    yay -Syu --needed gnome-disk-utility
-    ;;
-  "GParted")
-    yay -Syu --needed gparted
-    ;;
-  "KDE Partition Manager")
-    yay -Syu --needed partitionmanager
-    ;;
-esac
-
-# Instalar calculadora
-gum style --foreground="#90CDFF" --bold "Instalar calculadora" && echo
-gum style "Unha calculadora permite realizar cálculos básicos, científicos e avanzados directamente dende o escritorio. Instala a que elixas (ou ningunha) de forma rápida dende aquí." && echo
-
-calculadora=$(gum choose --header "Selecciona unha calculadora ou preme Esc para non instalar ningunha:" \
-  "GNOME Calculator" \
-  "KCalc" \
-  "Qalculate!" \
-  "SpeedCrunch" \
-  "Galculator"
-)
-
-case "$calculadora" in
-  "GNOME Calculator")
-    yay -Syu --needed gnome-calculator
-    ;;
-  "KCalc")
-    yay -Syu --needed kcalc
-    ;;
-  "Qalculate!")
-    yay -Syu --needed qalculate-gtk
-    ;;
-  "SpeedCrunch")
-    yay -Syu --needed speedcrunch
-    ;;
-  "Galculator")
-    yay -Syu --needed galculator
-    ;;
-esac
-
-# Instalar cliente de correo
-gum style --foreground="#90CDFF" --bold "Instalar cliente de correo" && echo
-gum style "Un cliente de correo permite xestionar as túas contas e mensaxes directamente dende o escritorio. Instala o que elixas (ou ningún) de forma rápida dende aquí." && echo
-
-cliente_correo=$(gum choose --header "Selecciona un cliente de correo ou preme Esc para non instalar ningún:" \
-  "Thunderbird" \
-  "Betterbird" \
-  "Geary" \
-  "Evolution"
-)
-
-case "$cliente_correo" in
-  "Thunderbird")
-    yay -Syu --needed thunderbird
-    ;;
-  "Betterbird")
-    yay -Syu --needed betterbird-bin
-    ;;
-  "Geary")
-    yay -Syu --needed geary
-    ;;
-  "Evolution")
-    yay -Syu --needed evolution
-    ;;
-esac
-
-# Instalar suite ofimática
-gum style --foreground="#90CDFF" --bold "Instalar suite ofimática" && echo
-gum style "Unha suite ofimática permite crear e editar documentos, follas de cálculo e presentacións. Instala a que elixas (ou ningunha) de forma rápida dende aquí." && echo
-
-suite_ofimatica=$(gum choose --header "Selecciona unha suite ofimática ou preme Esc para non instalar ningunha:" \
-  "LibreOffice" \
-  "ONLYOFFICE" \
-  "Calligra"
-)
-
-case "$suite_ofimatica" in
-  "LibreOffice")
-    yay -Syu --needed libreoffice-still libreoffice-still-gl libreoffice-still-es
-    ;;
-  "ONLYOFFICE")
-    yay -Syu --needed onlyoffice-bin
-    ;;
-  "Calligra")
-    yay -Syu --needed calligra
-    ;;
-esac
-
-# Instalar aplicación de notas
-gum style --foreground="#90CDFF" --bold "Instalar aplicación de notas" && echo
-gum style "Unha aplicación de notas permite organizar ideas, apuntes e documentación persoal. Instala a que elixas (ou ningunha) de forma rápida dende aquí." && echo
-
-app_notas=$(gum choose --header "Selecciona unha aplicación de notas ou preme Esc para non instalar ningunha:" \
-  "Obsidian" \
-  "Joplin" \
-  "MarkText" \
-  "Apostrophe"
-)
-
-case "$app_notas" in
-  "Obsidian")
-    yay -Syu --needed obsidian
-    ;;
-  "Joplin")
-    yay -Syu --needed joplin-desktop
-    ;;
-  "MarkText")
-    yay -Syu --needed marktext-bin
-    ;;
-  "Apostrophe")
-    yay -Syu --needed apostrophe
-    ;;
-esac
-
-# Instalar xestor de contrasinais
-gum style --foreground="#90CDFF" --bold "Instalar xestor de contrasinais" && echo
-gum style "Un xestor de contrasinais permite gardar e organizar credenciais de forma segura. Instala o que elixas (ou ningún) de forma rápida dende aquí." && echo
-
-xestor_contrasinais=$(gum choose --header "Selecciona un xestor de contrasinais ou preme Esc para non instalar ningún:" \
-  "KeePassXC" \
-  "Bitwarden" \
-  "1Password"
-)
-
-case "$xestor_contrasinais" in
-  "KeePassXC")
-    yay -Syu --needed keepassxc
-    ;;
-  "Bitwarden")
-    yay -Syu --needed bitwarden
-    ;;
-  "1Password")
-    yay -Syu --needed 1password
-    ;;
-esac
-
-# Instalar cliente Torrent
-gum style --foreground="#90CDFF" --bold "Instalar cliente Torrent" && echo
-gum style "Un cliente Torrent permite descargar e compartir arquivos mediante o protocolo BitTorrent. Instala o que elixas (ou ningún) de forma rápida dende aquí." && echo
-
-cliente_torrent=$(gum choose --header "Selecciona un cliente Torrent ou preme Esc para non instalar ningún:" \
-  "qBittorrent" \
-  "Transmission" \
-  "Deluge" \
-  "Fragments"
-)
-
-case "$cliente_torrent" in
-  "qBittorrent")
-    yay -Syu --needed qbittorrent
-    ;;
-  "Transmission")
-    yay -Syu --needed transmission-gtk
-    ;;
-  "Deluge")
-    yay -Syu --needed deluge
-    ;;
-  "Fragments")
-    yay -Syu --needed fragments
-    ;;
-esac
-
-# Instalar aplicacións populares
-gum style --foreground="#90CDFF" --bold "Instalar outras aplicacións populares" && echo
-gum style "Selecciona outras aplicacións populares que queiras instalar no teu equipo. Podes seleccionar varias opcións ou non instalar ningunha." && echo
-
-apps_populares=$(gum choose --no-limit --header "Selecciona as aplicacións que queiras instalar ou preme Esc para non instalar ningunha:" \
-  "Discord" \
-  "Vesktop" \
-  "OBS Studio" \
-  "Krita" \
-  "GIMP" \
-  "Inkscape" \
-  "Blender" \
-  "Kdenlive" \
-  "Steam" \
-  "Spotify"
-)
-
-pkgs_apps_populares=()
-flatpaks_apps_populares=()
-
-while IFS= read -r app; do
-  case "$app" in
-    "Discord")
-      pkgs_apps_populares+=("discord")
-      ;;
-    "Vesktop")
-      pkgs_apps_populares+=("vesktop")
-      ;;
-    "OBS Studio")
-      pkgs_apps_populares+=("obs-studio")
-      ;;
-    "Krita")
-      pkgs_apps_populares+=("krita")
-      ;;
-    "GIMP")
-      pkgs_apps_populares+=("gimp")
-      ;;
-    "Inkscape")
-      pkgs_apps_populares+=("inkscape")
-      ;;
-    "Blender")
-      pkgs_apps_populares+=("blender")
-      ;;
-    "Kdenlive")
-      pkgs_apps_populares+=("kdenlive")
-      ;;
-    "Steam")
-      pkgs_apps_populares+=("steam")
-      ;;
-    "Spotify")
-      pkgs_apps_populares+=("spotify")
-      ;;
-  esac
-done <<< "$apps_populares"
-
-if [ ${#pkgs_apps_populares[@]} -gt 0 ]; then
-  yay -Syu --needed "${pkgs_apps_populares[@]}"
-fi
-
-if [ ${#flatpaks_apps_populares[@]} -gt 0 ]; then
-  flatpak install -y flathub "${flatpaks_apps_populares[@]}"
-fi
-
-# Instalar yt-dlp?
-gum style --foreground="#90CDFF" --bold "Instalar yt-dlp e configuralo" && echo
-gum style "Se queres descargar vídeos e cancións de YouTube ou YouTube Music facilmente instala yt-dlp e terás varios comandos dispoñibles para usar." && echo
-gum style --foreground="#D6C104" --bold "Isto substituirá a carpeta ~/.config/yt-dlp/ e o arquivo ~/.config/bachrc/201-yt-dlp!" && echo
-
-if gum confirm --affirmative="Si" --negative="No" "Instalar yt-dlp?"; then
-  if yay -Syu --needed yt-dlp && \
-     rm -rf "$HOME/.config/yt-dlp" && \
-     cp -r "$HOME/.dotfiles/optional/.config/yt-dlp" "$HOME/.config/yt-dlp" && \
-     rm -rf "$HOME/.config/bashrc/201-yt-dlp" && \
-     cp "$HOME/.dotfiles/optional/.config/bashrc/201-yt-dlp" "$HOME/.config/bashrc/201-yt-dlp" && \
-     source "$HOME/.bashrc"
-  then
-    echo && gum style --foreground="#2baf03" --bold "yt-dlp instalado con éxito!" && echo
-  else
-    echo && gum style --foreground="#cc2508" --bold "Algo fallou ao instalar yt-dlp! Podes instalalo manualmente." && echo
-  fi
-fi
-
-# Instalar SpotDL?
-gum style --foreground="#90CDFF" --bold "Instalar SpotDL e configuralo" && echo
-gum style "Se queres descargar cancións de \"Spotify\" facilmente instala SpotDL e con solo un comando poderás descargar as cancións que queiras." && echo
-gum style --foreground="#D6C104" --bold "Isto substituirá a carpeta ~/.config/SpotDL/ e engadirá unha liña ao final de ~/.config/bashrc/100-autostart!" && echo
-
-if gum confirm --affirmative="Si" --negative="No" "Instalar SpotDL?"; then
-  if pipx install spotdl && \
-     rm -rf "$HOME/.config/spotdl" && \
-     cp -r "$HOME/.dotfiles/optional/.config/spotdl" "$HOME/.config/spotdl"
-  then
-    echo && gum style --foreground="#2baf03" --bold "SpotDL instalado con éxito!" && echo
-  else
-    echo && gum style --foreground="#cc2508" --bold "Algo fallou ao instalar SpotDL! Podes instalalo manualmente." && echo
-  fi
-fi
-
-# Gardar versión instalada para futuros usos
-mkdir -p "$HOME/.local/share/gallaecia-dots" && echo "$version" > "$HOME/.local/share/gallaecia-dots/version"
-
-# Reiniciar o sistema?
-gum style --foreground="#90CDFF" --bold "Reiniciar o sistema" && echo
-gum style "Recoméndase reiniciar o sistema para aplicar correctamente todos os cambios." && echo
-
-if gum confirm --affirmative="Si" --negative="No" "Reiniciar o sistema agora?"; then
-  systemctl reboot
-fi
-
-# Gardar versión instalada para futuros usos
-mkdir -p "$HOME/.local/share/gallaecia-dots" && echo "$version | Instalado o $(date +%d-%m-%Y)" > "$HOME/.local/share/gallaecia-dots/version"
-
-# Reiniciar o sistema?
-gum style --foreground="#90CDFF" --bold "Reiniciar o sistema" && echo
-gum style "Recoméndase reiniciar o sistema para aplicar correctamente todos os cambios." && echo
-
-if gum confirm --affirmative="Si" --negative="No" "Reiniciar o sistema agora?"; then
-  systemctl reboot
-fi
+main "$@"
