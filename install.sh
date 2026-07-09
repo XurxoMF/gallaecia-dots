@@ -16,7 +16,7 @@ REQUIRED_PACKAGES=(
   flatpak util-linux pipewire gnome-keyring libsecret greetd cage wlr-randr dbus polkit libnewt ddcutil power-profiles-daemon
   python pip pipx ffmpeg udisksctl 7zip jq poppler fd ripgrep fzf zoxide resvg imagemagick
   hyprland uwsm
-  noctalia-git noctalia-greeter-git
+  noctalia noctalia-greeter
   qt5-base qt6-base qt5ct qt6ct qt5-wayland qt6-wayland xsettingsd hyprland-qt-support kservice
   xdg-utils xdg-desktop-portal xdg-desktop-portal-hyprland xdg-desktop-portal-gtk xdg-user-dirs archlinux-xdg-menu
   xorg-xrandr xorg-xwayland
