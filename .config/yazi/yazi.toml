@@ -54,13 +54,13 @@ rules = [
 	# Cartafol
 	{ url = "*/", use = [ "edit", "open", "reveal" ] },
 	# Texto
-	{ mime = "text/*", use = [ "edit", "reveal" ] },
+	{ mime = "text/*", use = [ "edit", "open", "reveal" ] },
 	# Imaxe
 	{ mime = "image/*", use = [ "open", "reveal" ] },
 	# Multimedia
 	{ mime = "{audio,video}/*", use = [ "play", "reveal" ] },
 	# Código
-	{ mime = "application/{json,ndjson,javascript,wine-extension-ini}", use = [ "edit", "reveal" ] },
+	{ mime = "application/{json,ndjson,javascript,wine-extension-ini}", use = [ "edit", "open", "reveal" ] },
 	# Arquivo
 	{ mime = "application/{zip,rar,7z*,tar,gzip,xz,zstd,bzip*,lzma,compress,archive,cpio,arj,xar,ms-cab*}", use = [ "extract", "reveal" ] },
 	# Ficheiro baleiro
