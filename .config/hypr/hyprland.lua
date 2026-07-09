@@ -20,10 +20,6 @@ hl.monitor({ output = "", mode = "preffered", position = "auto", scale = "auto" 
 ---- VARIABLES DE ENTORNO ----
 ------------------------------
 
--- NVIDIA
-hl.env("LIBVA_DRIVER_NAME", "nvidia")
-hl.env("__GLX_VENDOR_LIBRARY_NAME", "nvidia")
-
 -- Editor
 hl.env("TERMINAL", terminal)
 hl.env("EDITOR", editor)
