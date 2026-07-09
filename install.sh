@@ -317,12 +317,12 @@ install_dolphin() {
 }
 
 install_yazi() {
+  replace_path "$DOTFILES_DIR/.config/yazi" "$HOME/.config/yazi" &&
   ya pkg add yazi-rs/plugins:git &&
   ya pkg add yazi-rs/plugins:mount &&
   ya pkg add yazi-rs/plugins:chmod &&
   ya pkg add boydaihungst/restore &&
-  ya pkg add boydaihungst/mediainfo &&
-  replace_path "$DOTFILES_DIR/.config/yazi" "$HOME/.config/yazi"
+  ya pkg add boydaihungst/mediainfo
 }
 
 install_vscode() {
