@@ -275,6 +275,7 @@ install_greetd_config() {
 
 install_gallaecia_config() {
   replace_path "$DOTFILES_DIR/.config/gallaecia-dots" "$HOME/.config/gallaecia-dots" &&
+  replace_file "$DOTFILES_DIR/.config/mimeapps.list" "$HOME/.config/mimeapps.list" &&
   sudo chmod +x -R "$HOME/.config/gallaecia-dots/scripts" &&
   mkdir -p "$HOME/.wallpapers" &&
   cp -rf "$DOTFILES_DIR/.wallpapers/." "$HOME/.wallpapers/"
@@ -413,6 +414,187 @@ configure_spotdl() {
   replace_path "$DOTFILES_DIR/optional/.config/spotdl" "$HOME/.config/spotdl"
 }
 
+set_default_app() {
+  local mime_type="$1"
+  local desktop_file="$2"
+  local mimeapps="$HOME/.config/mimeapps.list"
+
+  mkdir -p "$HOME/.config"
+  touch "$mimeapps"
+
+  if ! grep -qxF "[Default Applications]" "$mimeapps"; then
+    printf '\n[Default Applications]\n' >> "$mimeapps"
+  fi
+
+  if grep -q "^${mime_type}=" "$mimeapps"; then
+    sed -i "s#^${mime_type}=.*#${mime_type}=${desktop_file}#" "$mimeapps"
+  else
+    sed -i "/^\\[Default Applications\\]/a ${mime_type}=${desktop_file}" "$mimeapps"
+  fi
+}
+
+set_default_apps() {
+  local desktop_file="$1"
+  shift
+
+  for mime_type in "$@"; do
+    set_default_app "$mime_type" "$desktop_file"
+  done
+}
+
+has_pkg_app() {
+  local package_name="$1"
+  local app
+
+  for app in "${pkgs_apps[@]}"; do
+    if [ "$app" = "$package_name" ]; then
+      return 0
+    fi
+  done
+
+  return 1
+}
+
+choose_default_desktop() {
+  local header="$1"
+  shift
+  local choices=("$@")
+  local selected
+
+  case "${#choices[@]}" in
+    0)
+      return 1
+      ;;
+    1)
+      printf '%s\n' "${choices[0]#*|}"
+      return 0
+      ;;
+  esac
+
+  selected=$(gum_choose \
+    --header "$header" \
+    "${choices[@]%%|*}")
+
+  case "$selected" in
+    "Amberol") printf '%s\n' "io.bassi.Amberol.desktop" ;;
+    "Discord") printf '%s\n' "discord.desktop" ;;
+    "Firefox") printf '%s\n' "firefox.desktop" ;;
+    "GIMP") printf '%s\n' "org.gimp.GIMP.desktop" ;;
+    "Inkscape") printf '%s\n' "org.inkscape.Inkscape.desktop" ;;
+    "Krita") printf '%s\n' "org.kde.krita.desktop" ;;
+    "LibreOffice") printf '%s\n' "libreoffice-writer.desktop" ;;
+    "Loupe") printf '%s\n' "org.gnome.Loupe.desktop" ;;
+    "MPV") printf '%s\n' "mpv.desktop" ;;
+    "Okular") printf '%s\n' "org.kde.okular.desktop" ;;
+    "Vesktop") printf '%s\n' "vesktop.desktop" ;;
+    "VLC") printf '%s\n' "vlc.desktop" ;;
+    *) return 1 ;;
+  esac
+}
+
+configure_optional_mimeapps() {
+  local image_choices=("Firefox|firefox.desktop")
+  local vector_choices=("Firefox|firefox.desktop")
+  local video_choices=("Firefox|firefox.desktop")
+  local music_choices=("Firefox|firefox.desktop")
+  local document_choices=("Firefox|firefox.desktop")
+  local chat_choices=()
+  local image_desktop vector_desktop video_desktop music_desktop document_desktop chat_desktop
+
+  if has_pkg_app loupe; then
+    image_choices=("Loupe|org.gnome.Loupe.desktop" "${image_choices[@]}")
+  fi
+  if has_pkg_app krita; then
+    image_choices+=("Krita|org.kde.krita.desktop")
+    vector_choices+=("Krita|org.kde.krita.desktop")
+    set_default_apps org.kde.krita.desktop application/x-krita image/openraster
+  fi
+  if has_pkg_app gimp; then
+    image_choices+=("GIMP|org.gimp.GIMP.desktop")
+  fi
+  if has_pkg_app inkscape; then
+    vector_choices=("Inkscape|org.inkscape.Inkscape.desktop" "${vector_choices[@]}")
+    set_default_apps org.inkscape.Inkscape.desktop application/illustrator application/eps
+  fi
+  if has_pkg_app okular; then
+    document_choices=("Okular|org.kde.okular.desktop" "${document_choices[@]}")
+  fi
+  if has_pkg_app libreoffice-still; then
+    document_choices+=("LibreOffice|libreoffice-writer.desktop")
+    set_default_apps libreoffice-writer.desktop \
+      application/msword application/rtf application/vnd.oasis.opendocument.text \
+      application/vnd.openxmlformats-officedocument.wordprocessingml.document text/rtf
+    set_default_apps libreoffice-calc.desktop \
+      application/vnd.ms-excel application/vnd.oasis.opendocument.spreadsheet \
+      application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+    set_default_apps libreoffice-impress.desktop \
+      application/vnd.ms-powerpoint application/vnd.oasis.opendocument.presentation \
+      application/vnd.openxmlformats-officedocument.presentationml.presentation
+    set_default_apps libreoffice-draw.desktop application/vnd.oasis.opendocument.graphics
+  fi
+  if has_pkg_app amberol; then
+    music_choices=("Amberol|io.bassi.Amberol.desktop" "${music_choices[@]}")
+  fi
+  if has_pkg_app vlc; then
+    video_choices+=("VLC|vlc.desktop")
+    music_choices+=("VLC|vlc.desktop")
+  fi
+  if has_pkg_app mpv; then
+    video_choices+=("MPV|mpv.desktop")
+    music_choices+=("MPV|mpv.desktop")
+  fi
+  if has_pkg_app discord; then
+    chat_choices+=("Discord|discord.desktop")
+  fi
+  if has_pkg_app vesktop; then
+    chat_choices+=("Vesktop|vesktop.desktop")
+  fi
+
+  image_desktop=$(choose_default_desktop "Escolle visor de imaxes por defecto:" "${image_choices[@]}") &&
+  set_default_apps "$image_desktop" \
+    image/avif image/bmp image/gif image/heif image/jpeg image/jxl image/png image/tiff image/webp image/x-xcf image/vnd.adobe.photoshop
+
+  vector_desktop=$(choose_default_desktop "Escolle visor/editor vectorial por defecto:" "${vector_choices[@]}") &&
+  set_default_apps "$vector_desktop" image/svg+xml image/svg+xml-compressed application/postscript
+
+  video_desktop=$(choose_default_desktop "Escolle reprodutor de vídeo por defecto:" "${video_choices[@]}") &&
+  set_default_apps "$video_desktop" \
+    video/mp2t video/mp4 video/mpeg video/ogg video/quicktime video/webm video/x-matroska video/x-msvideo video/x-ms-wmv
+
+  music_desktop=$(choose_default_desktop "Escolle reprodutor de música por defecto:" "${music_choices[@]}") &&
+  set_default_apps "$music_desktop" \
+    audio/aac audio/flac audio/mpeg audio/ogg audio/opus audio/wav audio/x-wav audio/x-ms-wma
+
+  document_desktop=$(choose_default_desktop "Escolle visor de documentos por defecto:" "${document_choices[@]}") &&
+  set_default_apps "$document_desktop" \
+    application/pdf application/epub+zip application/vnd.comicbook+zip application/vnd.djvu image/vnd.djvu application/oxps application/vnd.ms-xpsdocument
+
+  chat_desktop=$(choose_default_desktop "Escolle cliente de Discord por defecto:" "${chat_choices[@]}") &&
+  set_default_apps "$chat_desktop" x-scheme-handler/discord
+
+  if has_pkg_app qbittorrent; then
+    set_default_apps org.qbittorrent.qBittorrent.desktop application/x-bittorrent x-scheme-handler/magnet
+  fi
+  if has_pkg_app blender; then
+    set_default_apps blender.desktop application/x-blender
+  fi
+  if has_pkg_app kdenlive; then
+    set_default_apps org.kde.kdenlive.desktop application/x-kdenlive application/x-kdenlivetitle
+  fi
+  if has_pkg_app steam; then
+    set_default_apps steam.desktop x-scheme-handler/steam x-scheme-handler/steamlink
+  fi
+  if has_pkg_app spotify; then
+    set_default_apps spotify.desktop x-scheme-handler/spotify
+  fi
+  if has_pkg_app keepassxc; then
+    set_default_apps org.keepassxc.KeePassXC.desktop application/x-keepass2
+  fi
+  if has_pkg_app thunderbird; then
+    set_default_apps thunderbird.desktop message/rfc822 x-scheme-handler/mailto x-scheme-handler/mid
+  fi
+}
+
 choose_optional_apps() {
   local apps_populares app
 
@@ -465,16 +647,16 @@ choose_optional_apps() {
       "yt-dlp")
         pkgs_apps+=("yt-dlp")
         run_step \
-		"yt-dlp configurado con éxito!" \
-		"Algo fallou ao configurar yt-dlp! Abortando instalación..." \
-		configure_yt_dlp
+          "yt-dlp configurado con éxito!" \
+          "Algo fallou ao configurar yt-dlp! Abortando instalación..." \
+          configure_yt_dlp
         ;;
       "SpotDL")
         pipx_apps+=("spotdl")
         run_step \
-		"SpotDL configurado con éxito!" \
-		"Algo fallou ao configurar SpotDL! Abortando instalación..." \
-		configure_spotdl
+          "SpotDL configurado con éxito!" \
+          "Algo fallou ao configurar SpotDL! Abortando instalación..." \
+          configure_spotdl
         ;;
     esac
   done <<< "$apps_populares"
@@ -647,6 +829,10 @@ main() {
 
   choose_optional_apps
   install_optional_apps
+  run_step \
+	"Asociacións de ficheiros opcionais configuradas con éxito!" \
+	"Algo fallou ao configurar as asociacións de ficheiros opcionais! Abortando instalación..." \
+	configure_optional_mimeapps
 
   run_step \
 	"Versión instalada gardada con éxito!" \
