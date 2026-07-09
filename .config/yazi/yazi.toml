@@ -84,13 +84,14 @@ suppress_preload = false
 
 [plugin]
 fetchers = [
+	# Plugin git
+	{ url = "*", run = "git", group = "git" },
+	{ url = "*/", run = "git", group = "git" },
+
 	# Tipo MIME
 	{ url = "*/",         run = "mime.dir",    prio = "high", group = "mime" },
 	{ url = "local://*",  run = "mime.local",  prio = "high", group = "mime" },
 	{ url = "remote://*", run = "mime.remote", prio = "high", group = "mime" },
-	# Plugin git
-	{ url = "*", run = "git", group = "git" },
-	{ url = "*/", run = "git", group = "git" },
 ]
 spotters = [
 	# Multificheiro
