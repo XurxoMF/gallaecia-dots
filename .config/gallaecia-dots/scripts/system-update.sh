@@ -65,14 +65,10 @@ gum_confirm() {
 	"$@"
 }
 
-has_command_or_skip() {
+has_command() {
   local command_name="$1"
-  local error_message="$2"
 
-  if ! command -v "$command_name" &> /dev/null; then
-    warning "$error_message"
-    return 1
-  fi
+  command -v "$command_name" &> /dev/null
 }
 
 run_step() {
@@ -110,30 +106,39 @@ show_logo() {
 }
 
 update_rust() {
-  if ! has_command_or_skip rustup "Rustup non está instalado. Saltando actualización de Rust."; then
-    return 0
+  if has_command rustup; then
+    title "Actualizando Rust..."
+    rustup update
+  else
+    warning "Rustup non está instalado. Saltando actualización de Rust."
   fi
-
-  title "Actualizando Rust..."
-  rustup update
 }
 
 update_arch() {
-  if ! has_command_or_skip yay "YAY non está instalado. Saltando actualización de pacman e AUR."; then
-    return 0
+  if has_command yay; then
+    title "Actualizando pacman e AUR..."
+    yay -Syu --devel
+  else
+    warning "YAY non está instalado. Saltando actualización de pacman e AUR."
   fi
-
-  title "Actualizando pacman e AUR..."
-  yay -Syu --devel
 }
 
 update_flatpak() {
-  if ! has_command_or_skip flatpak "Flatpak non está instalado. Saltando actualización de Flatpak."; then
-    return 0
+  if has_command flatpak; then
+    title "Actualizando Flatpak..."
+    flatpak update
+  else
+    warning "Flatpak non está instalado. Saltando actualización de Flatpak."
   fi
+}
 
-  title "Actualizando Flatpak..."
-  flatpak update
+update_yazi_plugins() {
+  if has_command yazi && has_command ya; then
+    title "Actualizando plugins de Yazi..."
+    ya pkg upgrade
+  else
+    warning "Yazi non está instalado. Saltando actualización de plugins de Yazi."
+  fi
 }
 
 main() {
@@ -156,6 +161,12 @@ main() {
 	"Flatpak actualizado con éxito!" \
 	"Algo fallou ao actualizar Flatpak!" \
 	update_flatpak
+
+  confirm_step \
+	"Actualizar plugins de Yazi?" \
+	"Plugins de Yazi actualizados con éxito!" \
+	"Algo fallou ao actualizar os plugins de Yazi!" \
+	update_yazi_plugins
 
   if gum_confirm "Reiniciar sistema? (Recomendado se se actualizaron paquetes)"; then
     systemctl reboot

@@ -13,8 +13,8 @@ YELLOW="#D6C104"
 REQUIRED_PACKAGES=(
   noto-fonts-cjk noto-fonts-emoji noto-fonts ttf-noto-nerd
   papirus-icon-theme breeze breeze-icons
-  flatpak util-linux pipewire gnome-keyring libsecret greetd cage wlr-randr dbus polkit libnewt ddcutil power-profiles-daemon
-  python pip pipx ffmpeg udisksctl 7zip jq poppler fd ripgrep fzf zoxide resvg imagemagick
+  flatpak util-linux pipewire gnome-keyring libsecret greetd cage wlr-randr dbus polkit libnewt ddcutil power-profiles-daemon trash-cli
+  python pip pipx ffmpeg udisksctl 7zip jq poppler fd ripgrep fzf zoxide resvg imagemagick mediainfo
   hyprland uwsm
   noctalia noctalia-greeter
   qt5-base qt6-base qt5ct qt6ct qt5-wayland qt6-wayland xsettingsd hyprland-qt-support kservice
@@ -316,6 +316,11 @@ install_dolphin() {
 }
 
 install_yazi() {
+  ya pkg add yazi-rs/plugins:git &&
+  ya pkg add yazi-rs/plugins:mount &&
+  ya pkg add yazi-rs/plugins:chmod &&
+  ya pkg add boydaihungst/restore &&
+  ya pkg add boydaihungst/mediainfo &&
   replace_path "$DOTFILES_DIR/.config/yazi" "$HOME/.config/yazi"
 }
 

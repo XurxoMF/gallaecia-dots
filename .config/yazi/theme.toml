@@ -1,0 +1,18 @@
+[flavor]
+dark  = "noctalia"
+light = "noctalia"
+
+[icon]
+prepend_dirs = [
+	{ name = "Aplicacións", text = "" },
+	{ name = "Desarrollo", text = "" },
+	{ name = "Descargas", text = "" },
+	{ name = "Documentos", text = "" },
+	{ name = "Escritorio", text = "" },
+	{ name = "Imaxes", text = "" },
+	{ name = "Modelos", text = "" },
+	{ name = "Música", text = "" },
+	{ name = "Público", text = "" },
+	{ name = "Vídeos", text = "" },
+	{ name = "Xogos", text = "󰊴" },
+]
