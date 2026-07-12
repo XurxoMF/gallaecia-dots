@@ -30,7 +30,7 @@ source "$MODULES_DIR/apps.sh"
 show_changelog() {
   title "Update $VERSION"
   info "Cambios que se van aplicar:"
-  info "- Mellorados os comandos de yt-dlp."
+  info "· Mellorados os comandos de yt-dlp."
   echo
 }
 
