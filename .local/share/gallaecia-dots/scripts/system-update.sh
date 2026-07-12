@@ -8,7 +8,7 @@ source "$HOME/.local/share/gallaecia-dots/scripts/modules/ui.sh"
 # shellcheck source=/dev/null
 source "$HOME/.local/share/gallaecia-dots/scripts/modules/commands.sh"
 
-DOTFILES_DIR="$HOME/.dotfiles"
+DOTFILES_DIR="${DOTFILES_DIR:-$HOME/.dotfiles}"
 INSTALLER="$DOTFILES_DIR/install.sh"
 REPO_BRANCH="${1:-${REPO_BRANCH:-release}}"
 
@@ -23,7 +23,27 @@ show_logo() {
 
 # Comproba se o repo local existe e é un clon git válido.
 has_dotfiles_repo() {
-  [ -d "$DOTFILES_DIR/.git" ] && [ -x "$INSTALLER" ]
+  git -C "$DOTFILES_DIR" rev-parse --is-inside-work-tree &> /dev/null &&
+    [ -r "$INSTALLER" ]
+}
+
+dotfiles_repo_problem() {
+  if [ ! -d "$DOTFILES_DIR" ]; then
+    printf 'Non existe %s.' "$DOTFILES_DIR"
+    return
+  fi
+
+  if ! git -C "$DOTFILES_DIR" rev-parse --is-inside-work-tree &> /dev/null; then
+    printf '%s existe, pero Git non o recoñece como repo.' "$DOTFILES_DIR"
+    return
+  fi
+
+  if [ ! -r "$INSTALLER" ]; then
+    printf 'O repo existe, pero non se pode ler %s.' "$INSTALLER"
+    return
+  fi
+
+  printf 'Non se puido validar %s.' "$DOTFILES_DIR"
 }
 
 # Trae a info remota antes de comprobar se hai actualizacións.
@@ -56,7 +76,10 @@ update_dotfiles() {
   title "Actualizar dotfiles"
 
   if ! has_dotfiles_repo; then
-    warning "Non existe un repo válido en $DOTFILES_DIR. Saltando actualización dos dotfiles."
+    local repo_problem
+
+    repo_problem="$(dotfiles_repo_problem)"
+    warning "$repo_problem Saltando actualización dos dotfiles."
     return 0
   fi
 
@@ -89,6 +112,8 @@ update_dotfiles() {
   info "Relanzando o instalador cos dotfiles xa actualizados..."
 
   SKIP_CLONE=1 REPO_BRANCH="$REPO_BRANCH" INSTALL_MODE="update" bash "$INSTALLER"
+
+  echo
 }
 
 # Actualiza Rust só se rustup está instalado.
