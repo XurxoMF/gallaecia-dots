@@ -24,7 +24,7 @@ install_prerequisites() {
   if ! command -v gum &> /dev/null || ! command -v git &> /dev/null; then
     echo ":: Instalando programas requeridos para executar este script (gum e git)..."
     echo
-    pacman -Sy --needed gum git
+    sudo pacman -Sy --needed gum git
   fi
 }
 
