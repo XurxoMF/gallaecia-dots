@@ -758,7 +758,7 @@ configure_optional_apps() {
 }
 
 # Instalación base completa.
-# Se "base" xa aparece en installed-versions, non repite o proceso.
+# Se "base" xa aparece en versions-instaladas, non repite o proceso.
 install_base_version() {
   if is_version_installed "$VERSION"; then
     info "Gallaecia Dots $VERSION xa está instalado. Saltando instalación base..."

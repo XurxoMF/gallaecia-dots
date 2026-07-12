@@ -2,17 +2,17 @@
 
 GALLAECIA_STATE_DIR="${GALLAECIA_STATE_DIR:-$HOME/.local/share/gallaecia-dots}"
 GALLAECIA_CURRENT_VERSION_FILE="${GALLAECIA_CURRENT_VERSION_FILE:-$GALLAECIA_STATE_DIR/version}"
-GALLAECIA_INSTALLED_VERSIONS_FILE="${GALLAECIA_INSTALLED_VERSIONS_FILE:-$GALLAECIA_STATE_DIR/installed-versions}"
+GALLAECIA_INSTALLED_VERSIONS_FILE="${GALLAECIA_INSTALLED_VERSIONS_FILE:-$GALLAECIA_STATE_DIR/versions-instaladas}"
 GALLAECIA_UPDATES_DIR="${GALLAECIA_UPDATES_DIR:-$HOME/.dotfiles/updates}"
 
 # Garante que existe o directorio onde gardamos o estado da instalación.
-# `installed-versions` é unha versión por liña: base, 3.0.1, 3.0.2...
+# `versions-instaladas` é unha versión por liña: base, 3.0.1, 3.0.2...
 ensure_gallaecia_state_dir() {
   mkdir -p "$GALLAECIA_STATE_DIR" &&
   touch "$GALLAECIA_INSTALLED_VERSIONS_FILE"
 }
 
-# Devolve éxito se a versión recibida xa aparece en installed-versions.
+# Devolve éxito se a versión recibida xa aparece en versions-instaladas.
 is_version_installed() {
   local version="$1"
 
@@ -77,6 +77,12 @@ mark_all_available_versions() {
     [ -n "$version" ] || continue
     mark_version_installed "$version"
   done < <(list_available_versions)
+}
+
+# Devolve a última versión dispoñible segundo a listaxe ordenada.
+# Úsase para gardar a versión actual tras completar unha instalación base.
+latest_available_version() {
+  list_available_versions | tail -n 1
 }
 
 # Garda a versión actual e a data da última instalación/update aplicado.

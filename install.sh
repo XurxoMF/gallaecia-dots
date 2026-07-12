@@ -9,7 +9,7 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 UPDATES_DIR="$DOTFILES_DIR/updates"
 BASE_INSTALLER="$UPDATES_DIR/base.sh"
 STATE_DIR="$HOME/.local/share/gallaecia-dots"
-INSTALLED_VERSIONS_FILE="$STATE_DIR/installed-versions"
+INSTALLED_VERSIONS_FILE="$STATE_DIR/versions-instaladas"
 CURRENT_VERSION_FILE="$STATE_DIR/version"
 INSTALLED_MARK_FILE="$STATE_DIR/instalado"
 MODULES_DIR="$DOTFILES_DIR/.local/share/gallaecia-dots/scripts/modules"
@@ -165,13 +165,10 @@ main() {
     exit 1
   fi
 
-  if [ ! -r "$MODULES_DIR/versions.sh" ]; then
-    echo "Non se atopou o módulo de versións en $MODULES_DIR/versions.sh."
-    exit 1
-  fi
-
   # shellcheck source=/dev/null
   source "$MODULES_DIR/versions.sh"
+  # shellcheck source=/dev/null
+  source "$MODULES_DIR/ui.sh"
 
   local effective_mode
 
