@@ -30,6 +30,7 @@ add_pkg_app() {
   done
 
   pkgs_apps+=("$package_name")
+  dbg_apps "DEBUG_APPS: add_pkg_app package_name=$package_name total=${#pkgs_apps[@]}"
 }
 
 # Engade un paquete á lista flatpak sen duplicalo.
@@ -44,6 +45,7 @@ add_flatpak_app() {
   done
 
   flatpaks_apps+=("$package_name")
+  dbg_apps "DEBUG_APPS: add_flatpak_app package_name=$package_name total=${#flatpaks_apps[@]}"
 }
 
 # Engade un paquete á lista pipx sen duplicalo.
@@ -58,6 +60,7 @@ add_pipx_app() {
   done
 
   pipx_apps+=("$package_name")
+  dbg_apps "DEBUG_APPS: add_pipx_app package_name=$package_name total=${#pipx_apps[@]}"
 }
 
 # Comproba se un paquete xa foi escollido para instalar por pacman/AUR.
@@ -185,6 +188,8 @@ add_entry_packages() {
 
   install_type="$(app_type "$entry")"
   packages="$(app_packages "$entry")"
+
+  dbg_apps "DEBUG_APPS: add_entry_packages type=$install_type label=$(app_label "$entry") packages=$packages"
 
   for package in $packages; do
     case "$install_type" in
