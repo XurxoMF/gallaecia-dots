@@ -4,6 +4,7 @@ set -u
 set -o pipefail
 
 VERSION="base"
+
 DOTFILES_DIR="$HOME/.dotfiles"
 MODULES_DIR="$DOTFILES_DIR/.local/share/gallaecia-dots/scripts/modules"
 

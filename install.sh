@@ -4,15 +4,20 @@ set -u
 set -o pipefail
 
 DOTFILES_DIR="$HOME/.dotfiles"
-REPO_URL="https://github.com/XurxoMF/gallaecia-dots.git"
-SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+MODULES_DIR="$DOTFILES_DIR/.local/share/gallaecia-dots/scripts/modules"
 UPDATES_DIR="$DOTFILES_DIR/updates"
 BASE_INSTALLER="$UPDATES_DIR/base.sh"
+
 STATE_DIR="$HOME/.local/share/gallaecia-dots"
+
 INSTALLED_VERSIONS_FILE="$STATE_DIR/versions-instaladas"
 CURRENT_VERSION_FILE="$STATE_DIR/version"
 INSTALLED_MARK_FILE="$STATE_DIR/instalado"
-MODULES_DIR="$DOTFILES_DIR/.local/share/gallaecia-dots/scripts/modules"
+
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+
+REPO_URL="https://github.com/XurxoMF/gallaecia-dots.git"
+
 SKIP_CLONE="${GALLAECIA_SKIP_CLONE:-0}"
 REPO_BRANCH="${GALLAECIA_REPO_BRANCH:-release}"
 INSTALL_MODE="${GALLAECIA_INSTALL_MODE:-auto}"
