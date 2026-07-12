@@ -1,48 +1,36 @@
 # 🌿 Gallaecia Dots
 
-### Arch + Hyprland. En galego. Á túa maneira.
+### Arch + Hyprland. En galego. Instalación mínima. Base actualizable.
 
-Un conxunto de dotfiles e un instalador interactivo para crear rapidamente un escritorio baseado en **Arch Linux + Hyprland**, cunha identidade galega e sen decidir por ti como debes usar o teu sistema.
+Gallaecia Dots é un conxunto de dotfiles e un instalador interactivo para montar rapidamente un escritorio baseado en **Arch Linux + Hyprland**, cunha identidade galega e unha base moi concreta: **o mínimo imprescindible para arrancar ben, con Noctalia e os paquetes esenciais xa listos**.
+
+Non pretende ser unha distribución nin unha capa pesada sobre o sistema. O obxectivo é ofrecer un punto de partida pequeno, actualizable e fácil de manter.
 
 ## 🐚 Que é Gallaecia Dots?
 
-**Gallaecia Dots** é un conxunto de dotfiles para **Arch Linux + Hyprland**, deseñado e configurado integramente en galego.
+**Gallaecia Dots** combina:
 
-Inclúe unha configuración visual lista para usar, fondos de pantalla con temática galega e unha selección mínima de compoñentes necesarios para ter un escritorio funcional.
+- Un instalador que prepara o sistema paso a paso
+- Configuración base para Hyprland, Noctalia, greetd, GTK, Qt e portais XDG entre outros
+- Unha selección mínima de paquetes fundamentais
+- Opcións para escoller só as aplicacións que de verdade queres instalar
 
-Pero Gallaecia Dots **non pretende ser unha distribución nin un sistema pechado**.
+A idea é sinxela:
 
-O seu obxectivo é servir como punto de partida rápido para instalar Arch + Hyprland mantendo unha idea moi simple:
+**Instalación curta, base sólida e liberdade para personalizar despois.**
 
-**O sistema é teu. A configuración é túa. Ti decides que instalar e como mantelo.**
+## 🧱 Enfoque minimalista e opinionated
 
-## 🧭 Un enfoque non opinionated
+Este proxecto xa non está pensado como un “pack completo” de aplicacións para todo o mundo.
 
-Moitos dotfiles instalan unha colección completa de aplicacións, ferramentas e configuracións escollidas polo seu autor.
+A visión actual é máis pequena e máis clara:
 
-Gallaecia Dots intenta evitar iso.
+- Instalar só o esencial para que o escritorio funcione
+- Incluír **Noctalia** como peza central da experiencia
+- Manter configuracións que teñen sentido como base común
+- Deixar o resto como elección do usuario
 
-Durante a instalación poderás escoller que aplicacións queres instalar para diferentes tarefas:
-
-- Navegador web
-- Explorador de arquivos
-- Editor de texto ou código
-- Visualizador de imaxes
-- Reprodutor de vídeo
-- Visor de PDF
-- Xestor de arquivos comprimidos
-- Xestor de discos e particións
-- Calculadora
-- Cliente de correo
-- Suite ofimática
-- Aplicación de notas
-- E outras ferramentas opcionais
-
-Non queres instalar nada dunha categoría?
-
-**Simplemente sáltaa.**
-
-Gallaecia Dots só instala obrigatoriamente os compoñentes necesarios para que o escritorio e a configuración funcionen correctamente, como **Hyprland, Noctalia, XDG Desktop Portals e outras dependencias básicas do sistema**.
+Por defecto, o instalador non che enche o sistema de apps por categorías enormes. Primeiro instala o núcleo, e despois pregúntache polas ferramentas que queres realmente.
 
 ## 🌿 Feito en galego
 
@@ -50,29 +38,28 @@ Gallaecia Dots está pensado arredor do galego.
 
 O instalador, as configuracións propias e o escritorio utilizan o galego como idioma principal.
 
-Durante a instalación, configurarase o sistema co seguinte orde de idiomas:
+Durante a instalación, o sistema configúrase co seguinte orde de idiomas:
 
 ```text
 Galego → Español → Inglés
 ```
 
-Deste xeito, cando unha aplicación non dispoña de tradución ao galego, o sistema intentará utilizar primeiro o español e posteriormente o inglés.
+Deste xeito, cando unha aplicación non dispoña de tradución ao galego, o sistema tentará usar primeiro o español e despois o inglés.
 
-Os fondos de pantalla incluídos por defecto tamén están inspirados en Galicia e na súa identidade.
+Tamén inclúe fondos de pantalla inspirados en Galicia e na súa identidade.
 
 ## 📦 Que instala?
 
-A instalación divídese en dúas partes.
+A instalación divídese en dúas partes:
 
-### Compoñentes obrigatorios
+### Núcleo obrigatorio
 
-Instálanse os paquetes e configuracións mínimos necesarios para que Gallaecia Dots funcione correctamente.
-
-Entre eles:
+Isto é o que o proxecto considera imprescindible para a base:
 
 - Hyprland
 - Noctalia
 - Noctalia Greeter
+- greetd
 - XDG Desktop Portals
 - PipeWire
 - Kitty
@@ -80,27 +67,42 @@ Entre eles:
 - yay
 - Configuración GTK e Qt
 - XDG User Directories
-- Tipografías necesarias
-- Servizos e dependencias básicas do escritorio
+- Tipografías e iconas básicas
+- Dependencias comúns do escritorio
 
 ### Aplicacións opcionais
 
-O instalador preguntará que aplicación queres utilizar para cada categoría.
+Despois da base, o instalador pregúntache por categorías de aplicacións para que só instales o que che interesa.
 
-Podes escoller unha das opcións dispoñibles ou **non instalar ningunha**.
+As categorías actuais son:
 
-Gallaecia Dots non intenta construír o sistema por ti.
+- Terminal
+- Editor de terminal
+- IDE ou editor gráfico
+- Navegador
+- Explorador de arquivos
+- Audio
+- Vídeo
+- PDF
+- Imaxes
+- Correo
+- Chat
+- Creatividade
+- Oficina e notas
+- Xogos e tendas
+- Utilidades
+- Desenvolvemento
+- Rede e privacidade
+- Descargas e personalización
 
-**Só che axuda a construílo máis rápido.**
+Moitas categorías permiten escoller varias opcións, e nalgúns casos tamén definir unha app por defecto.
 
 ## 🚀 Instalación
 
 > [!WARNING]
 > O instalador modifica e substitúe diferentes ficheiros de configuración do sistema e do usuario.
 >
-> Durante a instalación indicarase que ficheiros ou directorios serán afectados antes de realizar os cambios.
->
-> Recoméndase utilizar Gallaecia Dots sobre unha instalación limpa de Arch Linux SIN entorno gráfico, puro texto.
+> Recoméndase utilizar Gallaecia Dots sobre unha instalación limpa de Arch Linux, sen entorno gráfico previo.
 
 Executa:
 
@@ -108,37 +110,33 @@ Executa:
 bash <(curl -fsSL https://raw.githubusercontent.com/XurxoMF/gallaecia-dots/main/install.sh)
 ```
 
-O instalador guiarate paso a paso mediante unha interface interactiva.
+O instalador guiarate paso a paso cunha interface interactiva.
 
-Só tes que responder ás preguntas e deixar que ocorra a **maxia pagá**.
+> [!IMPORTANT]
+> Se tras reiniciar o sistema ao rematar a instalación che aparece un erro de Hyprland ou algunha app non funciona correctamente reinicia de novo ou cambia o fondo de pantalla seleccionando o mesmo ou un novo para que Noctalia xere as paletas de cores correctamente.
 
-## 🔧 Despois da instalación
+## 🔄 Actualizacións e mantemento
 
-Gallaecia Dots **non é un sistema de configuración xestionado nin actualizable automaticamente**.
+Unha parte importante desta visión é que os dotfiles base son **actualizables**.
 
-Unha vez instalada unha versión dos dotfiles:
+Isto significa:
 
-- Os ficheiros pasan a formar parte do teu sistema.
-- Podes editalos libremente.
-- Podes eliminar o que non precises.
-- Podes engadir as túas propias configuracións.
-- Ti es responsable de manter a configuración compatible coas actualizacións do sistema.
+- A base común pode evolucionar con novas versións
+- Os ficheiros controlados polo proxecto poden recibir melloras
+- As instalacións novas e as existentes poden seguir a evolución do proxecto
 
-As futuras versións de Gallaecia Dots **non actualizarán automaticamente unha instalación existente** se non que correxirán ou mellorarán cousas para **as novas instalacións**.
+Ao mesmo tempo, Gallaecia Dots segue sendo unha base pequena e clara:
 
-Isto é intencionado.
-
-O proxecto está pensado como un **instalador rápido e un punto de partida**, non como unha capa de xestión permanente sobre Arch Linux.
-
-Instálalo. Personalízalo. Rómpeo. Arránxao.
-
-**É o teu sistema.**
+- Podes editar libremente a túa configuración
+- Podes borrar o que non uses
+- Podes engadir as túas propias pezas
+- O proxecto non pretende ocultarche como está montado o sistema
 
 ## ⚠️ Estado do proxecto
 
 Gallaecia Dots é un proxecto persoal en desenvolvemento.
 
-Pode haber cambios importantes entre versións e algunhas actualizacións de Arch Linux, Hyprland ou outros compoñentes poden requirir cambios manuais na configuración.
+Pode haber cambios importantes entre versións e algunhas actualizacións de Arch Linux, Hyprland ou outros compoñentes poden requirir axustes manuais na configuración.
 
 Se algo rompe:
 
@@ -152,4 +150,4 @@ Podes abrir unha issue ou enviar unha pull request a través de GitHub.
 
 ## 📜 Licenza
 
-Baixo a licenza MIT calquera poderá facer o que queira con este contido. Agradecería que si fas un fork ou algo similar me mencionaras como autor orixinal ♥️
+Baixo a licenza MIT calquera poderá facer o que queira con este contido. Agradeceríalle que, se fas un fork ou algo similar, menciones a autoría orixinal.
