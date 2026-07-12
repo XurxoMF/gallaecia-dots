@@ -13,11 +13,6 @@ pipx_apps=()
 SELECTED_ENTRIES=()
 DEFAULT_ENTRY=""
 
-# Debuxos de depuración. Saen por stderr para non romper a UI de gum.
-dbg_apps() {
-  printf '%s\n' "$*" >&2
-}
-
 # Engade un paquete á lista pacman/AUR sen duplicalo.
 add_pkg_app() {
   local package_name="$1"
@@ -30,7 +25,6 @@ add_pkg_app() {
   done
 
   pkgs_apps+=("$package_name")
-  dbg_apps "DEBUG_APPS: add_pkg_app package_name=$package_name total=${#pkgs_apps[@]}"
 }
 
 # Engade un paquete á lista flatpak sen duplicalo.
@@ -45,7 +39,6 @@ add_flatpak_app() {
   done
 
   flatpaks_apps+=("$package_name")
-  dbg_apps "DEBUG_APPS: add_flatpak_app package_name=$package_name total=${#flatpaks_apps[@]}"
 }
 
 # Engade un paquete á lista pipx sen duplicalo.
@@ -60,7 +53,6 @@ add_pipx_app() {
   done
 
   pipx_apps+=("$package_name")
-  dbg_apps "DEBUG_APPS: add_pipx_app package_name=$package_name total=${#pipx_apps[@]}"
 }
 
 # Comproba se un paquete xa foi escollido para instalar por pacman/AUR.
@@ -189,8 +181,6 @@ add_entry_packages() {
   install_type="$(app_type "$entry")"
   packages="$(app_packages "$entry")"
 
-  dbg_apps "DEBUG_APPS: add_entry_packages type=$install_type label=$(app_label "$entry") packages=$packages"
-
   for package in $packages; do
     case "$install_type" in
       pkg)
@@ -284,7 +274,6 @@ choose_required_category() {
 
   SELECTED_ENTRIES=()
   DEFAULT_ENTRY=""
-  dbg_apps "DEBUG_APPS: choose_required_category start | header=$header | entries=${#entries[@]}"
 
   while [ ${#SELECTED_ENTRIES[@]} -eq 0 ]; do
     mapfile -t SELECTED_ENTRIES < <(choose_entries "$header" "${entries[@]}")
@@ -293,8 +282,6 @@ choose_required_category() {
     fi
   done
 
-  dbg_apps "DEBUG_APPS: choose_required_category selected_count=${#SELECTED_ENTRIES[@]}"
-  dbg_apps "DEBUG_APPS: choose_required_category selected_entries=${SELECTED_ENTRIES[*]}"
   add_selected_entries_packages
 }
 
@@ -307,18 +294,14 @@ choose_optional_category() {
   SELECTED_ENTRIES=()
   # shellcheck disable=SC2034
   DEFAULT_ENTRY=""
-  dbg_apps "DEBUG_APPS: choose_optional_category start | header=$header | entries=${#entries[@]}"
 
   mapfile -t SELECTED_ENTRIES < <(choose_entries "$header" "${entries[@]}")
-  dbg_apps "DEBUG_APPS: choose_optional_category selected_count=${#SELECTED_ENTRIES[@]}"
-  dbg_apps "DEBUG_APPS: choose_optional_category selected_entries=${SELECTED_ENTRIES[*]}"
+
   add_selected_entries_packages
 }
 
 # Instala todos os paquetes acumulados polas seleccións anteriores.
 install_selected_apps() {
-  dbg_apps "DEBUG_APPS: install_selected_apps pkgs=${#pkgs_apps[@]} flatpaks=${#flatpaks_apps[@]} pipx=${#pipx_apps[@]}"
-
   if [ ${#pkgs_apps[@]} -gt 0 ]; then
     yay -Syu --needed "${pkgs_apps[@]}"
   fi
