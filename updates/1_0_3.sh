@@ -34,21 +34,8 @@ show_changelog() {
   title "Update $VERSION"
   info "Cambios que se van aplicar:"
   info "· Engadido o comando interactivo spotdl-musica (se SpotDL está instalado)."
-  info "· Actualizada a ruta output e os lyrics_providers do config de SpotDL."
+  info "· Actualizada a config de SpotDL."
   echo
-}
-
-update_spotdl_config() {
-  local config_file="$HOME/.config/spotdl/config.json"
-
-  if ! file_exists "$config_file"; then
-    return 0
-  fi
-
-  sed -i \
-    -e "s#^\([[:space:]]*\"output\"[[:space:]]*:[[:space:]]*\)\"[^\"]*\"\(,\?\)#\1\"$SPOTDL_OUTPUT\"\2#" \
-    -e "s#^\([[:space:]]*\"lyrics_providers\"[[:space:]]*:[[:space:]]*\)\[\][[:space:]]*\(,\?\)#\1$SPOTDL_LYRICS_PROVIDERS\2#" \
-    "$config_file"
 }
 
 apply_update() {
@@ -58,7 +45,10 @@ apply_update() {
     mkdir -p "$HOME/.local/share/gallaecia-dots/bashrc" &&
     replace_file \
       "$DOTFILES_DIR/optional/.local/share/gallaecia-dots/bashrc/202-spotdl" \
-      "$HOME/.local/share/gallaecia-dots/bashrc/202-spotdl"
+      "$HOME/.local/share/gallaecia-dots/bashrc/202-spotdl" &&
+    replace_file \
+      "$DOTFILES_DIR/optional/.config/spotdl/config.json" \
+      "$HOME/.config/spotdl/config.json"
   fi
 }
 
