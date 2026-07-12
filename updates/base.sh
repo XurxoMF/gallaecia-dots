@@ -334,7 +334,9 @@ configure_yt_dlp() {
 
 # Config opcional para SpotDL.
 configure_spotdl() {
-  replace_path "$DOTFILES_DIR/optional/.config/spotdl" "$HOME/.config/spotdl"
+  mkdir -p "$HOME/.local/share/gallaecia-dots/bashrc" &&
+  replace_path "$DOTFILES_DIR/optional/.config/spotdl" "$HOME/.config/spotdl" &&
+  replace_file "$DOTFILES_DIR/optional/.local/share/gallaecia-dots/bashrc/202-spotdl" "$HOME/.local/share/gallaecia-dots/bashrc/202-spotdl"
 }
 
 # Escribe ou substitúe unha asociación MIME en ~/.config/mimeapps.list.

@@ -1,0 +1,16 @@
+# shellcheck shell=bash
+
+# Descarga unha canción de Spotify ou YouTube Music usando SpotDL
+spotdl-musica() {
+  local url
+
+  while true; do
+    echo
+
+    url="$(gum_input --prompt "URL de spotify (ou youtube|spotify): " --placeholder "Pega unha URL")" || return 0
+
+    [ -z "$url" ] && continue
+
+    spotdl download "$@" "$url"
+  done
+}
