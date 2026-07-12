@@ -8,6 +8,8 @@ REPO_URL="https://github.com/XurxoMF/gallaecia-dots.git"
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 UPDATES_DIR="$DOTFILES_DIR/updates"
 BASE_INSTALLER="$UPDATES_DIR/base.sh"
+SKIP_CLONE="${GALLAECIA_SKIP_CLONE:-0}"
+REPO_BRANCH="${GALLAECIA_REPO_BRANCH:-release}"
 
 # Instala só o mínimo necesario para que o instalador poida continuar.
 # Este ficheiro pode executarse con `bash <(curl ...)`, así que aquí non se
@@ -24,12 +26,16 @@ install_prerequisites() {
 # Se o script xa se está executando desde ~/.dotfiles, non borra nin clona nada:
 # isto permite probar o instalador desde unha copia local sen destruíla.
 download_dotfiles() {
+  if [ "$SKIP_CLONE" = "1" ]; then
+    return 0
+  fi
+
   if [ "$SCRIPT_DIR" = "$DOTFILES_DIR" ]; then
     return 0
   fi
 
   rm -rf "$DOTFILES_DIR" &&
-  git clone "$REPO_URL" "$DOTFILES_DIR"
+  git clone --branch "$REPO_BRANCH" "$REPO_URL" "$DOTFILES_DIR"
 }
 
 # Executa primeiro a instalación base e despois só os updates versionados.

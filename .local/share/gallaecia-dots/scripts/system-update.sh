@@ -8,6 +8,10 @@ source "$HOME/.local/share/gallaecia-dots/scripts/modules/ui.sh"
 # shellcheck source=/dev/null
 source "$HOME/.local/share/gallaecia-dots/scripts/modules/commands.sh"
 
+DOTFILES_DIR="$HOME/.dotfiles"
+INSTALLER="$DOTFILES_DIR/install.sh"
+REPO_BRANCH="${1:-${GALLAECIA_REPO_BRANCH:-release}}"
+
 # Mostra o logo se o script visual existe e é executable.
 show_logo() {
   local logo_script="$HOME/.local/share/gallaecia-dots/scripts/gallaecia.sh"
@@ -15,6 +19,76 @@ show_logo() {
   if [ -x "$logo_script" ]; then
     "$logo_script"
   fi
+}
+
+# Comproba se o repo local existe e é un clon git válido.
+has_dotfiles_repo() {
+  [ -d "$DOTFILES_DIR/.git" ] && [ -x "$INSTALLER" ]
+}
+
+# Trae a info remota antes de comprobar se hai actualizacións.
+fetch_dotfiles_updates() {
+  git -C "$DOTFILES_DIR" fetch --quiet origin "$REPO_BRANCH"
+}
+
+# Devolve éxito se o repo local está por detrás da rama remota.
+dotfiles_need_update() {
+  local local_head remote_head
+
+  local_head="$(git -C "$DOTFILES_DIR" rev-parse HEAD)"
+  remote_head="$(git -C "$DOTFILES_DIR" rev-parse "origin/$REPO_BRANCH")"
+
+  [ "$local_head" != "$remote_head" ]
+}
+
+# Avisa se hai cambios sen gardar no repo local.
+warn_dirty_repo() {
+  if [ -n "$(git -C "$DOTFILES_DIR" status --porcelain)" ]; then
+    warning "Hai cambios locais en $DOTFILES_DIR. O pull pode tocar ficheiros modificados."
+    return 0
+  fi
+
+  return 1
+}
+
+# Actualiza os dotfiles se o usuario o acepta e relanza o instalador.
+update_dotfiles() {
+  title "Actualizar dotfiles"
+
+  if ! has_dotfiles_repo; then
+    warning "Non existe un repo válido en $DOTFILES_DIR. Saltando actualización dos dotfiles."
+    return 0
+  fi
+
+  if ! fetch_dotfiles_updates; then
+    fail "Non se puido comprobar se hai updates nos dotfiles."
+    return 1
+  fi
+
+  if ! dotfiles_need_update; then
+    info "Os dotfiles xa están actualizados."
+    return 0
+  fi
+
+  if warn_dirty_repo; then
+    echo
+  fi
+
+  if ! gum_confirm "Hai updates novos nos dotfiles. Queres actualizalos e relanzar o instalador?"; then
+    info "Actualización dos dotfiles cancelada."
+    return 0
+  fi
+
+  title "Actualizando repo de dotfiles"
+
+  if ! git -C "$DOTFILES_DIR" pull --ff-only; then
+    fail "Non se puido actualizar o repo de dotfiles."
+    return 1
+  fi
+
+  info "Relanzando o instalador cos dotfiles xa actualizados..."
+
+  GALLAECIA_SKIP_CLONE=1 GALLAECIA_REPO_BRANCH="$REPO_BRANCH" bash "$INSTALLER"
 }
 
 # Actualiza Rust só se rustup está instalado.
@@ -92,6 +166,11 @@ main() {
     else
       fail "Algo fallou ao actualizar os plugins de Yazi!"
     fi
+  fi
+
+  if ! update_dotfiles; then
+    fail "Algo fallou ao actualizar os dotfiles."
+    return 1
   fi
 
   if gum_confirm "Reiniciar sistema? (Recomendado se se actualizaron paquetes)"; then
