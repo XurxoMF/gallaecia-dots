@@ -165,7 +165,7 @@ install_greetd_config() {
 # Instala os ficheiros controlados por Gallaecia en ~/.local/share.
 # Estes son actualizables porque non son configs directas do usuario.
 install_gallaecia_config() {
-  replace_path "$DOTFILES_DIR/.local/share/gallaecia-dots" "$HOME/.local/share/gallaecia-dots" &&
+  merge_path "$DOTFILES_DIR/.local/share/gallaecia-dots" "$HOME/.local/share/gallaecia-dots" &&
   replace_file "$DOTFILES_DIR/.config/mimeapps.list" "$HOME/.config/mimeapps.list" &&
   sudo chmod +x -R "$HOME/.local/share/gallaecia-dots/scripts" &&
   mkdir -p "$HOME/.wallpapers" &&
