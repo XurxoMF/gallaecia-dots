@@ -81,6 +81,8 @@ run_base_install() {
     echo "Algo fallou ao executar $BASE_INSTALLER. Abortando instalación..."
     return 1
   fi
+
+  mark_base_as_installed
 }
 
 # Marca a versión correspondente a un ficheiro de update e actualiza o estado.
@@ -140,16 +142,14 @@ run_install_flow() {
 
   case "$effective_mode" in
     install)
-      run_base_install &&
-      mark_base_as_installed
+      run_base_install
       ;;
     update)
       run_versioned_updates
       ;;
     reinstall)
       rm -f "$INSTALLED_VERSIONS_FILE" "$CURRENT_VERSION_FILE" "$INSTALLED_MARK_FILE"
-      run_base_install &&
-      mark_base_as_installed
+      run_base_install
       ;;
     *)
       echo "Modo de instalación non soportado: $effective_mode" >&2
