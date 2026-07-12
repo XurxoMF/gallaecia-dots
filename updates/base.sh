@@ -872,6 +872,29 @@ install_base_version() {
     fail "Algo fallou ao seleccionar as aplicacións opcionais! Abortando instalación..."
   fi
 
+  echo
+  title "Resumo da instalación de apps"
+  # shellcheck disable=SC2154
+  info "Paquetes pacman/AUR pendentes: ${#pkgs_apps[@]}"
+  # shellcheck disable=SC2154
+  info "Paquetes Flatpak pendentes: ${#flatpaks_apps[@]}"
+  # shellcheck disable=SC2154
+  info "Paquetes pipx pendentes: ${#pipx_apps[@]}"
+
+  if [ ${#pkgs_apps[@]} -gt 0 ]; then
+    info "Pacman/AUR: ${pkgs_apps[*]}"
+  fi
+
+  if [ ${#flatpaks_apps[@]} -gt 0 ]; then
+    info "Flatpak: ${flatpaks_apps[*]}"
+  fi
+
+  if [ ${#pipx_apps[@]} -gt 0 ]; then
+    info "Pipx: ${pipx_apps[*]}"
+  fi
+
+  echo
+
   if install_selected_apps; then
     success "Aplicacións instaladas con éxito!"
   else
