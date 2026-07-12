@@ -158,16 +158,21 @@ find_app_by_label() {
 }
 
 # Comproba se unha app foi escollida na categoría actual.
-# Isto é útil cando queremos saber se unha opción concreta entrou en
-# SELECTED_ENTRIES, non só se quedou na cola de instalación.
+# Acepta tanto o nome visible como calquera paquete da entrada.
 has_selected_app() {
-  local label="$1"
-  local selected_entry
+  local app_name="$1"
+  local selected_entry package
 
   for selected_entry in "${SELECTED_ENTRIES[@]}"; do
-    if [ "$(app_label "$selected_entry")" = "$label" ]; then
+    if [ "$(app_label "$selected_entry")" = "$app_name" ]; then
       return 0
     fi
+
+    for package in $(app_packages "$selected_entry"); do
+      if [ "$package" = "$app_name" ]; then
+        return 0
+      fi
+    done
   done
 
   return 1
