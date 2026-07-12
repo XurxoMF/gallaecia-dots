@@ -10,7 +10,7 @@ source "$HOME/.local/share/gallaecia-dots/scripts/modules/commands.sh"
 
 DOTFILES_DIR="$HOME/.dotfiles"
 INSTALLER="$DOTFILES_DIR/install.sh"
-REPO_BRANCH="${1:-${GALLAECIA_REPO_BRANCH:-release}}"
+REPO_BRANCH="${1:-${REPO_BRANCH:-release}}"
 
 # Mostra o logo se o script visual existe e é executable.
 show_logo() {
@@ -88,7 +88,7 @@ update_dotfiles() {
 
   info "Relanzando o instalador cos dotfiles xa actualizados..."
 
-  GALLAECIA_SKIP_CLONE=1 GALLAECIA_REPO_BRANCH="$REPO_BRANCH" GALLAECIA_INSTALL_MODE="update" bash "$INSTALLER"
+  SKIP_CLONE=1 REPO_BRANCH="$REPO_BRANCH" INSTALL_MODE="update" bash "$INSTALLER"
 }
 
 # Actualiza Rust só se rustup está instalado.

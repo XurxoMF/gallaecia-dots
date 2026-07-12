@@ -1,11 +1,11 @@
 # shellcheck shell=bash
 
-GALLAECIA_UI_COLORS_FILE="${GALLAECIA_UI_COLORS_FILE:-$HOME/.config/gallaecia-dots/ui-colors.sh}"
+UI_COLORS_FILE="${UI_COLORS_FILE:-$HOME/.config/gallaecia-dots/ui-colors.sh}"
 
 # Se Noctalia xerou cores para a UI, cárganse aquí e úsanse si existen.
-if [ -r "$GALLAECIA_UI_COLORS_FILE" ]; then
+if [ -r "$UI_COLORS_FILE" ]; then
   # shellcheck source=/dev/null
-  source "$GALLAECIA_UI_COLORS_FILE"
+  source "$UI_COLORS_FILE"
 fi
 
 FOREGROUND="${FOREGROUND:-#dbe3ed}"

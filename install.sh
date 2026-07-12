@@ -3,24 +3,26 @@
 set -u
 set -o pipefail
 
+# Rutas do repo.
 DOTFILES_DIR="$HOME/.dotfiles"
 MODULES_DIR="$DOTFILES_DIR/.local/share/gallaecia-dots/scripts/modules"
 UPDATES_DIR="$DOTFILES_DIR/updates"
 BASE_INSTALLER="$UPDATES_DIR/base.sh"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 
+# Estado da instalación.
 STATE_DIR="$HOME/.local/share/gallaecia-dots"
-
 INSTALLED_VERSIONS_FILE="$STATE_DIR/versions-instaladas"
 CURRENT_VERSION_FILE="$STATE_DIR/version"
 INSTALLED_MARK_FILE="$STATE_DIR/instalado"
 
-SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-
+# Repo remoto.
 REPO_URL="https://github.com/XurxoMF/gallaecia-dots.git"
+REPO_BRANCH="${REPO_BRANCH:-release}"
 
-SKIP_CLONE="${GALLAECIA_SKIP_CLONE:-0}"
-REPO_BRANCH="${GALLAECIA_REPO_BRANCH:-release}"
-INSTALL_MODE="${GALLAECIA_INSTALL_MODE:-auto}"
+# Opcións do bootstrap.
+SKIP_CLONE="${SKIP_CLONE:-0}"
+INSTALL_MODE="${INSTALL_MODE:-auto}"
 
 # Instala só o mínimo necesario para que o instalador poida continuar.
 # Este ficheiro pode executarse con `bash <(curl ...)`, así que aquí non se
