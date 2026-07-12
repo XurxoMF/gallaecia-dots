@@ -122,6 +122,10 @@ wallpaper_scheme = "vibrant"
         "hyprtoolkit"
     ]
 
+        [theme.templates.user.ui-colors]
+        input_path  = "~/.local/share/gallaecia-dots/noctalia/ui-colors.sh.template"
+        output_path = "~/.config/gallaecia-dots/ui-colors.sh"
+
 [wallpaper]
 directory = "~/.wallpapers"
 transition = [ "disc" ]

@@ -1,5 +1,13 @@
 # shellcheck shell=bash
 
+GALLAECIA_UI_COLORS_FILE="${GALLAECIA_UI_COLORS_FILE:-$HOME/.config/gallaecia-dots/ui-colors.sh}"
+
+# Se Noctalia xerou cores para a UI, cárganse aquí e úsanse si existen.
+if [ -r "$GALLAECIA_UI_COLORS_FILE" ]; then
+  # shellcheck source=/dev/null
+  source "$GALLAECIA_UI_COLORS_FILE"
+fi
+
 FOREGROUND="${FOREGROUND:-#dbe3ed}"
 BACKGROUND="${BACKGROUND:-}"
 BORDER_FOREGROUND="${BORDER_FOREGROUND:-#90CDFF}"
@@ -22,6 +30,12 @@ CHOOSE_ITEM_FOREGROUND="${CHOOSE_ITEM_FOREGROUND:-#dbe3ed}"
 CHOOSE_ITEM_BACKGROUND="${CHOOSE_ITEM_BACKGROUND:-}"
 CHOOSE_SELECTED_FOREGROUND="${CHOOSE_SELECTED_FOREGROUND:-#90cdff}"
 CHOOSE_SELECTED_BACKGROUND="${CHOOSE_SELECTED_BACKGROUND:-}"
+INPUT_PROMPT_FOREGROUND="${INPUT_PROMPT_FOREGROUND:-#90cdff}"
+INPUT_PROMPT_BACKGROUND="${INPUT_PROMPT_BACKGROUND:-}"
+INPUT_TEXT_FOREGROUND="${INPUT_TEXT_FOREGROUND:-#dbe3ed}"
+INPUT_TEXT_BACKGROUND="${INPUT_TEXT_BACKGROUND:-}"
+INPUT_CURSOR_FOREGROUND="${INPUT_CURSOR_FOREGROUND:-#90cdff}"
+INPUT_CURSOR_BACKGROUND="${INPUT_CURSOR_BACKGROUND:-}"
 
 # Wrapper común para `gum style`.
 # Centraliza cores e padding para que logo poida vir dun template/tema.
@@ -105,6 +119,19 @@ gum_choose() {
 	--item.background="$CHOOSE_ITEM_BACKGROUND" \
 	--selected.foreground="$CHOOSE_SELECTED_FOREGROUND" \
 	--selected.background="$CHOOSE_SELECTED_BACKGROUND" \
+	--padding="0 0" \
+	"$@"
+}
+
+# Entrada de texto co mesmo estilo visual que o resto da UI.
+gum_input() {
+  gum input \
+	--prompt.foreground="$INPUT_PROMPT_FOREGROUND" \
+	--prompt.background="$INPUT_PROMPT_BACKGROUND" \
+	--text.foreground="$INPUT_TEXT_FOREGROUND" \
+	--text.background="$INPUT_TEXT_BACKGROUND" \
+	--cursor.foreground="$INPUT_CURSOR_FOREGROUND" \
+	--cursor.background="$INPUT_CURSOR_BACKGROUND" \
 	--padding="0 0" \
 	"$@"
 }

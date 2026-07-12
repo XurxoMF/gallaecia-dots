@@ -1,0 +1,36 @@
+# shellcheck shell=bash
+
+# Este arquivo está xerado por Noctalia
+# Non modificalo manualmente xa que se sobreescribe ao cambiar de tema
+
+export FOREGROUND="{{ colors.on_background.default.hex }}"
+export BACKGROUND="{{ colors.background.default.hex }}"
+export BORDER_FOREGROUND="{{ colors.outline_variant.default.hex }}"
+export BORDER_BACKGROUND="{{ colors.surface_container_lowest.default.hex }}"
+export ACCENT_FOREGROUND="{{ colors.primary.default.hex }}"
+export SUCCESS_FOREGROUND="{{ colors.tertiary.default.hex }}"
+export ERROR_FOREGROUND="{{ colors.error.default.hex }}"
+export WARNING_FOREGROUND="{{ colors.secondary.default.hex }}"
+
+export CONFIRM_PROMPT_FOREGROUND="{{ colors.primary.default.hex }}"
+export CONFIRM_PROMPT_BACKGROUND="{{ colors.surface_container.default.hex }}"
+export CONFIRM_SELECTED_FOREGROUND="{{ colors.on_primary.default.hex }}"
+export CONFIRM_SELECTED_BACKGROUND="{{ colors.primary.default.hex }}"
+export CONFIRM_UNSELECTED_FOREGROUND="{{ colors.on_surface.default.hex }}"
+export CONFIRM_UNSELECTED_BACKGROUND="{{ colors.surface_container_high.default.hex }}"
+
+export CHOOSE_CURSOR_FOREGROUND="{{ colors.primary.default.hex }}"
+export CHOOSE_CURSOR_BACKGROUND="{{ colors.surface_container_highest.default.hex }}"
+export CHOOSE_HEADER_FOREGROUND="{{ colors.on_background.default.hex }}"
+export CHOOSE_HEADER_BACKGROUND="{{ colors.background.default.hex }}"
+export CHOOSE_ITEM_FOREGROUND="{{ colors.on_surface.default.hex }}"
+export CHOOSE_ITEM_BACKGROUND="{{ colors.surface_container_low.default.hex }}"
+export CHOOSE_SELECTED_FOREGROUND="{{ colors.on_primary.default.hex }}"
+export CHOOSE_SELECTED_BACKGROUND="{{ colors.primary.default.hex }}"
+
+export INPUT_PROMPT_FOREGROUND="{{ colors.primary.default.hex }}"
+export INPUT_PROMPT_BACKGROUND="{{ colors.surface_container.default.hex }}"
+export INPUT_TEXT_FOREGROUND="{{ colors.on_surface.default.hex }}"
+export INPUT_TEXT_BACKGROUND="{{ colors.surface_container_low.default.hex }}"
+export INPUT_CURSOR_FOREGROUND="{{ colors.primary.default.hex }}"
+export INPUT_CURSOR_BACKGROUND="{{ colors.surface_container_highest.default.hex }}"
