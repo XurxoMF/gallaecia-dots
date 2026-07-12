@@ -23,6 +23,8 @@ CHOOSE_ITEM_BACKGROUND="${CHOOSE_ITEM_BACKGROUND:-}"
 CHOOSE_SELECTED_FOREGROUND="${CHOOSE_SELECTED_FOREGROUND:-#90cdff}"
 CHOOSE_SELECTED_BACKGROUND="${CHOOSE_SELECTED_BACKGROUND:-}"
 
+# Wrapper común para `gum style`.
+# Centraliza cores e padding para que logo poida vir dun template/tema.
 gum_style() {
   gum style \
 	--background="$BACKGROUND" \
@@ -33,12 +35,14 @@ gum_style() {
 	"$@"
 }
 
+# Mensaxe informativa normal.
 info() {
   gum_style \
 	--foreground="$FOREGROUND" \
 	"$@"
 }
 
+# Título de sección.
 title() {
   gum_style \
 	--foreground="$ACCENT_FOREGROUND" \
@@ -47,6 +51,7 @@ title() {
   echo
 }
 
+# Aviso visible, pero sen abortar.
 warning() {
   gum_style \
 	--foreground="$WARNING_FOREGROUND" \
@@ -54,6 +59,7 @@ warning() {
 	"$1"
 }
 
+# Mensaxe de éxito.
 success() {
   echo
   gum_style \
@@ -63,6 +69,7 @@ success() {
   echo
 }
 
+# Mensaxe de erro fatal: imprime e sae con código 1.
 fail() {
   echo
   gum_style \
@@ -72,6 +79,7 @@ fail() {
   exit 1
 }
 
+# Confirmación si/non co estilo de Gallaecia.
 gum_confirm() {
   gum confirm \
 	--affirmative="Si" \
@@ -86,6 +94,7 @@ gum_confirm() {
 	"$@"
 }
 
+# Selector de opcións co estilo de Gallaecia.
 gum_choose() {
   gum choose \
 	--cursor.foreground="$CHOOSE_CURSOR_FOREGROUND" \

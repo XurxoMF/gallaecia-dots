@@ -4,18 +4,21 @@ set -u
 set -o pipefail
 
 # shellcheck source=/dev/null
-source "$HOME/.config/gallaecia-dots/scripts/modules/ui.sh"
+source "$HOME/.local/share/gallaecia-dots/scripts/modules/ui.sh"
 # shellcheck source=/dev/null
-source "$HOME/.config/gallaecia-dots/scripts/modules/commands.sh"
+source "$HOME/.local/share/gallaecia-dots/scripts/modules/commands.sh"
 
+# Mostra o logo se o script visual existe e é executable.
 show_logo() {
-  local logo_script="$HOME/.config/gallaecia-dots/scripts/gallaecia.sh"
+  local logo_script="$HOME/.local/share/gallaecia-dots/scripts/gallaecia.sh"
 
   if [ -x "$logo_script" ]; then
     "$logo_script"
   fi
 }
 
+# Actualiza Rust só se rustup está instalado.
+# Así o updater serve tamén para instalacións onde Rust non se escolleu/usou.
 update_rust() {
   if has_command rustup; then
     title "Actualizando Rust..."
@@ -25,6 +28,7 @@ update_rust() {
   fi
 }
 
+# Actualiza paquetes de pacman e AUR mediante yay.
 update_arch() {
   if has_command yay; then
     title "Actualizando pacman e AUR..."
@@ -34,6 +38,7 @@ update_arch() {
   fi
 }
 
+# Actualiza Flatpaks instalados.
 update_flatpak() {
   if has_command flatpak; then
     title "Actualizando Flatpak..."
@@ -43,6 +48,7 @@ update_flatpak() {
   fi
 }
 
+# Actualiza plugins de Yazi só se existen yazi e o comando ya.
 update_yazi_plugins() {
   if has_command yazi && has_command ya; then
     title "Actualizando plugins de Yazi..."
@@ -52,6 +58,7 @@ update_yazi_plugins() {
   fi
 }
 
+# Pregunta por cada bloque de actualización e aborta se falla un bloque aceptado.
 main() {
   show_logo
 

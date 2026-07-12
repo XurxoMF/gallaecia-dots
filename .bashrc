@@ -6,6 +6,15 @@
 # nun arquivo ~/.config/bashrc/* con nome 123-nome.
 #
 
+# Carga de módulos de gallaecia usados en todos os scripts e demáis
+
+for module in "$HOME"/.local/share/gallaecia-dots/scripts/modules/*.sh; do
+  # shellcheck source=/dev/null
+  [ -f "$module" ] && source "$module"
+done
+
+# Carga dos modulos de usuario ~/.config/bashrc/*
+
 [[ $- != *i* ]] && return
 
 for f in ~/.config/bashrc/*; do
@@ -13,13 +22,6 @@ for f in ~/.config/bashrc/*; do
     # shellcheck source=/dev/null
     [ -f "$f" ] && source "$f"
   fi
-done
-
-# Carga de módulos de gallaecia usados en todos os scripts e demáis
-
-for module in "$HOME"/.config/gallaecia-dots/scripts/modules/*.sh; do
-  # shellcheck source=/dev/null
-  [ -f "$module" ] && source "$module"
 done
 
 ##########################################################

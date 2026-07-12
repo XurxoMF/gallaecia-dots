@@ -19,9 +19,9 @@ margin_edge = 0
 margin_ends = 0
 padding = 15
 radius = 0
-radius_bottom_left = -20
-radius_bottom_right = -20
-start = [ "clock", "launcher", "wallpaper", "system_update" ]
+radius_bottom_left = 20
+radius_bottom_right = 20
+start = [ "clock", "launcher", "wallpaper", "mpvpaper", "system_update" ]
 thickness = 30
 widget_spacing = 10
 
@@ -87,8 +87,40 @@ source = "wallpaper"
 wallpaper_scheme = "vibrant"
 
     [theme.templates]
-    builtin_ids = [ "gtk3", "gtk4", "hyprland", "kcolorscheme", "qt" ]
-    community_ids = [ "neovim", "vscode", "discord", "steam", "yazi", "hyprtoolkit" ]
+    builtin_ids = [
+        "alacritty",
+        "btop",
+        "cava",
+        "emacs",
+        "foot",
+        "gtk3",
+        "gtk4",
+        "ghostty",
+        "helix",
+        "hyprland",
+        "kcolorscheme",
+        "kitty",
+        "qt",
+        "starship",
+        "wezterm"
+    ]
+    community_ids = [
+        "spicetify",
+        "tauon",
+        "pywalfox",
+        "zen-browser",
+        "neovim",
+        "obsidian",
+        "vscode",
+        "zed",
+        "discord",
+        "papirus-icons",
+        "steam",
+        "telegram",
+        "yazi",
+        "zathura",
+        "hyprtoolkit"
+    ]
 
 [wallpaper]
 directory = "~/.wallpapers"
@@ -109,8 +141,8 @@ title_scroll = "always"
 show_label = false
 
 [widget.system_update]
-command = "$TERMINAL -e sh -c '~/.config/gallaecia-dots/scripts/system-update.sh'"
+command = "$TERMINAL -e sh -c '$HOME/.local/share/gallaecia-dots/scripts/system-update.sh'"
 glyph = "cloud-download"
-middle_command = "$TERMINAL -e sh -c '~/.config/gallaecia-dots/scripts/system-update.sh'"
-right_command = "$TERMINAL -e sh -c '~/.config/gallaecia-dots/scripts/system-update.sh'"
+middle_command = "$TERMINAL -e sh -c '$HOME~/.local/share/gallaecia-dots/scripts/system-update.sh'"
+right_command = "$TERMINAL -e sh -c '$HOME/.local/share/gallaecia-dots/scripts/system-update.sh'"
 type = "custom_button"
