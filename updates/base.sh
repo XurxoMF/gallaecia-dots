@@ -860,8 +860,6 @@ install_base_version() {
     fail "Algo fallou ao seleccionar as aplicacións principais! Abortando instalación..."
   fi
 
-  info "DEBUG_APPS: after configure_required_apps pkgs=${#pkgs_apps[@]} flatpaks=${#flatpaks_apps[@]} pipx=${#pipx_apps[@]}"
-
   echo
 
   title "Aplicacións opcionais"
@@ -874,8 +872,6 @@ install_base_version() {
   else
     fail "Algo fallou ao seleccionar as aplicacións opcionais! Abortando instalación..."
   fi
-
-  info "DEBUG_APPS: after configure_optional_apps pkgs=${#pkgs_apps[@]} flatpaks=${#flatpaks_apps[@]} pipx=${#pipx_apps[@]}"
 
   echo
   title "Resumo da instalación de apps"
@@ -897,8 +893,6 @@ install_base_version() {
   if [ ${#pipx_apps[@]} -gt 0 ]; then
     info "Pipx: ${pipx_apps[*]}"
   fi
-
-  info "DEBUG_APPS: before install_selected_apps pkgs=${pkgs_apps[*]-} flatpaks=${flatpaks_apps[*]-} pipx=${pipx_apps[*]-}"
   echo
 
   if install_selected_apps; then
