@@ -535,7 +535,6 @@ configure_optional_apps() {
     "pkg|Tauon|tauon-music-box|tauon|com.github.taiko2k.tauonmb.desktop"
     "pkg|VLC|vlc vlc-plugins-all|vlc|vlc.desktop"
     "pkg|MPV|mpv|mpv|mpv.desktop"
-    "pkg|Puddletag|puddletag|puddletag|"
   )
 
   choose_optional_category "Selecciona reprodutor ou reprodutores de audio:" "${audio_entries[@]}"
@@ -556,7 +555,6 @@ configure_optional_apps() {
     "pkg|VLC|vlc vlc-plugins-all|vlc|vlc.desktop"
     "pkg|MPV|mpv|mpv|mpv.desktop"
     "pkg|Clapper|clapper|clapper|com.github.rafostar.Clapper.desktop"
-    "pkg|HandBrake|handbrake|handbrake|"
   )
 
   choose_optional_category "Selecciona reprodutor ou reprodutores de vídeo:" "${video_entries[@]}"
@@ -654,6 +652,8 @@ configure_optional_apps() {
     "pkg|Inkscape|inkscape|inkscape|org.inkscape.Inkscape.desktop"
     "pkg|Blender|blender|blender|blender.desktop"
     "pkg|Kdenlive|kdenlive|kdenlive|org.kde.kdenlive.desktop"
+    "pkg|Puddletag|puddletag|puddletag|"
+    "pkg|HandBrake|handbrake|handbrake|"
   )
 
   choose_optional_category "Selecciona apps creativas:" "${creative_entries[@]}"
