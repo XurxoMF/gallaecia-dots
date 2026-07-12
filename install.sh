@@ -54,6 +54,7 @@ download_dotfiles() {
 # Executa os updates versionados dispoñibles, se existen.
 run_versioned_updates() {
   local update_script
+  local version_name
 
   if [ ! -d "$UPDATES_DIR" ]; then
     echo "Non se atopou o directorio de updates en $UPDATES_DIR."
@@ -62,6 +63,14 @@ run_versioned_updates() {
 
   while IFS= read -r update_script; do
     [ -n "$update_script" ] || continue
+
+    version_name="${update_script##*/}"
+    version_name="${version_name%.sh}"
+    version_name="${version_name//_/.}"
+
+    if is_version_installed "$version_name"; then
+      continue
+    fi
 
     if ! bash "$update_script"; then
       echo "Algo fallou ao executar $update_script. Abortando instalación..."

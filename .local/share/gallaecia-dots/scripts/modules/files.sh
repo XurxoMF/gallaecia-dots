@@ -26,3 +26,10 @@ replace_file() {
 
   rm -f "$target" && cp "$source" "$target"
 }
+
+# Comproba se existe un ficheiro normal.
+file_exists() {
+  local file_path="$1"
+
+  [ -f "$file_path" ]
+}

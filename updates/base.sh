@@ -327,8 +327,9 @@ install_dotfiles() {
 
 # Config opcional para yt-dlp e funcións de bash asociadas.
 configure_yt_dlp() {
+  mkdir -p "$HOME/.local/share/gallaecia-dots/bashrc" &&
   replace_path "$DOTFILES_DIR/optional/.config/yt-dlp" "$HOME/.config/yt-dlp" &&
-  replace_file "$DOTFILES_DIR/optional/.config/bashrc/201-yt-dlp" "$HOME/.config/bashrc/201-yt-dlp"
+  replace_file "$DOTFILES_DIR/optional/.local/share/gallaecia-dots/bashrc/201-yt-dlp" "$HOME/.local/share/gallaecia-dots/bashrc/201-yt-dlp"
 }
 
 # Config opcional para SpotDL.
