@@ -149,11 +149,13 @@ find_app_by_label() {
 
   for entry in "$@"; do
     if [ "$(app_label "$entry")" = "$label" ]; then
+      info "DEBUG_APPS: find_app_by_label match -> label='$label' entry='$entry'"
       printf '%s\n' "$entry"
       return 0
     fi
   done
 
+  info "DEBUG_APPS: find_app_by_label miss -> label='$label'"
   return 1
 }
 
@@ -217,6 +219,9 @@ choose_entries() {
     --header "$header" \
     "${labels[@]}")
 
+  info "DEBUG_APPS: choose_entries header='$header'"
+  info "DEBUG_APPS: choose_entries raw_selected=$selected"
+
   while IFS= read -r label; do
     [ -n "$label" ] || continue
     find_app_by_label "$label" "${entries[@]}"
@@ -249,6 +254,8 @@ choose_default_entry() {
     --header "$header" \
     "${labels[@]}")
 
+  info "DEBUG_APPS: choose_default_entry header='$header' selected='$selected'"
+
   find_app_by_label "$selected" "${entries[@]}"
 }
 
@@ -275,6 +282,8 @@ choose_required_category() {
   SELECTED_ENTRIES=()
   DEFAULT_ENTRY=""
 
+  info "DEBUG_APPS: choose_required_category start header='$header' entries=${#entries[@]}"
+
   while [ ${#SELECTED_ENTRIES[@]} -eq 0 ]; do
     mapfile -t SELECTED_ENTRIES < <(choose_entries "$header" "${entries[@]}")
     if [ ${#SELECTED_ENTRIES[@]} -eq 0 ]; then
@@ -282,6 +291,8 @@ choose_required_category() {
     fi
   done
 
+  info "DEBUG_APPS: choose_required_category selected_count=${#SELECTED_ENTRIES[@]}"
+  info "DEBUG_APPS: choose_required_category selected_entries=${SELECTED_ENTRIES[*]}"
   add_selected_entries_packages
 }
 
@@ -295,12 +306,18 @@ choose_optional_category() {
   # shellcheck disable=SC2034
   DEFAULT_ENTRY=""
 
+  info "DEBUG_APPS: choose_optional_category start header='$header' entries=${#entries[@]}"
+
   mapfile -t SELECTED_ENTRIES < <(choose_entries "$header" "${entries[@]}")
+  info "DEBUG_APPS: choose_optional_category selected_count=${#SELECTED_ENTRIES[@]}"
+  info "DEBUG_APPS: choose_optional_category selected_entries=${SELECTED_ENTRIES[*]}"
   add_selected_entries_packages
 }
 
 # Instala todos os paquetes acumulados polas seleccións anteriores.
 install_selected_apps() {
+  info "DEBUG_APPS: install_selected_apps pkgs=${#pkgs_apps[@]} flatpaks=${#flatpaks_apps[@]} pipx=${#pipx_apps[@]}"
+
   if [ ${#pkgs_apps[@]} -gt 0 ]; then
     yay -Syu --needed "${pkgs_apps[@]}"
   fi
