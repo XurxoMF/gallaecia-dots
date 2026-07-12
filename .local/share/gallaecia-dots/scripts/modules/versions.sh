@@ -3,6 +3,7 @@
 GALLAECIA_STATE_DIR="${GALLAECIA_STATE_DIR:-$HOME/.local/share/gallaecia-dots}"
 GALLAECIA_CURRENT_VERSION_FILE="${GALLAECIA_CURRENT_VERSION_FILE:-$GALLAECIA_STATE_DIR/version}"
 GALLAECIA_INSTALLED_VERSIONS_FILE="${GALLAECIA_INSTALLED_VERSIONS_FILE:-$GALLAECIA_STATE_DIR/installed-versions}"
+GALLAECIA_UPDATES_DIR="${GALLAECIA_UPDATES_DIR:-$HOME/.dotfiles/updates}"
 
 # Garante que existe o directorio onde gardamos o estado da instalación.
 # `installed-versions` é unha versión por liña: base, 3.0.1, 3.0.2...
@@ -41,6 +42,41 @@ mark_version_installed() {
   if ! is_version_installed "$version"; then
     printf '%s\n' "$version" >> "$GALLAECIA_INSTALLED_VERSIONS_FILE"
   fi
+}
+
+# Devolve todas as versións dispoñibles, comezando por `base`.
+# Os updates gardan un nome estilo 3_0_1.sh, que aquí se transforma a 3.0.1.
+list_available_versions() {
+  local update_file
+  local version_name
+
+  printf '%s\n' "base"
+
+  if [ ! -d "$GALLAECIA_UPDATES_DIR" ]; then
+    return 0
+  fi
+
+  while IFS= read -r update_file; do
+    [ -n "$update_file" ] || continue
+
+    version_name="${update_file##*/}"
+    version_name="${version_name%.sh}"
+    version_name="${version_name//_/.}"
+
+    printf '%s\n' "$version_name"
+  done < <(find "$GALLAECIA_UPDATES_DIR" -maxdepth 1 -type f -name '[0-9]*_[0-9]*_[0-9]*.sh' | sort -V)
+}
+
+# Marca de golpe todas as versións dispoñibles.
+mark_all_available_versions() {
+  local version
+
+  ensure_gallaecia_state_dir || return 1
+
+  while IFS= read -r version; do
+    [ -n "$version" ] || continue
+    mark_version_installed "$version"
+  done < <(list_available_versions)
 }
 
 # Garda a versión actual e a data da última instalación/update aplicado.

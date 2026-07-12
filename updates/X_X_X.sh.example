@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+
+set -u
+set -o pipefail
+
+# Plantilla de update persoal.
+# Este ficheiro non se executa nunca polo instalador porque non segue o patrón
+# numérico `X_X_X.sh` que o entrypoint busca dentro de `updates/`.
+
+VERSION="0.0.0"
+DOTFILES_DIR="$HOME/.dotfiles"
+MODULES_DIR="$DOTFILES_DIR/.local/share/gallaecia-dots/scripts/modules"
+
+if [ ! -r "$MODULES_DIR/ui.sh" ] ||
+  [ ! -r "$MODULES_DIR/commands.sh" ] ||
+  [ ! -r "$MODULES_DIR/files.sh" ] ||
+  [ ! -r "$MODULES_DIR/versions.sh" ] ||
+  [ ! -r "$MODULES_DIR/apps.sh" ]; then
+  echo "Non se atoparon os módulos de Gallaecia Dots en $MODULES_DIR." >&2
+  exit 1
+fi
+
+# shellcheck source=/dev/null
+source "$MODULES_DIR/ui.sh"
+# shellcheck source=/dev/null
+source "$MODULES_DIR/commands.sh"
+# shellcheck source=/dev/null
+source "$MODULES_DIR/files.sh"
+# shellcheck source=/dev/null
+source "$MODULES_DIR/versions.sh"
+# shellcheck source=/dev/null
+source "$MODULES_DIR/apps.sh"
+
+main() {
+  title "Plantilla de update"
+  info "Hola Mundo!"
+  success "Isto é só unha plantilla e non debería formar parte do fluxo real."
+}
+
+main "$@"

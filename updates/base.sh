@@ -757,39 +757,6 @@ configure_optional_apps() {
   fi
 }
 
-# Marca a instalación base como aplicada.
-save_install_version() {
-  mark_version_installed "$VERSION" &&
-  set_gallaecia_current_version "$VERSION"
-}
-
-# Se xa hai versións instaladas, decide entre actualizar ou reinstalar.
-# Reinstalar só limpa o rexistro de versións; non borra automaticamente configs.
-choose_install_mode() {
-  local install_mode
-
-  if ! has_installed_versions; then
-    return 0
-  fi
-
-  install_mode=$(gum_choose \
-    --header "Xa hai unha instalación de Gallaecia Dots. Que queres facer?" \
-    "Actualizar" \
-    "Reinstalar desde 0")
-
-  if [ "$install_mode" = "Reinstalar desde 0" ]; then
-    warning "Reinstalar desde 0 pode deixar cousas funcionando mal se xa tes cambios ou configuracións mesturadas."
-    warning "Borrarase o rexistro de versións instaladas para forzar a reinstalación dos scripts."
-    echo
-
-    if ! gum_confirm "Continuar coa reinstalación desde 0?"; then
-      fail "Reinstalación cancelada. Abortando instalación..."
-    fi
-
-    clear_installed_versions || fail "Non se puido limpar o rexistro de versións instaladas! Abortando instalación..."
-  fi
-}
-
 # Instalación base completa.
 # Se "base" xa aparece en installed-versions, non repite o proceso.
 install_base_version() {
@@ -911,14 +878,9 @@ install_base_version() {
     fail "Algo fallou ao instalar as aplicacións seleccionadas! Abortando instalación..."
   fi
 
-  if save_install_version; then
-    success "Versión $VERSION instalada e gardada con éxito!"
-  else
-    fail "Algo fallou ao gardar a versión instalada! Abortando instalación..."
-  fi
 }
 
-# Fluxo principal da base: prepara estado, mostra benvida, decide modo e instala.
+# Fluxo principal da base: prepara estado, mostra benvida e instala a base.
 main() {
   clear
   if ! ensure_gallaecia_state_dir; then
@@ -931,10 +893,6 @@ main() {
   title "BENVID@ AO INSTALADOR DE GALLAECIA DOTS!"
   info "Con este script poderás instalar os dotfiles paso por paso para que poidas personalizar algunhas cousas e gardar copias de seguridade antes de que se sobreescriban polos dotfiles."
   info "Simplemente responde as preguntas que irán aparecendo en pantalla deixa que ocurra a maxia pagana."
-
-  echo
-
-  choose_install_mode
 
   echo
 

@@ -88,7 +88,7 @@ update_dotfiles() {
 
   info "Relanzando o instalador cos dotfiles xa actualizados..."
 
-  GALLAECIA_SKIP_CLONE=1 GALLAECIA_REPO_BRANCH="$REPO_BRANCH" bash "$INSTALLER"
+  GALLAECIA_SKIP_CLONE=1 GALLAECIA_REPO_BRANCH="$REPO_BRANCH" GALLAECIA_INSTALL_MODE="update" bash "$INSTALLER"
 }
 
 # Actualiza Rust só se rustup está instalado.

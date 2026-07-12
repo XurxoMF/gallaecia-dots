@@ -8,8 +8,14 @@ REPO_URL="https://github.com/XurxoMF/gallaecia-dots.git"
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 UPDATES_DIR="$DOTFILES_DIR/updates"
 BASE_INSTALLER="$UPDATES_DIR/base.sh"
+STATE_DIR="$HOME/.local/share/gallaecia-dots"
+INSTALLED_VERSIONS_FILE="$STATE_DIR/installed-versions"
+CURRENT_VERSION_FILE="$STATE_DIR/version"
+INSTALLED_MARK_FILE="$STATE_DIR/instalado"
+MODULES_DIR="$DOTFILES_DIR/.local/share/gallaecia-dots/scripts/modules"
 SKIP_CLONE="${GALLAECIA_SKIP_CLONE:-0}"
 REPO_BRANCH="${GALLAECIA_REPO_BRANCH:-release}"
+INSTALL_MODE="${GALLAECIA_INSTALL_MODE:-auto}"
 
 # Instala só o mínimo necesario para que o instalador poida continuar.
 # Este ficheiro pode executarse con `bash <(curl ...)`, así que aquí non se
@@ -38,24 +44,12 @@ download_dotfiles() {
   git clone --branch "$REPO_BRANCH" "$REPO_URL" "$DOTFILES_DIR"
 }
 
-# Executa primeiro a instalación base e despois só os updates versionados.
-# A base non é unha migración: é o instalador inicial e pode cambiar no futuro
-# para engadir novas opcións de apps. Os updates reais usan nomes 3_0_1.sh, etc.
-run_updates() {
+# Executa os updates versionados dispoñibles, se existen.
+run_versioned_updates() {
   local update_script
 
   if [ ! -d "$UPDATES_DIR" ]; then
     echo "Non se atopou o directorio de updates en $UPDATES_DIR."
-    return 1
-  fi
-
-  if [ ! -f "$BASE_INSTALLER" ]; then
-    echo "Non se atopou o instalador base en $BASE_INSTALLER."
-    return 1
-  fi
-
-  if ! bash "$BASE_INSTALLER"; then
-    echo "Algo fallou ao executar $BASE_INSTALLER. Abortando instalación..."
     return 1
   fi
 
@@ -66,7 +60,97 @@ run_updates() {
       echo "Algo fallou ao executar $update_script. Abortando instalación..."
       return 1
     fi
+
+    mark_version_from_script "$update_script" || return 1
   done < <(find "$UPDATES_DIR" -maxdepth 1 -type f -name "[0-9]*_[0-9]*_[0-9]*.sh" | sort -V)
+}
+
+# Executa a instalación base.
+run_base_install() {
+  if [ ! -f "$BASE_INSTALLER" ]; then
+    echo "Non se atopou o instalador base en $BASE_INSTALLER."
+    return 1
+  fi
+
+  if ! bash "$BASE_INSTALLER"; then
+    echo "Algo fallou ao executar $BASE_INSTALLER. Abortando instalación..."
+    return 1
+  fi
+}
+
+# Marca a versión correspondente a un ficheiro de update e actualiza o estado.
+mark_version_from_script() {
+  local script_path="$1"
+  local version_name
+
+  version_name="${script_path##*/}"
+  version_name="${version_name%.sh}"
+  version_name="${version_name//_/.}"
+
+  mark_version_installed "$version_name" &&
+  set_gallaecia_current_version "$version_name"
+}
+
+# Marca a base como completamente aplicada.
+mark_base_as_installed() {
+  mark_all_available_versions &&
+  set_gallaecia_current_version "$(latest_available_version)"
+}
+
+# Decide o modo efectivo de instalación.
+# En modo auto, se xa existe unha instalación previa pregúntase ao usuario.
+resolve_install_mode() {
+  case "$INSTALL_MODE" in
+    install|update|reinstall)
+      printf '%s\n' "$INSTALL_MODE"
+      return 0
+      ;;
+    auto)
+      if [ -s "$INSTALLED_VERSIONS_FILE" ]; then
+        local install_mode
+        install_mode=$(gum_choose \
+          --header "Xa hai unha instalación de Gallaecia Dots. Que queres facer?" \
+          "Actualizar" \
+          "Reinstalar")
+
+        if [ "$install_mode" = "Reinstalar" ]; then
+          printf '%s\n' "reinstall"
+        else
+          printf '%s\n' "update"
+        fi
+      else
+        printf '%s\n' "install"
+      fi
+      return 0
+      ;;
+  esac
+
+  echo "Modo de instalación non válido: $INSTALL_MODE" >&2
+  return 1
+}
+
+# Aplica o fluxo escollido polo usuario ou polo entorno.
+run_install_flow() {
+  local effective_mode="$1"
+
+  case "$effective_mode" in
+    install)
+      run_base_install &&
+      mark_base_as_installed
+      ;;
+    update)
+      run_versioned_updates
+      ;;
+    reinstall)
+      rm -f "$INSTALLED_VERSIONS_FILE" "$CURRENT_VERSION_FILE" "$INSTALLED_MARK_FILE"
+      run_base_install &&
+      mark_base_as_installed
+      ;;
+    *)
+      echo "Modo de instalación non soportado: $effective_mode" >&2
+      return 1
+      ;;
+  esac
 }
 
 # Fluxo bootstrap completo:
@@ -81,7 +165,19 @@ main() {
     exit 1
   fi
 
-  run_updates
+  if [ ! -r "$MODULES_DIR/versions.sh" ]; then
+    echo "Non se atopou o módulo de versións en $MODULES_DIR/versions.sh."
+    exit 1
+  fi
+
+  # shellcheck source=/dev/null
+  source "$MODULES_DIR/versions.sh"
+
+  local effective_mode
+
+  effective_mode=$(resolve_install_mode) || exit 1
+
+  run_install_flow "$effective_mode"
 }
 
 main "$@"
