@@ -176,8 +176,7 @@ install_gallaecia_config() {
 # Instala o .bashrc principal e os módulos de bashrc.
 install_bashrc() {
   replace_file "$DOTFILES_DIR/.bashrc" "$HOME/.bashrc" &&
-  replace_path "$DOTFILES_DIR/.config/bashrc" "$HOME/.config/bashrc" &&
-  source "$HOME/.bashrc"
+  replace_path "$DOTFILES_DIR/.config/bashrc" "$HOME/.config/bashrc"
 }
 
 # Instala configuración GTK base.
@@ -329,8 +328,7 @@ install_dotfiles() {
 # Config opcional para yt-dlp e funcións de bash asociadas.
 configure_yt_dlp() {
   replace_path "$DOTFILES_DIR/optional/.config/yt-dlp" "$HOME/.config/yt-dlp" &&
-  replace_file "$DOTFILES_DIR/optional/.config/bashrc/201-yt-dlp" "$HOME/.config/bashrc/201-yt-dlp" &&
-  source "$HOME/.bashrc"
+  replace_file "$DOTFILES_DIR/optional/.config/bashrc/201-yt-dlp" "$HOME/.config/bashrc/201-yt-dlp"
 }
 
 # Config opcional para SpotDL.
