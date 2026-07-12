@@ -896,6 +896,11 @@ main() {
 
   echo
 
+  if ! gum_confirm "Queres instalar Gallaecia Dots agora?"; then
+    info "Instalación cancelada."
+    exit 0
+  fi
+
   info "Instalando Gallaecia Dots desde $DOTFILES_DIR."
 
   install_base_version
