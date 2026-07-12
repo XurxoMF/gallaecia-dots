@@ -34,8 +34,8 @@ source "$MODULES_DIR/apps.sh"
 show_changelog() {
   title "Update $VERSION"
   info "Cambios que se van aplicar:"
-  info "- Describe aquí o primeiro cambio."
-  info "- Describe aquí o segundo cambio."
+  info "· Describe aquí o primeiro cambio."
+  info "· Describe aquí o segundo cambio."
   echo
 }
 
