@@ -3,6 +3,8 @@
 # Descarga un vídeo de YouTube usando yt-dlp
 yt-dlp-video() {
   while true; do
+    echo
+
     url="$(gum_input --prompt "URL do vídeo: " --placeholder "Pega unha URL")" || return 0
 
     [ -z "$url" ] && continue
@@ -14,6 +16,8 @@ yt-dlp-video() {
 # Descarga unha canción de YouTube ou YouTube Music usando yt-dlp
 yt-dlp-musica() {
   while true; do
+    echo
+    
     url="$(gum_input --prompt "URL da canción: " --placeholder "Pega unha URL")" || return 0
 
     [ -z "$url" ] && continue
