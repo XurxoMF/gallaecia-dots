@@ -107,13 +107,39 @@ Moitas categorías permiten escoller varias opcións, e nalgúns casos tamén de
 Executa:
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/XurxoMF/gallaecia-dots/main/install.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/XurxoMF/gallaecia-dots/release/install.sh)
 ```
 
 O instalador guiarate paso a paso cunha interface interactiva.
 
 > [!IMPORTANT]
 > Se tras reiniciar o sistema ao rematar a instalación che aparece un erro de Hyprland ou algunha app non funciona correctamente reinicia de novo ou cambia o fondo de pantalla seleccionando o mesmo ou un novo para que Noctalia xere as paletas de cores correctamente.
+
+## 🧰 Instalación con archinstall
+
+Se prefires facer a instalación base con `archinstall`, primeiro inicia o sistema co USB de Arch Linux e abre unha consola. Desde aí baixa o perfil JSON do proxecto:
+
+```bash
+curl -fsSL -o user_configuration.json https://raw.githubusercontent.com/XurxoMF/gallaecia-dots/release/archinstall/user_configuration.json
+```
+
+Despois lanza `archinstall` cargando ese ficheiro:
+
+```bash
+archinstall --config user_configuration.json
+```
+
+Se a túa versión de `archinstall` emprega outro modo para cargar perfís, escolle a opción de importar configuración e usa ese mesmo ficheiro `user_configuration.json`.
+
+Durante o asistente, só tes que completar o que queda pendente:
+
+1. Crear o usuario normal.
+2. Poñer o contrasinal de `root`.
+3. Escoller o particionamento dos discos.
+
+O resto da configuración xa vén preparada no JSON.
+
+Cando remate a instalación base, reinicia, entra no sistema co teu usuario e xa poderás seguir coa parte de Gallaecia Dots se a precisas para deixar o escritorio listo.
 
 ## 🔄 Actualizacións e mantemento
 
