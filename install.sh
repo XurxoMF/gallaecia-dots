@@ -5,10 +5,14 @@ set -o pipefail
 
 VERSION="2.2.0-09-07-2026"
 DOTFILES_DIR="$HOME/.dotfiles"
-GREEN="#2baf03"
-RED="#cc2508"
-BLUE="#90CDFF"
-YELLOW="#D6C104"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+
+# shellcheck source=/dev/null
+source "$SCRIPT_DIR/.config/gallaecia-dots/scripts/modules/ui.sh"
+# shellcheck source=/dev/null
+source "$SCRIPT_DIR/.config/gallaecia-dots/scripts/modules/commands.sh"
+# shellcheck source=/dev/null
+source "$SCRIPT_DIR/.config/gallaecia-dots/scripts/modules/files.sh"
 
 REQUIRED_PACKAGES=(
   noto-fonts-cjk noto-fonts-emoji noto-fonts ttf-noto-nerd
@@ -50,145 +54,6 @@ banner() {
   echo '| |__| | (_| | | | (_| |  __/ (__| | (_| |'
   echo ' \_____|\__,_|_|_|\__,_|\___|\___|_|\__,_|'
   echo '                                          '
-}
-
-gum_style() {
-  gum style \
-	--background="" \
-	--border-background="" \
-	--border-foreground="$BLUE" \
-	--margin="0 0" \
-	--padding="0 0" \
-	"$@"
-}
-
-info() {
-  gum_style \
-	--foreground="#dbe3ed" \
-	"$@"
-}
-
-title() {
-  gum_style \
-	--foreground="$BLUE" \
-	--bold \
-	"$1"
-  echo
-}
-
-warning() {
-  gum_style \
-	--foreground="$YELLOW" \
-	--bold \
-	"$1"
-}
-
-success() {
-  echo
-  gum_style \
-	--foreground="$GREEN" \
-	--bold \
-	"$1"
-  echo
-}
-
-fail() {
-  echo
-  gum_style \
-	--foreground="$RED" \
-	--bold \
-	"$1"
-  exit 1
-}
-
-gum_confirm() {
-  gum confirm \
-	--affirmative="Si" \
-	--negative="No" \
-	--prompt.foreground="#90cdff" \
-	--prompt.background="" \
-	--selected.foreground="#003350" \
-	--selected.background="#90cdff" \
-	--unselected.foreground="#cce6ff" \
-	--unselected.background="#004b72" \
-	--padding="0 0" \
-	"$@"
-}
-
-gum_choose() {
-  gum choose \
-	--cursor.foreground="#90cdff" \
-	--cursor.background="" \
-	--header.foreground="#dbe3ed" \
-	--header.background="" \
-	--item.foreground="#dbe3ed" \
-	--item.background="" \
-	--selected.foreground="#90cdff" \
-	--selected.background="" \
-	--padding="0 0" \
-	"$@"
-}
-
-confirm_or_abort() {
-  local question="$1"
-  local abort_message="$2"
-
-  if ! gum_confirm "$question"; then
-    gum_style \
-		--foreground="$RED" \
-		--bold \
-		"$abort_message"
-    exit 1
-  fi
-}
-
-confirm_step() {
-  local question="$1"
-  local success_message="$2"
-  local error_message="$3"
-  local step="$4"
-
-  if gum_confirm "$question"; then
-    run_step \
-		"$success_message" \
-		"$error_message" \
-		"$step"
-  fi
-}
-
-run_step() {
-  local success_message="$1"
-  local error_message="$2"
-  local step="$3"
-
-  if "$step"; then
-    success "$success_message"
-  else
-    fail "$error_message"
-  fi
-}
-
-replace_path() {
-  local source="$1"
-  local target="$2"
-
-  rm -rf "$target" && cp -r "$source" "$target"
-}
-
-replace_file() {
-  local source="$1"
-  local target="$2"
-
-  rm -f "$target" && cp "$source" "$target"
-}
-
-ensure_command() {
-  local command_name="$1"
-  local package_name="$2"
-
-  if ! command -v "$command_name" &> /dev/null; then
-    sudo pacman -Sy --needed "$package_name"
-  fi
 }
 
 install_prerequisites() {
@@ -338,70 +203,83 @@ install_noctalia() {
 }
 
 install_dotfiles() {
-  run_step \
-	"Configuración de greetd instalada con éxito!" \
-	"Algo fallou ao instalar a configuración de greetd! Abortando instalación..." \
-	install_greetd_config
+  if install_greetd_config; then
+    success "Configuración de greetd instalada con éxito!"
+  else
+    fail "Algo fallou ao instalar a configuración de greetd! Abortando instalación..."
+  fi
 
-  run_step \
-	"Configs propias de Gallaecia Dots instaladas con éxito!" \
-	"Algo fallou ao instalar as configs propias de Gallaecia Dots! Abortando instalación..." \
-	install_gallaecia_config
+  if install_gallaecia_config; then
+    success "Configs propias de Gallaecia Dots instaladas con éxito!"
+  else
+    fail "Algo fallou ao instalar as configs propias de Gallaecia Dots! Abortando instalación..."
+  fi
 
-  run_step \
-	"Bashrc instalado con éxito!" \
-	"Algo fallou ao instalar o bashrc! Abortando instalación..." \
-	install_bashrc
+  if install_bashrc; then
+    success "Bashrc instalado con éxito!"
+  else
+    fail "Algo fallou ao instalar o bashrc! Abortando instalación..."
+  fi
 
-  run_step \
-	"XDG Desktop Portals configurados con éxito!" \
-	"Algo fallou ao configurar os XDG Desktop Portals! Abortando instalación..." \
-	install_xdg_portals
+  if install_xdg_portals; then
+    success "XDG Desktop Portals configurados con éxito!"
+  else
+    fail "Algo fallou ao configurar os XDG Desktop Portals! Abortando instalación..."
+  fi
 
-  run_step \
-	"XSettingsd configurado con éxito!" \
-	"Algo fallou ao configurar o XSettingsd! Abortando instalación..." \
-	install_xsettingsd
+  if install_xsettingsd; then
+    success "XSettingsd configurado con éxito!"
+  else
+    fail "Algo fallou ao configurar o XSettingsd! Abortando instalación..."
+  fi
 
-  run_step \
-	"GTK3 e GTK4 configurados con éxito!" \
-	"Algo fallou ao configurar GTK3 e GTK4! Abortando instalación..." \
-	install_gtk_config
+  if install_gtk_config; then
+    success "GTK3 e GTK4 configurados con éxito!"
+  else
+    fail "Algo fallou ao configurar GTK3 e GTK4! Abortando instalación..."
+  fi
 
-  run_step \
-	"QT5 e QT6 configurados con éxito!" \
-	"Algo fallou ao configurar QT5 e QT6! Abortando instalación..." \
-	install_qt_config
+  if install_qt_config; then
+    success "QT5 e QT6 configurados con éxito!"
+  else
+    fail "Algo fallou ao configurar QT5 e QT6! Abortando instalación..."
+  fi
 
-  run_step \
-	"Kitty configurado con éxito!" \
-	"Algo fallou ao configurar Kitty! Abortando instalación..." \
-	install_kitty
+  if install_kitty; then
+    success "Kitty configurado con éxito!"
+  else
+    fail "Algo fallou ao configurar Kitty! Abortando instalación..."
+  fi
 
-  run_step \
-	"Dolphin configurado con éxito!" \
-	"Algo fallou ao configurar Dolphin! Abortando instalación..." \
-	install_dolphin
+  if install_dolphin; then
+    success "Dolphin configurado con éxito!"
+  else
+    fail "Algo fallou ao configurar Dolphin! Abortando instalación..."
+  fi
 
-  run_step \
-	"Yazi configurado con éxito!" \
-	"Algo fallou ao configurar Yazi! Abortando instalación..." \
-	install_yazi
+  if install_yazi; then
+    success "Yazi configurado con éxito!"
+  else
+    fail "Algo fallou ao configurar Yazi! Abortando instalación..."
+  fi
 
-  run_step \
-	"VS Code configurado con éxito!" \
-	"Algo fallou ao configurar VS Code! Abortando instalación..." \
-	install_vscode
+  if install_vscode; then
+    success "VS Code configurado con éxito!"
+  else
+    fail "Algo fallou ao configurar VS Code! Abortando instalación..."
+  fi
 
-  run_step \
-	"Hyprland configurado con éxito!" \
-	"Algo fallou ao configurar Hyprland! Abortando instalación..." \
-	install_hyprland
+  if install_hyprland; then
+    success "Hyprland configurado con éxito!"
+  else
+    fail "Algo fallou ao configurar Hyprland! Abortando instalación..."
+  fi
 
-  run_step \
-	"Noctalia configurado con éxito!" \
-	"Algo fallou ao configurar Noctalia! Abortando instalación..." \
-	install_noctalia
+  if install_noctalia; then
+    success "Noctalia configurado con éxito!"
+  else
+    fail "Algo fallou ao configurar Noctalia! Abortando instalación..."
+  fi
 }
 
 configure_yt_dlp() {
@@ -646,17 +524,19 @@ choose_optional_apps() {
       "Loupe") pkgs_apps+=("loupe") ;;
       "yt-dlp")
         pkgs_apps+=("yt-dlp")
-        run_step \
-          "yt-dlp configurado con éxito!" \
-          "Algo fallou ao configurar yt-dlp! Abortando instalación..." \
-          configure_yt_dlp
+        if configure_yt_dlp; then
+          success "yt-dlp configurado con éxito!"
+        else
+          fail "Algo fallou ao configurar yt-dlp! Abortando instalación..."
+        fi
         ;;
       "SpotDL")
         pipx_apps+=("spotdl")
-        run_step \
-          "SpotDL configurado con éxito!" \
-          "Algo fallou ao configurar SpotDL! Abortando instalación..." \
-          configure_spotdl
+        if configure_spotdl; then
+          success "SpotDL configurado con éxito!"
+        else
+          fail "Algo fallou ao configurar SpotDL! Abortando instalación..."
+        fi
         ;;
     esac
   done <<< "$apps_populares"
@@ -705,14 +585,15 @@ main() {
 
   echo
 
-  confirm_or_abort \
-    "Descargar Gallaecia Dots?" \
-    "Non se poden instalar os dotfiles sen descargalos primeiro! Abortando instalación..."
+  if ! gum_confirm "Descargar Gallaecia Dots?"; then
+    fail "Non se poden instalar os dotfiles sen descargalos primeiro! Abortando instalación..."
+  fi
 
-  run_step \
-    "Gallaecia Dots descargado con éxito!" \
-    "Algo fallou ao descargar Gallaecia Dots! Abortando instalación..." \
-    download_dotfiles
+  if download_dotfiles; then
+    success "Gallaecia Dots descargado con éxito!"
+  else
+    fail "Algo fallou ao descargar Gallaecia Dots! Abortando instalación..."
+  fi
 
   info "Agora que temos os dotfiles descargados, vamos a instalalos!"
 
@@ -727,11 +608,13 @@ main() {
 
   echo
 
-  confirm_step \
-    "Cambiar idioma a Galego > Español > Inglés?" \
-    "Idioma cambiado con éxito!" \
-    "Algo fallou ao cambiar o idioma! Abortando instalación..." \
-    configure_locale
+  if gum_confirm "Cambiar idioma a Galego > Español > Inglés?"; then
+    if configure_locale; then
+      success "Idioma cambiado con éxito!"
+    else
+      fail "Algo fallou ao cambiar o idioma! Abortando instalación..."
+    fi
+  fi
 
   title "Habilitar [multilib] e cores en pacman"
   info "Algúns dos paquetes obligatorios están en multilib polo que temos que habilitala."
@@ -742,43 +625,48 @@ main() {
 
   echo
 
-  confirm_or_abort \
-    "Habilitar [multilib] e cores en pacman? (Obligatorio)" \
-    "Sen [multilib] algúns paquetes obligatorios non poderán ser instalados! Abortando instalación..."
+  if ! gum_confirm "Habilitar [multilib] e cores en pacman? (Obligatorio)"; then
+    fail "Sen [multilib] algúns paquetes obligatorios non poderán ser instalados! Abortando instalación..."
+  fi
 
-  run_step \
-    "[multilib] habilitado con éxito e cores activadas!" \
-    "Algo fallou ao habilitar [multilib] ou activar cores! Abortando instalación..." \
-    configure_pacman
+  if configure_pacman; then
+    success "[multilib] habilitado con éxito e cores activadas!"
+  else
+    fail "Algo fallou ao habilitar [multilib] ou activar cores! Abortando instalación..."
+  fi
 
   title "Instalar paquetes obligatorios? (Obligatorio)"
   info "Os programas obligatorios inclúen, entre outros, yay, Rust, Flatpak, Kitty, Hyprland..."
 
   echo
 
-  confirm_or_abort \
-    "Instalar YAY? (Obligatorio)" \
-    "Sen os paquetes obligatorios os dotfiles non funcionarán! Abortando instalación..."
+  if ! gum_confirm "Instalar YAY? (Obligatorio)"; then
+    fail "Sen os paquetes obligatorios os dotfiles non funcionarán! Abortando instalación..."
+  fi
 
-  run_step \
-    "YAY instalado con éxito!" \
-    "Algo fallou ao instalar YAY! Abortando instalación..." \
-    install_yay
+  if install_yay; then
+    success "YAY instalado con éxito!"
+  else
+    fail "Algo fallou ao instalar YAY! Abortando instalación..."
+  fi
 
-  run_step \
-    "Rust instalado con éxito!" \
-    "Algo fallou durante a instalación de Rust! Abortando instalación..." \
-    install_rust
+  if install_rust; then
+    success "Rust instalado con éxito!"
+  else
+    fail "Algo fallou durante a instalación de Rust! Abortando instalación..."
+  fi
 
-  run_step \
-	"Paquetes requeridos instalados con éxito!" \
-	"Algo fallou durante a instalación dos paquetes obligatorios! Abortando instalación..." \
-	install_required_packages
+  if install_required_packages; then
+    success "Paquetes requeridos instalados con éxito!"
+  else
+    fail "Algo fallou durante a instalación dos paquetes obligatorios! Abortando instalación..."
+  fi
 
-  run_step \
-	"Servizos requeridos configurados con éxito!" \
-	"Algo fallou durante a configuración dos servizos obligatorios! Abortando instalación..." \
-	configure_required_services
+  if configure_required_services; then
+    success "Servizos requeridos configurados con éxito!"
+  else
+    fail "Algo fallou durante a configuración dos servizos obligatorios! Abortando instalación..."
+  fi
 
   title "Crear carpetas personales e configuralas"
   info "Os dotfiles necesitan multiples carpetas para certas cousas polo que é necesario crealas e configuralas."
@@ -791,14 +679,15 @@ main() {
 
   echo
 
-  confirm_or_abort \
-    "Crear carpetas? (Obligatorio)" \
-    "Sen estas carpetas algunhas aplicacións e programas non funcionrán correctamente! Abortando instalación..."
+  if ! gum_confirm "Crear carpetas? (Obligatorio)"; then
+    fail "Sen estas carpetas algunhas aplicacións e programas non funcionrán correctamente! Abortando instalación..."
+  fi
 
-  run_step \
-    "Carpetas creadas con éxito!" \
-    "Algo fallou durante a creación das carpetas! Abortando instalación..." \
-    create_personal_dirs
+  if create_personal_dirs; then
+    success "Carpetas creadas con éxito!"
+  else
+    fail "Algo fallou durante a creación das carpetas! Abortando instalación..."
+  fi
 
   title "Instalar dotfiles"
   info "Todos os paquetes necesitan unha configuración tanto para o funcionamento como para os estilos. Iso mismo son os dotfiles."
@@ -809,9 +698,9 @@ main() {
 
   echo
 
-  confirm_or_abort \
-    "Instalar dotfiles? (Obligatorio)" \
-    "Sen dotfiles... non hai dotfiles... curiosamente... Abortando instalación..."
+  if ! gum_confirm "Instalar dotfiles? (Obligatorio)"; then
+    fail "Sen dotfiles... non hai dotfiles... curiosamente... Abortando instalación..."
+  fi
   install_dotfiles
 
   info "Xa temos os dotfiles instalados e configurados! Agora solo faltan as partes opcionales!"
@@ -829,15 +718,18 @@ main() {
 
   choose_optional_apps
   install_optional_apps
-  run_step \
-	"Asociacións de ficheiros opcionais configuradas con éxito!" \
-	"Algo fallou ao configurar as asociacións de ficheiros opcionais! Abortando instalación..." \
-	configure_optional_mimeapps
 
-  run_step \
-	"Versión instalada gardada con éxito!" \
-	"Algo fallou ao gardar a versión instalada! Abortando instalación..." \
-	save_install_version
+  if configure_optional_mimeapps; then
+    success "Asociacións de ficheiros opcionais configuradas con éxito!"
+  else
+    fail "Algo fallou ao configurar as asociacións de ficheiros opcionais! Abortando instalación..."
+  fi
+
+  if save_install_version; then
+    success "Versión instalada gardada con éxito!"
+  else
+    fail "Algo fallou ao gardar a versión instalada! Abortando instalación..."
+  fi
 
   title "Reiniciar o sistema"
   info "Recoméndase reiniciar o sistema para aplicar correctamente todos os cambios."

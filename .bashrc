@@ -15,6 +15,13 @@ for f in ~/.config/bashrc/*; do
   fi
 done
 
+# Carga de módulos de gallaecia usados en todos os scripts e demáis
+
+for module in "$HOME"/.config/gallaecia-dots/scripts/modules/*.sh; do
+  # shellcheck source=/dev/null
+  [ -f "$module" ] && source "$module"
+done
+
 ##########################################################
 #### TODO O QUE ESTÉ DEBAIXO DISTO DEBERÍASE DE MOVER ####
 ####     A UN ARQUIVO EN ~/.config/bashrc/123-xxx     ####
