@@ -28,6 +28,7 @@ source "$MODULES_DIR/versions.sh"
 source "$MODULES_DIR/apps.sh"
 
 show_changelog() {
+  echo
   title "Update $VERSION"
   info "Cambios que se van aplicar:"
   info "· Mellorados os comandos de yt-dlp."
