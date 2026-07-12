@@ -97,6 +97,13 @@ has_pipx_app() {
   return 1
 }
 
+# Comproba se un paquete pacman/AUR xa está instalado no sistema.
+is_pkg_installed() {
+  local package_name="$1"
+
+  pacman -Q "$package_name" &> /dev/null
+}
+
 # As entradas de apps usan este formato:
 #
 #   "tipo|Nome visible|paquetes|comando para Hypr/env|ficheiro .desktop"

@@ -3,11 +3,7 @@
 set -u
 set -o pipefail
 
-# Plantilla de update persoal.
-# Este ficheiro non se executa nunca polo instalador porque non segue o patrón
-# numérico `X_X_X.sh` que o entrypoint busca dentro de `updates/`.
-
-VERSION="0.0.0"
+VERSION="1.0.1"
 DOTFILES_DIR="$HOME/.dotfiles"
 MODULES_DIR="$DOTFILES_DIR/.local/share/gallaecia-dots/scripts/modules"
 
@@ -34,16 +30,27 @@ source "$MODULES_DIR/apps.sh"
 show_changelog() {
   title "Update $VERSION"
   info "Cambios que se van aplicar:"
-  info "- Describe aquí o primeiro cambio."
-  info "- Describe aquí o segundo cambio."
+  info "- Mellorados os comandos de yt-dlp."
   echo
 }
 
 apply_update() {
-  # Engade aquí os cambios da update.
-  # Exemplo:
-  # replace_file "$DOTFILES_DIR/.bashrc" "$HOME/.bashrc"
-  true
+  if is_pkg_installed yt-dlp && file_exists "$HOME/.config/bashrc/201-yt-dlp"; then
+    rm -f "$HOME/.config/bashrc/201-yt-dlp" &&
+    mkdir -p "$HOME/.local/share/gallaecia-dots/bashrc" &&
+    replace_file \
+      "$DOTFILES_DIR/optional/.local/share/gallaecia-dots/bashrc/201-yt-dlp" \
+      "$HOME/.local/share/gallaecia-dots/bashrc/201-yt-dlp"
+  fi
+
+  mkdir -p "$HOME/.local/share/gallaecia-dots/scripts/modules" &&
+  replace_file \
+    "$DOTFILES_DIR/.local/share/gallaecia-dots/scripts/modules/files.sh" \
+    "$HOME/.local/share/gallaecia-dots/scripts/modules/files.sh" &&
+  replace_file \
+    "$DOTFILES_DIR/.local/share/gallaecia-dots/scripts/modules/apps.sh" \
+    "$HOME/.local/share/gallaecia-dots/scripts/modules/apps.sh" &&
+  replace_file "$DOTFILES_DIR/.bashrc" "$HOME/.bashrc"
 }
 
 main() {
