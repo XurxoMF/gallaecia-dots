@@ -145,8 +145,8 @@ title_scroll = "always"
 show_label = false
 
 [widget.system_update]
-command = "$TERMINAL --hold -e bash -lc ~/.local/share/gallaecia-dots/scripts/system-update.sh"
+command = "$TERMINAL -e bash -lc ~/.local/share/gallaecia-dots/scripts/system-update.sh"
 glyph = "cloud-download"
-middle_command = "$TERMINAL --hold -e bash -lc ~/.local/share/gallaecia-dots/scripts/system-update.sh"
-right_command = "$TERMINAL --hold -e bash -lc ~/.local/share/gallaecia-dots/scripts/system-update.sh"
+middle_command = "$TERMINAL -e bash -lc ~/.local/share/gallaecia-dots/scripts/system-update.sh"
+right_command = "$TERMINAL -e bash -lc ~/.local/share/gallaecia-dots/scripts/system-update.sh"
 type = "custom_button"

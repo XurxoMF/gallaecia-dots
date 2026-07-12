@@ -51,6 +51,16 @@ fetch_dotfiles_updates() {
   git -C "$DOTFILES_DIR" fetch --quiet origin "$REPO_BRANCH"
 }
 
+# Asegura que a actualización se aplica sobre a rama esperada.
+checkout_dotfiles_branch() {
+  if git -C "$DOTFILES_DIR" show-ref --verify --quiet "refs/heads/$REPO_BRANCH"; then
+    git -C "$DOTFILES_DIR" switch "$REPO_BRANCH"
+    return
+  fi
+
+  git -C "$DOTFILES_DIR" switch --track -c "$REPO_BRANCH" "origin/$REPO_BRANCH"
+}
+
 # Devolve éxito se o repo local está por detrás da rama remota.
 dotfiles_need_update() {
   local local_head remote_head
@@ -104,7 +114,7 @@ update_dotfiles() {
 
   title "Actualizando repo de dotfiles"
 
-  if ! git -C "$DOTFILES_DIR" pull --ff-only; then
+  if ! checkout_dotfiles_branch || ! git -C "$DOTFILES_DIR" pull --ff-only origin "$REPO_BRANCH"; then
     fail "Non se puido actualizar o repo de dotfiles."
     return 1
   fi
