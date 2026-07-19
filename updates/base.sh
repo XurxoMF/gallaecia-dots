@@ -702,7 +702,9 @@ configure_optional_apps() {
 
   local gaming_entries=(
     "pkg|Steam|steam|steam|steam.desktop"
+    "pkg|Prism Launcher|prismlauncher|prismlauncher|org.prismlauncher.PrismLauncher.desktop"
     "pkg|Lutris|lutris|lutris|"
+    "flatpak|Bottles|com.usebottles.bottles|flatpak run com.usebottles.bottles|com.usebottles.bottles.desktop"
   )
 
   choose_optional_category "Selecciona xogos e tendas:" "${gaming_entries[@]}"
