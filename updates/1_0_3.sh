@@ -6,8 +6,6 @@ set -o pipefail
 VERSION="1.0.3"
 DOTFILES_DIR="$HOME/.dotfiles"
 MODULES_DIR="$DOTFILES_DIR/.local/share/gallaecia-dots/scripts/modules"
-SPOTDL_OUTPUT='Música/SpotDL/{album-artist}/{album}/{track-number}. {title}.{output-ext}'
-SPOTDL_LYRICS_PROVIDERS='["genius", "azlyrics", "musixmatch"]'
 
 if [ ! -r "$MODULES_DIR/ui.sh" ] ||
   [ ! -r "$MODULES_DIR/commands.sh" ] ||
@@ -39,8 +37,6 @@ show_changelog() {
 }
 
 apply_update() {
-  update_spotdl_config || return 1
-
   if has_command spotdl; then
     mkdir -p "$HOME/.local/share/gallaecia-dots/bashrc" &&
     replace_file \
