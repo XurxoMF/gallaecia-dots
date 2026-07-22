@@ -495,7 +495,7 @@ configure_required_apps() {
   # Seleccionar explorador de arquivos
 
   local file_explorer_entries=(
-    "pkg|Dolphin|dolphin|dolphin|org.kde.dolphin.desktop"
+    "pkg|Dolphin|dolphin ark|dolphin|org.kde.dolphin.desktop"
     "pkg|Nautilus|nautilus|nautilus|org.gnome.Nautilus.desktop"
     "pkg|Nemo|nemo|nemo|nemo.desktop"
     "pkg|Yazi|yazi|$terminal_command -e yazi|"

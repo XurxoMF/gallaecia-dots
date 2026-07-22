@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+
+set -u
+set -o pipefail
+
+VERSION="1.0.4"
+DOTFILES_DIR="$HOME/.dotfiles"
+MODULES_DIR="$DOTFILES_DIR/.local/share/gallaecia-dots/scripts/modules"
+
+if [ ! -r "$MODULES_DIR/ui.sh" ] ||
+  [ ! -r "$MODULES_DIR/commands.sh" ] ||
+  [ ! -r "$MODULES_DIR/files.sh" ] ||
+  [ ! -r "$MODULES_DIR/versions.sh" ] ||
+  [ ! -r "$MODULES_DIR/apps.sh" ]; then
+  echo "Non se atoparon os módulos de Gallaecia Dots en $MODULES_DIR." >&2
+  exit 1
+fi
+
+# shellcheck source=/dev/null
+source "$MODULES_DIR/ui.sh"
+# shellcheck source=/dev/null
+source "$MODULES_DIR/commands.sh"
+# shellcheck source=/dev/null
+source "$MODULES_DIR/files.sh"
+# shellcheck source=/dev/null
+source "$MODULES_DIR/versions.sh"
+# shellcheck source=/dev/null
+source "$MODULES_DIR/apps.sh"
+
+show_changelog() {
+  echo
+  title "Update $VERSION"
+  info "Cambios que se van aplicar:"
+  info "· Engadido ark para engadir compresión de arquivos a dolphin (solo se tes dolphin)."
+  info "· Actualizadas animacións de Hyprland rotas dende a 0.56.0."
+  echo
+}
+
+apply_update() {
+  if has_command dolphin; then
+    yay -Sy --needed ark
+  fi
+
+  replace_file "$DOTFILES_DIR/.local/share/gallaecia-dots/hypr/gallaecia.lua" "$HOME/.local/share/gallaecia-dots/hypr/gallaecia.lua"
+}
+
+main() {
+  show_changelog
+
+  if ! gum_confirm "Instalar update $VERSION?"; then
+    warning "Update $VERSION cancelada."
+    exit 1
+  fi
+
+  if apply_update; then
+    success "Update $VERSION instalada con éxito!"
+  else
+    fail "Algo fallou ao instalar a update $VERSION."
+  fi
+}
+
+main "$@"
