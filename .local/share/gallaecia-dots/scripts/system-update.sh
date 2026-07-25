@@ -71,10 +71,10 @@ dotfiles_need_update() {
   [ "$local_head" != "$remote_head" ]
 }
 
-# Avisa se hai cambios sen gardar no repo local.
+# Avisa se hai cambios locais que Git gardará temporalmente durante o pull.
 warn_dirty_repo() {
   if [ -n "$(git -C "$DOTFILES_DIR" status --porcelain)" ]; then
-    warning "Hai cambios locais en $DOTFILES_DIR. O pull pode tocar ficheiros modificados."
+    warning "Hai cambios locais en $DOTFILES_DIR. Git tentará conservalos mediante autostash."
     return 0
   fi
 
@@ -110,7 +110,8 @@ update_dotfiles() {
 
     title "Actualizando repo de dotfiles"
 
-    if ! checkout_dotfiles_branch || ! git -C "$DOTFILES_DIR" pull --ff-only origin "$REPO_BRANCH"; then
+    if ! checkout_dotfiles_branch ||
+      ! git -C "$DOTFILES_DIR" pull --ff-only --autostash origin "$REPO_BRANCH"; then
       fail "Non se puido actualizar o repo de dotfiles."
       return 1
     fi

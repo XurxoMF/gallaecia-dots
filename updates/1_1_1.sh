@@ -6,7 +6,6 @@ set -o pipefail
 VERSION="1.1.1"
 DOTFILES_DIR="$HOME/.dotfiles"
 MODULES_DIR="$DOTFILES_DIR/.local/share/gallaecia-dots/scripts/modules"
-UPDATE_1_1_0_SCRIPT="$DOTFILES_DIR/updates/1_1_0.sh"
 
 if [ ! -r "$MODULES_DIR/ui.sh" ] ||
   [ ! -r "$MODULES_DIR/files.sh" ]; then
@@ -26,21 +25,6 @@ update_system_update() {
     "$HOME/.local/share/gallaecia-dots/scripts/system-update.sh"
 }
 
-# Reexecuta unha vez a 1.1.0 para reparar posibles instalacións incompletas.
-repair_update_1_1_0() {
-  if [ ! -r "$UPDATE_1_1_0_SCRIPT" ]; then
-    warning "Non se atopou $UPDATE_1_1_0_SCRIPT para reparar a instalación."
-    return 1
-  fi
-
-  info "Vaise reexecutar a update 1.1.0 para completar calquera paso pendente polo bug introducido anteriormente."
-
-  if ! bash "$UPDATE_1_1_0_SCRIPT"; then
-    warning "A reparación da update 1.1.0 non se completou."
-    return 1
-  fi
-}
-
 # Mostra os cambios e a reparación que aplicará esta migración.
 show_changelog() {
   echo
@@ -48,14 +32,12 @@ show_changelog() {
   info "Cambios que se van aplicar:"
   info "· Corrixida a entrada interactiva das migracións para evitar EOF."
   info "· O actualizador comproba versións pendentes aínda co repo ao día."
-  info "· Reexecútase a update 1.1.0 para reparar instalacións incompletas."
   echo
 }
 
 # Instala o actualizador corrixido e reexecuta a migración anterior.
 apply_update() {
   update_system_update || return 1
-  repair_update_1_1_0
 }
 
 # Confirma e executa a migración, propagando calquera erro ao instalador.
