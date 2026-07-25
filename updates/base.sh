@@ -267,6 +267,12 @@ install_noctalia() {
   fi
 }
 
+# Deixa Docker preparado para arrancar e para usalo sen sudo tras reiniciar.
+install_docker() {
+  sudo systemctl enable docker.service &&
+  sudo usermod -aG docker "$USER"
+}
+
 # Aplica todos os dotfiles base, sen apps opcionais.
 # As configs de apps opcionais instálanse máis tarde segundo a selección.
 install_dotfiles() {
@@ -337,6 +343,18 @@ configure_spotdl() {
   mkdir -p "$HOME/.local/share/gallaecia-dots/bashrc" &&
   replace_path "$DOTFILES_DIR/optional/.config/spotdl" "$HOME/.config/spotdl" &&
   replace_file "$DOTFILES_DIR/optional/.local/share/gallaecia-dots/bashrc/202-spotdl" "$HOME/.local/share/gallaecia-dots/bashrc/202-spotdl"
+}
+
+# Instala os helpers e aliases opcionais de Git.
+configure_git() {
+  mkdir -p "$HOME/.local/share/gallaecia-dots/bashrc" &&
+  replace_file "$DOTFILES_DIR/optional/.local/share/gallaecia-dots/bashrc/203-git" "$HOME/.local/share/gallaecia-dots/bashrc/203-git"
+}
+
+# Instala os helpers e aliases opcionais de Docker.
+configure_docker() {
+  mkdir -p "$HOME/.local/share/gallaecia-dots/bashrc" &&
+  replace_file "$DOTFILES_DIR/optional/.local/share/gallaecia-dots/bashrc/204-docker" "$HOME/.local/share/gallaecia-dots/bashrc/204-docker"
 }
 
 # Escribe ou substitúe unha asociación MIME en ~/.config/mimeapps.list.
@@ -729,11 +747,21 @@ configure_optional_apps() {
   # Escoller apps de desenvolvemento
 
   local development_entries=(
+    "pkg|Git + GitHub CLI|git github-cli|git|"
+    "pkg|Docker + Compose|docker docker-compose docker-buildx|docker|"
     "flatpak|Bruno|com.usebruno.Bruno|bruno|"
     "pkg|FileZilla|filezilla|filezilla|"
   )
 
   choose_optional_category "Selecciona apps de desenvolvemento:" "${development_entries[@]}"
+
+  if has_selected_app git; then
+    configure_git || return 1
+  fi
+
+  if has_selected_app docker; then
+    configure_docker || return 1
+  fi
 
   # Escoller apps de rede e privacidade
 
@@ -904,6 +932,9 @@ install_base_version() {
     fail "Algo fallou ao instalar as aplicacións seleccionadas! Abortando instalación..."
   fi
 
+  if has_pkg_app docker; then
+    install_docker || fail "Algo fallou ao configurar Docker! Abortando instalación..."
+  fi
 }
 
 # Fluxo principal da base: prepara estado, mostra benvida e instala a base.

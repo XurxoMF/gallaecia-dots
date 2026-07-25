@@ -1,0 +1,863 @@
+# shellcheck shell=bash
+
+# Funcións interactivas opcionais para Git.
+# Toda a lóxica específica queda neste ficheiro para non cargala se Git non foi escollido.
+
+# Mostra a mini guía correspondente a cada comando interactivo de Git.
+_git_help() {
+  case "$1" in
+    git-credenciales)
+      cat <<'EOF'
+Uso: git-credenciales [-h|--help]
+
+Configura o nome e o correo usados para asinar commits. Permite escoller se
+gardalos só no repositorio actual ou globalmente para todos os repositorios.
+Isto configura a autoría; non inicia sesión en GitHub.
+EOF
+      ;;
+    github-login)
+      cat <<'EOF'
+Uso: github-login [-h|--help] [-- argumentos-gh]
+
+Inicia sesión en GitHub mediante GitHub CLI e o navegador.
+
+  -- ARGUMENTOS   Reenvía todo o que segue directamente a `gh auth login`.
+
+Exemplo:
+  github-login -- --hostname github.example.com
+EOF
+      ;;
+    git-add)
+      cat <<'EOF'
+Uso: git-add [-h|--help] [-- argumentos-git-add]
+
+Permite preparar todos os cambios, usar o modo por parches ou seleccionar
+ficheiros concretos.
+
+  -- ARGUMENTOS   Reenvía todo o que segue directamente a `git add`.
+
+Exemplo:
+  git-add -- --intent-to-add
+EOF
+      ;;
+    git-commit)
+      cat <<'EOF'
+Uso: git-commit [-h|--help] [-- argumentos-git-commit]
+
+Pide un título e un corpo opcional e crea un commit.
+
+  -- ARGUMENTOS   Reenvía todo o que segue directamente a `git commit`.
+
+Exemplo:
+  git-commit -- --signoff
+EOF
+      ;;
+    git-save)
+      cat <<'EOF'
+Uso: git-save [-h|--help] [-- argumentos-git-commit]
+
+Executa primeiro `git-add` e, se hai cambios preparados, `git-commit`.
+Os argumentos posteriores a `--` envíanse ao commit, non a `git add`.
+EOF
+      ;;
+    git-diff)
+      cat <<'EOF'
+Uso: git-diff [-h|--help] [-- argumentos-git-diff]
+
+Mostra os cambios sen preparar, os preparados ou os dun commit escollido.
+
+  -- ARGUMENTOS   Reenvía todo o que segue directamente a `git diff`.
+EOF
+      ;;
+    git-pull)
+      cat <<'EOF'
+Uso: git-pull [-h|--help] [-- argumentos-git-pull]
+
+Descarga cambios usando `git pull --ff-only` para evitar merges automáticos.
+
+  -- ARGUMENTOS   Engádese despois de `--ff-only` e permite indicar remoto,
+                  rama ou outras opcións de `git pull`.
+EOF
+      ;;
+    git-push)
+      cat <<'EOF'
+Uso: git-push [-h|--help] [-- argumentos-git-push]
+
+Publica a rama actual. Se non ten upstream, permite escoller un remoto e
+configúrao automaticamente con `-u`.
+
+  -- ARGUMENTOS   Reenvía todo o que segue directamente a `git push`.
+EOF
+      ;;
+    git-branch-switch)
+      cat <<'EOF'
+Uso: git-branch-switch [-h|--help] [-- argumentos-git-switch]
+
+Selecciona unha rama local e cambia a ela.
+
+  -- ARGUMENTOS   Reenvía opcións adicionais a `git switch`.
+EOF
+      ;;
+    git-branch-new)
+      cat <<'EOF'
+Uso: git-branch-new [-h|--help] [-- argumentos-git-switch]
+
+Pide un nome e crea unha rama nova con `git switch -c`.
+
+  -- ARGUMENTOS   Reenvía opcións adicionais a `git switch`.
+EOF
+      ;;
+    git-branch-delete)
+      cat <<'EOF'
+Uso: git-branch-delete [-f|--force] [-h|--help] [-- argumentos-git-branch]
+
+Selecciona unha ou varias ramas locais e pide confirmación antes de borralas.
+
+  -f, --force     Usa `git branch -D` e require unha segunda confirmación.
+  -- ARGUMENTOS   Reenvía opcións adicionais a `git branch`.
+EOF
+      ;;
+    git-branch-merge)
+      cat <<'EOF'
+Uso: git-branch-merge [-h|--help] [-- argumentos-git-merge]
+
+Selecciona unha rama e confirma antes de integrala na rama actual.
+
+  -- ARGUMENTOS   Reenvía opcións adicionais a `git merge`.
+EOF
+      ;;
+    git-log)
+      cat <<'EOF'
+Uso: git-log [-h|--help] [-- argumentos-git-log]
+
+Mostra un historial compacto con gráfico, referencias e todas as ramas.
+
+  -- ARGUMENTOS   Reenvía opcións adicionais a `git log`.
+EOF
+      ;;
+    git-commit-show)
+      cat <<'EOF'
+Uso: git-commit-show [-h|--help] [-- argumentos-git-show]
+
+Selecciona un commit do historial e mostra os seus datos e cambios.
+
+  -- ARGUMENTOS   Reenvía opcións adicionais a `git show`.
+EOF
+      ;;
+    git-stash-save)
+      cat <<'EOF'
+Uso: git-stash-save [-u|--include-untracked] [-h|--help] [-- argumentos-git-stash]
+
+Garda temporalmente os cambios e permite engadir unha descrición.
+
+  -u, --include-untracked   Inclúe ficheiros aínda non rastrexados.
+  -- ARGUMENTOS             Reenvía opcións adicionais a `git stash push`.
+EOF
+      ;;
+    git-stash-pop)
+      cat <<'EOF'
+Uso: git-stash-pop [-h|--help] [-- argumentos-git-stash]
+
+Selecciona un stash, pide confirmación e aplícao con `git stash pop`.
+Ao completarse correctamente, Git elimina esa entrada do stash.
+
+  -- ARGUMENTOS   Reenvía opcións adicionais a `git stash pop`.
+EOF
+      ;;
+  esac
+}
+
+# Comproba que o directorio actual pertence a un repositorio Git.
+_git_require_repo() {
+  if ! git rev-parse --git-dir &> /dev/null; then
+    warning "O directorio actual non pertence a un repositorio Git."
+    return 1
+  fi
+}
+
+# Permite seleccionar un commit e devolve unicamente o seu hash curto.
+_git_select_commit() {
+  local selection
+
+  # O tabulador separa hash, data e asunto sen confundilos cos espazos do texto.
+  selection="$(
+    git log --date=short --pretty=format:'%h	%ad	%s' --all |
+      gum_filter --header "Selecciona un commit:" --placeholder "Filtrar commits..."
+  )" || return 1
+
+  [ -n "$selection" ] || return 1
+  # `%%` elimina desde o primeiro tabulador ata o final da selección.
+  printf '%s\n' "${selection%%$'\t'*}"
+}
+
+# Configura o nome e o correo de autoría local ou global.
+git-credenciales() {
+  local scope scope_flag current_name current_email name email
+
+  while (($#)); do
+    case "$1" in
+      -h|--help)
+        _git_help git-credenciales
+        return 0
+        ;;
+      --)
+        shift
+        if (($#)); then
+          warning "git-credenciales non reenvía argumentos a ningún comando orixinal."
+          return 1
+        fi
+        break
+        ;;
+      *)
+        warning "Opción descoñecida: $1. Usa git-credenciales --help."
+        return 1
+        ;;
+    esac
+    shift
+  done
+
+  scope="$(gum_choose --header "Onde queres gardar as credenciais?" \
+    "Neste repositorio" "Globalmente")" || return 0
+
+  if [ "$scope" = "Neste repositorio" ]; then
+    _git_require_repo || return 1
+    scope_flag="--local"
+  else
+    scope_flag="--global"
+  fi
+
+  current_name="$(git config "$scope_flag" --get user.name 2> /dev/null || true)"
+  current_email="$(git config "$scope_flag" --get user.email 2> /dev/null || true)"
+
+  name="$(gum_input --header "Nome para os commits" --placeholder "Nome e apelidos" --value "$current_name")" || return 0
+  if [ -z "$name" ]; then
+    warning "O nome non pode quedar baleiro."
+    return 1
+  fi
+
+  email="$(gum_input --header "Correo para os commits" --placeholder "usuario@exemplo.gal" --value "$current_email")" || return 0
+  if [ -z "$email" ]; then
+    warning "O correo non pode quedar baleiro."
+    return 1
+  fi
+
+  git config "$scope_flag" user.name "$name" &&
+    git config "$scope_flag" user.email "$email" &&
+    success "Credenciais de autoría configuradas correctamente."
+}
+
+# Inicia sesión en GitHub mediante GitHub CLI e o navegador.
+github-login() {
+  local original_args=()
+
+  while (($#)); do
+    case "$1" in
+      -h|--help)
+        _git_help github-login
+        return 0
+        ;;
+      --)
+        shift
+        original_args=("$@")
+        break
+        ;;
+      *)
+        warning "Opción descoñecida: $1. Usa github-login --help."
+        return 1
+        ;;
+    esac
+    shift
+  done
+
+  if ! has_command gh; then
+    warning "GitHub CLI non está instalado. Instala o paquete github-cli."
+    return 1
+  fi
+
+  gh auth login --web "${original_args[@]}"
+}
+
+# Prepara todos os cambios, parches ou ficheiros seleccionados.
+git-add() {
+  local original_args=()
+  local mode selection
+  local files=()
+  local selected_files=()
+  local file
+  local -A seen_files=()
+
+  while (($#)); do
+    case "$1" in
+      -h|--help)
+        _git_help git-add
+        return 0
+        ;;
+      --)
+        shift
+        original_args=("$@")
+        break
+        ;;
+      *)
+        warning "Opción descoñecida: $1. Usa git-add --help."
+        return 1
+        ;;
+    esac
+    shift
+  done
+  _git_require_repo || return 1
+
+  mode="$(gum_choose --header "Como queres preparar os cambios?" \
+    "Todos os cambios" "Seleccionar por parches" "Seleccionar ficheiros")" || return 0
+
+  case "$mode" in
+    "Todos os cambios")
+      git add "${original_args[@]}" --all
+      ;;
+    "Seleccionar por parches")
+      git add "${original_args[@]}" --patch
+      ;;
+    "Seleccionar ficheiros")
+      # Git separa con NUL para admitir rutas con espazos e saltos de liña.
+      # O array asociativo evita repetir ficheiros presentes nas dúas listaxes.
+      while IFS= read -r -d '' file; do
+        if [ -z "${seen_files[$file]+x}" ]; then
+          files+=("$file")
+          seen_files["$file"]=1
+        fi
+      done < <(
+        git diff --name-only -z
+        git ls-files --others --exclude-standard -z
+      )
+
+      if [ ${#files[@]} -eq 0 ]; then
+        info "Non hai ficheiros sen preparar."
+        return 0
+      fi
+
+      selection="$(printf '%s\n' "${files[@]}" |
+        gum_filter --no-limit --header "Selecciona ficheiros:" --placeholder "Filtrar ficheiros...")" || return 0
+      [ -n "$selection" ] || return 0
+      # Cada liña seleccionada convértese nun elemento independente do array.
+      mapfile -t selected_files <<< "$selection"
+
+      git add "${original_args[@]}" -- "${selected_files[@]}"
+      ;;
+  esac
+}
+
+# Crea un commit pedindo un título e un corpo opcional.
+git-commit() {
+  local original_args=()
+  local title body
+
+  while (($#)); do
+    case "$1" in
+      -h|--help)
+        _git_help git-commit
+        return 0
+        ;;
+      --)
+        shift
+        original_args=("$@")
+        break
+        ;;
+      *)
+        warning "Opción descoñecida: $1. Usa git-commit --help."
+        return 1
+        ;;
+    esac
+    shift
+  done
+  _git_require_repo || return 1
+
+  title="$(gum_input --header "Título do commit" --placeholder "Describe o cambio brevemente")" || return 0
+  if [ -z "$title" ]; then
+    warning "O título do commit non pode quedar baleiro."
+    return 1
+  fi
+
+  body="$(gum_write --header "Corpo opcional do commit" --placeholder "Detalles adicionais...")" || return 0
+
+  if [ -n "$body" ]; then
+    git commit "${original_args[@]}" -m "$title" -m "$body"
+  else
+    git commit "${original_args[@]}" -m "$title"
+  fi
+}
+
+# Prepara cambios interactivamente e crea o commit nun único fluxo.
+git-save() {
+  local commit_args=()
+
+  while (($#)); do
+    case "$1" in
+      -h|--help)
+        _git_help git-save
+        return 0
+        ;;
+      --)
+        shift
+        commit_args=("$@")
+        break
+        ;;
+      *)
+        warning "Opción descoñecida: $1. Usa git-save --help."
+        return 1
+        ;;
+    esac
+    shift
+  done
+
+  _git_require_repo || return 1
+  git-add -- || return 1
+
+  if git diff --cached --quiet; then
+    info "Non hai cambios preparados para gardar."
+    return 0
+  fi
+
+  git-commit -- "${commit_args[@]}"
+}
+
+# Mostra cambios sen preparar, preparados ou pertencentes a un commit.
+git-diff() {
+  local original_args=()
+  local mode commit parent
+
+  while (($#)); do
+    case "$1" in
+      -h|--help)
+        _git_help git-diff
+        return 0
+        ;;
+      --)
+        shift
+        original_args=("$@")
+        break
+        ;;
+      *)
+        warning "Opción descoñecida: $1. Usa git-diff --help."
+        return 1
+        ;;
+    esac
+    shift
+  done
+  _git_require_repo || return 1
+
+  mode="$(gum_choose --header "Que cambios queres ver?" \
+    "Sen preparar" "Preparados" "Dun commit")" || return 0
+
+  case "$mode" in
+    "Sen preparar")
+      git diff "${original_args[@]}"
+      ;;
+    "Preparados")
+      git diff --cached "${original_args[@]}"
+      ;;
+    "Dun commit")
+      commit="$(_git_select_commit)" || return 0
+      # O primeiro commit non ten pai; nese caso compárase coa árbore baleira.
+      parent="$(git rev-parse --verify "$commit^" 2> /dev/null || git hash-object -t tree /dev/null)" || return 1
+      git diff "${original_args[@]}" "$parent" "$commit"
+      ;;
+  esac
+}
+
+# Descarga cambios permitindo unicamente avances rápidos.
+git-pull() {
+  local original_args=()
+
+  while (($#)); do
+    case "$1" in
+      -h|--help)
+        _git_help git-pull
+        return 0
+        ;;
+      --)
+        shift
+        original_args=("$@")
+        break
+        ;;
+      *)
+        warning "Opción descoñecida: $1. Usa git-pull --help."
+        return 1
+        ;;
+    esac
+    shift
+  done
+  _git_require_repo || return 1
+
+  git pull --ff-only "${original_args[@]}"
+}
+
+# Publica a rama actual e configura o upstream cando aínda non existe.
+git-push() {
+  local original_args=()
+  local branch remote selection
+  local remotes=()
+
+  while (($#)); do
+    case "$1" in
+      -h|--help)
+        _git_help git-push
+        return 0
+        ;;
+      --)
+        shift
+        original_args=("$@")
+        break
+        ;;
+      *)
+        warning "Opción descoñecida: $1. Usa git-push --help."
+        return 1
+        ;;
+    esac
+    shift
+  done
+  _git_require_repo || return 1
+
+  if [ ${#original_args[@]} -gt 0 ]; then
+    git push "${original_args[@]}"
+    return
+  fi
+
+  # `@{upstream}` é a referencia remota asociada á rama actual.
+  if git rev-parse --abbrev-ref '@{upstream}' &> /dev/null; then
+    git push
+    return
+  fi
+
+  branch="$(git branch --show-current)"
+  if [ -z "$branch" ]; then
+    warning "Non se pode publicar desde un HEAD separado."
+    return 1
+  fi
+
+  mapfile -t remotes < <(git remote)
+  if [ ${#remotes[@]} -eq 0 ]; then
+    warning "O repositorio non ten ningún remoto configurado."
+    return 1
+  fi
+
+  selection="$(printf '%s\n' "${remotes[@]}" |
+    gum_filter --header "Selecciona o remoto:" --placeholder "Filtrar remotos...")" || return 0
+  [ -n "$selection" ] || return 0
+  remote="$selection"
+
+  git push -u "$remote" "$branch"
+}
+
+# Selecciona unha rama local e cambia a ela.
+git-branch-switch() {
+  local original_args=()
+  local selection
+  local branches=()
+
+  while (($#)); do
+    case "$1" in
+      -h|--help)
+        _git_help git-branch-switch
+        return 0
+        ;;
+      --)
+        shift
+        original_args=("$@")
+        break
+        ;;
+      *)
+        warning "Opción descoñecida: $1. Usa git-branch-switch --help."
+        return 1
+        ;;
+    esac
+    shift
+  done
+  _git_require_repo || return 1
+
+  mapfile -t branches < <(git for-each-ref --format='%(refname:short)' refs/heads)
+  if [ ${#branches[@]} -eq 0 ]; then
+    info "Non hai ramas locais."
+    return 0
+  fi
+
+  selection="$(printf '%s\n' "${branches[@]}" |
+    gum_filter --header "Selecciona unha rama:" --placeholder "Filtrar ramas...")" || return 0
+  [ -n "$selection" ] || return 0
+
+  git switch "${original_args[@]}" "$selection"
+}
+
+# Crea unha rama local nova e cambia a ela.
+git-branch-new() {
+  local original_args=()
+  local branch
+
+  while (($#)); do
+    case "$1" in
+      -h|--help)
+        _git_help git-branch-new
+        return 0
+        ;;
+      --)
+        shift
+        original_args=("$@")
+        break
+        ;;
+      *)
+        warning "Opción descoñecida: $1. Usa git-branch-new --help."
+        return 1
+        ;;
+    esac
+    shift
+  done
+  _git_require_repo || return 1
+
+  branch="$(gum_input --header "Nome da rama nova" --placeholder "feature/nome-da-rama")" || return 0
+  [ -n "$branch" ] || return 0
+
+  git switch "${original_args[@]}" -c "$branch"
+}
+
+# Borra unha ou varias ramas locais tras confirmar a selección.
+git-branch-delete() {
+  local force=false
+  local original_args=()
+  local current selection branch
+  local branches=()
+  local selected_branches=()
+
+  while (($#)); do
+    case "$1" in
+      -f|--force)
+        force=true
+        ;;
+      -h|--help)
+        _git_help git-branch-delete
+        return 0
+        ;;
+      --)
+        shift
+        original_args=("$@")
+        break
+        ;;
+      *)
+        warning "Opción descoñecida: $1. Usa git-branch-delete --help."
+        return 1
+        ;;
+    esac
+    shift
+  done
+
+  _git_require_repo || return 1
+  current="$(git branch --show-current)"
+  # `%(refname:short)` elimina o prefixo interno refs/heads/ dos nomes.
+  # A rama actual exclúese para impedir que Git tente borrala.
+  mapfile -t branches < <(
+    git for-each-ref --format='%(refname:short)' refs/heads |
+      while IFS= read -r branch; do
+        [ "$branch" != "$current" ] && printf '%s\n' "$branch"
+      done
+  )
+
+  if [ ${#branches[@]} -eq 0 ]; then
+    info "Non hai outras ramas locais para borrar."
+    return 0
+  fi
+
+  selection="$(printf '%s\n' "${branches[@]}" |
+    gum_filter --no-limit --header "Selecciona ramas para borrar:" --placeholder "Filtrar ramas...")" || return 0
+  [ -n "$selection" ] || return 0
+  mapfile -t selected_branches <<< "$selection"
+
+  gum_confirm "Borrar ${#selected_branches[@]} rama(s) seleccionada(s)?" || return 0
+
+  if $force; then
+    gum_confirm "Confirmas o borrado forzado? Pódense perder commits non fusionados." || return 0
+    git branch "${original_args[@]}" -D -- "${selected_branches[@]}"
+  else
+    git branch "${original_args[@]}" -d -- "${selected_branches[@]}"
+  fi
+}
+
+# Integra na rama actual outra rama local seleccionada.
+git-branch-merge() {
+  local original_args=()
+  local current selection branch
+  local branches=()
+
+  while (($#)); do
+    case "$1" in
+      -h|--help)
+        _git_help git-branch-merge
+        return 0
+        ;;
+      --)
+        shift
+        original_args=("$@")
+        break
+        ;;
+      *)
+        warning "Opción descoñecida: $1. Usa git-branch-merge --help."
+        return 1
+        ;;
+    esac
+    shift
+  done
+  _git_require_repo || return 1
+
+  current="$(git branch --show-current)"
+  # A listaxe usa nomes curtos e exclúe a rama que recibirá o merge.
+  mapfile -t branches < <(
+    git for-each-ref --format='%(refname:short)' refs/heads |
+      while IFS= read -r branch; do
+        [ "$branch" != "$current" ] && printf '%s\n' "$branch"
+      done
+  )
+  if [ ${#branches[@]} -eq 0 ]; then
+    info "Non hai outra rama local para integrar."
+    return 0
+  fi
+
+  selection="$(printf '%s\n' "${branches[@]}" |
+    gum_filter --header "Selecciona a rama para integrar:" --placeholder "Filtrar ramas...")" || return 0
+  [ -n "$selection" ] || return 0
+
+  gum_confirm "Integrar $selection en $current?" || return 0
+  git merge "${original_args[@]}" "$selection"
+}
+
+# Mostra un historial compacto de todas as ramas cun gráfico textual.
+git-log() {
+  local original_args=()
+
+  while (($#)); do
+    case "$1" in
+      -h|--help)
+        _git_help git-log
+        return 0
+        ;;
+      --)
+        shift
+        original_args=("$@")
+        break
+        ;;
+      *)
+        warning "Opción descoñecida: $1. Usa git-log --help."
+        return 1
+        ;;
+    esac
+    shift
+  done
+  _git_require_repo || return 1
+
+  git log --graph --decorate --oneline --all "${original_args[@]}"
+}
+
+# Selecciona un commit e mostra os seus metadatos e cambios.
+git-commit-show() {
+  local original_args=()
+  local commit
+
+  while (($#)); do
+    case "$1" in
+      -h|--help)
+        _git_help git-commit-show
+        return 0
+        ;;
+      --)
+        shift
+        original_args=("$@")
+        break
+        ;;
+      *)
+        warning "Opción descoñecida: $1. Usa git-commit-show --help."
+        return 1
+        ;;
+    esac
+    shift
+  done
+  _git_require_repo || return 1
+
+  commit="$(_git_select_commit)" || return 0
+  git show "${original_args[@]}" "$commit"
+}
+
+# Garda temporalmente os cambios cunha descrición opcional.
+git-stash-save() {
+  local include_untracked=false
+  local original_args=()
+  local message
+
+  while (($#)); do
+    case "$1" in
+      -u|--include-untracked)
+        include_untracked=true
+        ;;
+      -h|--help)
+        _git_help git-stash-save
+        return 0
+        ;;
+      --)
+        shift
+        original_args=("$@")
+        break
+        ;;
+      *)
+        warning "Opción descoñecida: $1. Usa git-stash-save --help."
+        return 1
+        ;;
+    esac
+    shift
+  done
+
+  _git_require_repo || return 1
+  message="$(gum_input --header "Descrición opcional do stash" --placeholder "Traballo en progreso")" || return 0
+
+  if $include_untracked; then
+    git stash push "${original_args[@]}" --include-untracked -m "${message:-Traballo en progreso}"
+  else
+    git stash push "${original_args[@]}" -m "${message:-Traballo en progreso}"
+  fi
+}
+
+# Selecciona un stash, aplícao e retírao da listaxe.
+git-stash-pop() {
+  local original_args=()
+  local selection stash
+  local stashes=()
+
+  while (($#)); do
+    case "$1" in
+      -h|--help)
+        _git_help git-stash-pop
+        return 0
+        ;;
+      --)
+        shift
+        original_args=("$@")
+        break
+        ;;
+      *)
+        warning "Opción descoñecida: $1. Usa git-stash-pop --help."
+        return 1
+        ;;
+    esac
+    shift
+  done
+  _git_require_repo || return 1
+
+  # `%gd` é a referencia do stash e `%gs` a súa descrición, separadas por tab.
+  mapfile -t stashes < <(git stash list --format='%gd	%gs')
+  if [ ${#stashes[@]} -eq 0 ]; then
+    info "Non hai entradas no stash."
+    return 0
+  fi
+
+  selection="$(printf '%s\n' "${stashes[@]}" |
+    gum_filter --header "Selecciona un stash:" --placeholder "Filtrar stashes...")" || return 0
+  [ -n "$selection" ] || return 0
+  # Conserva só a referencia anterior ao primeiro tabulador.
+  stash="${selection%%$'\t'*}"
+
+  gum_confirm "Aplicar e retirar $stash da lista?" || return 0
+  git stash pop "${original_args[@]}" "$stash"
+}

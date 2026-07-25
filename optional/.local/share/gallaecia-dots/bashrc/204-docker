@@ -1,0 +1,1409 @@
+# shellcheck shell=bash
+
+# Funcións interactivas opcionais para Docker, Compose e Buildx.
+
+# Mostra a mini guía correspondente a cada comando interactivo de Docker.
+_docker_help() {
+  case "$1" in
+    docker-ps)
+      cat <<'EOF'
+Uso: docker-ps [COLUMNAS] [-a|--all] [-h|--help] [-- argumentos-docker-ps]
+
+Lista contedores nunha táboa configurable.
+
+  --id, --name, --image, --status, --ports, --created, --labels
+                  Engade columnas na orde indicada.
+  -a, --all       Inclúe tamén os contedores detidos.
+  -- ARGUMENTOS   Reenvía argumentos adicionais a `docker ps`.
+
+Sen columnas mostra nome, imaxe, estado e portos.
+Exemplo: docker-ps --all --name --created --status -- --filter label=app=web
+EOF
+      ;;
+    docker-shell)
+      cat <<'EOF'
+Uso: docker-shell [--shell COMANDO] [-h|--help] [-- argumentos-docker-exec]
+
+Selecciona un contedor activo e abre unha shell interactiva. Detecta bash e
+usa sh como alternativa.
+
+  --shell CMD     Forza a shell ou comando que se vai executar.
+  -- ARGUMENTOS   Reenvía opcións adicionais a `docker exec`.
+EOF
+      ;;
+    docker-attach)
+      cat <<'EOF'
+Uso: docker-attach [-h|--help] [-- argumentos-docker-attach]
+
+Selecciona un contedor activo e conecta a terminal ao seu proceso principal.
+Para separarte sen detelo usa Ctrl-p seguido de Ctrl-q.
+
+  -- ARGUMENTOS   Reenvía opcións adicionais a `docker attach`.
+EOF
+      ;;
+    docker-logs)
+      cat <<'EOF'
+Uso: docker-logs [-f|--follow] [--tail LIÑAS] [-h|--help] [-- argumentos-docker-logs]
+
+Selecciona un contedor e mostra os seus logs.
+
+  -f, --follow    Mantén os logs abertos.
+  --tail N        Mostra as últimas N liñas; por defecto 100.
+  -- ARGUMENTOS   Reenvía opcións adicionais a `docker logs`.
+EOF
+      ;;
+    docker-container-start|docker-container-stop|docker-container-restart)
+      cat <<EOF
+Uso: $1 [-h|--help] [-- argumentos-docker]
+
+Selecciona un ou varios contedores e executa a acción indicada polo nome.
+
+  -- ARGUMENTOS   Reenvía opcións adicionais ao comando orixinal.
+EOF
+      ;;
+    docker-container-delete)
+      cat <<'EOF'
+Uso: docker-container-delete [-f|--force] [-h|--help] [-- argumentos-docker-rm]
+
+Selecciona contedores e pide confirmación antes de borralos.
+
+  -f, --force     Inclúe contedores activos, usa `docker rm --force` e pide
+                  unha segunda confirmación.
+  -- ARGUMENTOS   Reenvía opcións adicionais a `docker container rm`.
+EOF
+      ;;
+    docker-images)
+      cat <<'EOF'
+Uso: docker-images [-a|--all] [-h|--help] [-- argumentos-docker-images]
+
+Lista imaxes con ID, referencia, tamaño e antigüidade.
+
+  -a, --all       Inclúe imaxes intermedias.
+  -- ARGUMENTOS   Reenvía argumentos adicionais a `docker image ls`.
+EOF
+      ;;
+    docker-image-delete)
+      cat <<'EOF'
+Uso: docker-image-delete [-f|--force] [-h|--help] [-- argumentos-docker-rmi]
+
+Selecciona unha ou varias imaxes e confirma antes de borralas.
+
+  -f, --force     Forza o borrado e require unha segunda confirmación.
+  -- ARGUMENTOS   Reenvía opcións adicionais a `docker image rm`.
+EOF
+      ;;
+    docker-tag)
+      cat <<'EOF'
+Uso: docker-tag [-h|--help] [-- argumentos-docker-tag]
+
+Selecciona unha imaxe de orixe e pide a referencia de destino no formato
+repositorio[:etiqueta].
+
+  -- ARGUMENTOS   Reenvía opcións adicionais a `docker image tag`.
+EOF
+      ;;
+    docker-networks|docker-volumes)
+      cat <<EOF
+Uso: $1 [-h|--help] [-- argumentos-docker]
+
+Lista os recursos indicados polo nome do comando.
+
+  -- ARGUMENTOS   Reenvía argumentos adicionais ao comando orixinal.
+EOF
+      ;;
+    docker-network-delete)
+      cat <<'EOF'
+Uso: docker-network-delete [-h|--help] [-- argumentos-docker-network-rm]
+
+Selecciona redes, excluíndo bridge, host e none, e confirma antes de borralas.
+
+  -- ARGUMENTOS   Reenvía opcións adicionais a `docker network rm`.
+EOF
+      ;;
+    docker-volume-delete)
+      cat <<'EOF'
+Uso: docker-volume-delete [-h|--help] [-- argumentos-docker-volume-rm]
+
+Selecciona volumes e pide unha dobre confirmación porque poden conter datos.
+
+  -- ARGUMENTOS   Reenvía opcións adicionais a `docker volume rm`.
+EOF
+      ;;
+    compose-ps|compose-up|compose-rebuild|compose-update)
+      cat <<EOF
+Uso: $1 [-h|--help] [-- argumentos-compose]
+
+Executa a operación de Compose indicada no proxecto do directorio actual.
+
+  -- ARGUMENTOS   Reenvía argumentos adicionais a \`docker compose\`.
+
+compose-up usa modo detached; compose-rebuild reconstrúe antes de iniciar;
+compose-update descarga imaxes e volve aplicar o proxecto.
+EOF
+      ;;
+    compose-down)
+      cat <<'EOF'
+Uso: compose-down [-h|--help] [-- argumentos-compose-down]
+
+Pide confirmación e baixa o proxecto actual sen eliminar volumes.
+
+  -- ARGUMENTOS   Reenvía opcións adicionais a `docker compose down`.
+EOF
+      ;;
+    compose-logs)
+      cat <<'EOF'
+Uso: compose-logs [-f|--follow] [--tail LIÑAS] [-h|--help] [-- argumentos-compose-logs]
+
+Selecciona un ou varios servizos do proxecto e mostra os seus logs.
+
+  -f, --follow    Mantén os logs abertos.
+  --tail N        Mostra as últimas N liñas; por defecto 100.
+  -- ARGUMENTOS   Reenvía opcións adicionais a `docker compose logs`.
+EOF
+      ;;
+    docker-build)
+      cat <<'EOF'
+Uso: docker-build [-t|--tag IMAXE] [-C|--context RUTA] [-h|--help] [-- argumentos-buildx]
+
+Constrúe unha imaxe local mediante Buildx e `--load`. Se non se indican,
+pide interactivamente a etiqueta e o contexto.
+
+  -t, --tag REF       Referencia da imaxe resultante.
+  -C, --context RUTA  Contexto de build; por defecto o directorio actual.
+  -- ARGUMENTOS       Reenvía opcións adicionais a `docker buildx build`.
+EOF
+      ;;
+    docker-clean)
+      cat <<'EOF'
+Uso: docker-clean [-h|--help] [-- argumentos-prune]
+
+Mostra o uso de disco e permite limpar contedores, imaxes, caché, volumes ou
+o sistema. Sempre confirma; os volumes requiren unha segunda confirmación.
+
+  -- ARGUMENTOS   Reenvía opcións adicionais ao comando prune escollido.
+EOF
+      ;;
+    docker-login)
+      cat <<'EOF'
+Uso: docker-login [--server SERVIDOR] [-h|--help] [-- argumentos-docker-login]
+
+Inicia sesión en Docker Hub ou noutro rexistro usando o fluxo seguro de Docker.
+
+  --server HOST   Rexistro alternativo; se se omite usa Docker Hub.
+  -- ARGUMENTOS   Reenvía opcións adicionais a `docker login`.
+
+Exemplo: docker-login -- --username meu-usuario
+EOF
+      ;;
+    docker-logout)
+      cat <<'EOF'
+Uso: docker-logout [--server SERVIDOR] [-h|--help] [-- argumentos-docker-logout]
+
+Pide confirmación e pecha a sesión de Docker Hub ou doutro rexistro.
+
+  --server HOST   Rexistro alternativo; se se omite usa Docker Hub.
+  -- ARGUMENTOS   Reenvía opcións adicionais a `docker logout`.
+EOF
+      ;;
+    docker-search)
+      cat <<'EOF'
+Uso: docker-search [--term TEXTO] [-h|--help] [-- argumentos-docker-search]
+
+Busca imaxes públicas en Docker Hub.
+
+  --term TEXTO    Termo de busca; se se omite pídese cun input.
+  -- ARGUMENTOS   Reenvía opcións adicionais a `docker search`.
+EOF
+      ;;
+    docker-pull)
+      cat <<'EOF'
+Uso: docker-pull [--image REFERENCIA] [-h|--help] [-- argumentos-docker-pull]
+
+Descarga unha imaxe de Docker Hub ou doutro rexistro.
+
+  --image REF     Imaxe que se descargará; se se omite pídese cun input.
+  -- ARGUMENTOS   Reenvía opcións adicionais a `docker pull`.
+EOF
+      ;;
+    docker-push)
+      cat <<'EOF'
+Uso: docker-push [-h|--help] [-- argumentos-docker-push]
+
+Selecciona unha imaxe local etiquetada e súbea ao seu rexistro.
+
+  -- ARGUMENTOS   Reenvía opcións adicionais a `docker push`.
+EOF
+      ;;
+  esac
+}
+
+# Comproba que o cliente de Docker está dispoñible no PATH.
+_docker_require() {
+  if ! has_command docker; then
+    warning "Docker non está instalado."
+    return 1
+  fi
+}
+
+# Imprime os IDs seleccionados, un por liña.
+_docker_select_containers() {
+  local scope="$1"
+  local multiple="$2"
+  local header="$3"
+  local options=()
+  local filter_args=()
+  local selection line
+
+  # Os templates de Docker separan ID, nome, imaxe e estado con tabuladores.
+  case "$scope" in
+    running)
+      mapfile -t options < <(docker ps --format '{{.ID}}	{{.Names}}	{{.Image}}	{{.Status}}')
+      ;;
+    stopped)
+      mapfile -t options < <(
+        docker ps -a --filter status=created --filter status=exited --format \
+          '{{.ID}}	{{.Names}}	{{.Image}}	{{.Status}}'
+      )
+      ;;
+    all)
+      mapfile -t options < <(docker ps -a --format '{{.ID}}	{{.Names}}	{{.Image}}	{{.Status}}')
+      ;;
+  esac
+
+  [ ${#options[@]} -gt 0 ] || return 1
+  [ "$multiple" = true ] && filter_args+=(--no-limit)
+
+  selection="$(printf '%s\n' "${options[@]}" |
+    gum_filter "${filter_args[@]}" --header "$header" --placeholder "Filtrar contedores...")" || return 1
+  [ -n "$selection" ] || return 1
+
+  # `%%` retira desde o primeiro tabulador e deixa só o ID do contedor.
+  while IFS= read -r line; do
+    printf '%s\n' "${line%%$'\t'*}"
+  done <<< "$selection"
+}
+
+# Imprime as referencias das imaxes seleccionadas ou o ID se non teñen etiqueta.
+_docker_select_images() {
+  local multiple="$1"
+  local header="$2"
+  local options=()
+  local filter_args=()
+  local selection line reference image_id
+
+  mapfile -t options < <(
+    docker image ls --format '{{.Repository}}:{{.Tag}}	{{.ID}}	{{.Size}}	{{.CreatedSince}}'
+  )
+  [ ${#options[@]} -gt 0 ] || return 1
+  [ "$multiple" = true ] && filter_args+=(--no-limit)
+
+  selection="$(printf '%s\n' "${options[@]}" |
+    gum_filter "${filter_args[@]}" --header "$header" --placeholder "Filtrar imaxes...")" || return 1
+  [ -n "$selection" ] || return 1
+
+  # As expansións arredor de `$'\t'` extraen campos separados por tabuladores.
+  while IFS= read -r line; do
+    reference="${line%%$'\t'*}"
+    if [ "$reference" = "<none>:<none>" ]; then
+      image_id="${line#*$'\t'}"
+      printf '%s\n' "${image_id%%$'\t'*}"
+    else
+      printf '%s\n' "$reference"
+    fi
+  done <<< "$selection"
+}
+
+# Comproba Docker e valida o proxecto Compose do directorio actual.
+_docker_require_compose_project() {
+  _docker_require || return 1
+  if ! docker compose config --quiet 2> /dev/null; then
+    warning "Non se atopou un proxecto de Docker Compose válido neste directorio."
+    return 1
+  fi
+}
+
+# Lista contedores permitindo escoller as columnas e incluír os detidos.
+docker-ps() {
+  local columns=()
+  local all=false
+  local original_args=()
+  local format separator column
+
+  while (($#)); do
+    case "$1" in
+      --id) columns+=('{{.ID}}') ;;
+      --name) columns+=('{{.Names}}') ;;
+      --image) columns+=('{{.Image}}') ;;
+      --status) columns+=('{{.Status}}') ;;
+      --ports) columns+=('{{.Ports}}') ;;
+      --created) columns+=('{{.CreatedAt}}') ;;
+      --labels) columns+=('{{.Labels}}') ;;
+      -a|--all) all=true ;;
+      -h|--help)
+        _docker_help docker-ps
+        return 0
+        ;;
+      --)
+        shift
+        original_args=("$@")
+        break
+        ;;
+      *)
+        warning "Opción descoñecida: $1. Usa docker-ps --help."
+        return 1
+        ;;
+    esac
+    shift
+  done
+
+  _docker_require || return 1
+  if [ ${#columns[@]} -eq 0 ]; then
+    columns=('{{.Names}}' '{{.Image}}' '{{.Status}}' '{{.Ports}}')
+  fi
+
+  # Docker usa templates Go; constrúese unha táboa unindo as columnas con tabs.
+  format="table "
+  separator=""
+  for column in "${columns[@]}"; do
+    format+="${separator}${column}"
+    separator=$'\t'
+  done
+
+  if $all; then
+    docker ps -a --format "$format" "${original_args[@]}"
+  else
+    docker ps --format "$format" "${original_args[@]}"
+  fi
+}
+
+# Selecciona un contedor activo e abre bash ou sh no seu interior.
+docker-shell() {
+  local shell_command=""
+  local original_args=()
+  local container
+
+  while (($#)); do
+    case "$1" in
+      --shell)
+        if [ $# -lt 2 ]; then
+          warning "Falta o comando despois de --shell."
+          return 1
+        fi
+        shell_command="$2"
+        shift
+        ;;
+      -h|--help)
+        _docker_help docker-shell
+        return 0
+        ;;
+      --)
+        shift
+        original_args=("$@")
+        break
+        ;;
+      *)
+        warning "Opción descoñecida: $1. Usa docker-shell --help."
+        return 1
+        ;;
+    esac
+    shift
+  done
+
+  _docker_require || return 1
+  if ! container="$(_docker_select_containers running false "Selecciona un contedor:")"; then
+    info "Non hai contedores activos."
+    return 0
+  fi
+
+  if [ -z "$shell_command" ]; then
+    if docker exec "$container" sh -c 'command -v bash' &> /dev/null; then
+      shell_command="bash"
+    else
+      shell_command="sh"
+    fi
+  fi
+
+  docker exec -it "${original_args[@]}" "$container" "$shell_command"
+}
+
+# Conecta a terminal ao proceso principal dun contedor activo.
+docker-attach() {
+  local original_args=()
+  local container
+
+  while (($#)); do
+    case "$1" in
+      -h|--help)
+        _docker_help docker-attach
+        return 0
+        ;;
+      --)
+        shift
+        original_args=("$@")
+        break
+        ;;
+      *)
+        warning "Opción descoñecida: $1. Usa docker-attach --help."
+        return 1
+        ;;
+    esac
+    shift
+  done
+  _docker_require || return 1
+
+  if ! container="$(_docker_select_containers running false "Selecciona un contedor:")"; then
+    info "Non hai contedores activos."
+    return 0
+  fi
+  docker attach "${original_args[@]}" "$container"
+}
+
+# Mostra os logs dun contedor, opcionalmente en seguimento continuo.
+docker-logs() {
+  local follow=false
+  local tail_lines=100
+  local original_args=()
+  local container
+
+  while (($#)); do
+    case "$1" in
+      -f|--follow) follow=true ;;
+      --tail)
+        if [ $# -lt 2 ]; then
+          warning "Falta o número de liñas despois de --tail."
+          return 1
+        fi
+        tail_lines="$2"
+        shift
+        ;;
+      -h|--help)
+        _docker_help docker-logs
+        return 0
+        ;;
+      --)
+        shift
+        original_args=("$@")
+        break
+        ;;
+      *)
+        warning "Opción descoñecida: $1. Usa docker-logs --help."
+        return 1
+        ;;
+    esac
+    shift
+  done
+
+  # A expresión regular acepta unicamente un ou máis díxitos.
+  if ! [[ "$tail_lines" =~ ^[0-9]+$ ]]; then
+    warning "--tail debe recibir un número enteiro."
+    return 1
+  fi
+  _docker_require || return 1
+
+  if ! container="$(_docker_select_containers all false "Selecciona un contedor:")"; then
+    info "Non hai contedores."
+    return 0
+  fi
+
+  local args=(logs --tail "$tail_lines")
+  $follow && args+=(--follow)
+  docker "${args[@]}" "${original_args[@]}" "$container"
+}
+
+# Reutiliza o selector múltiple para iniciar, deter ou reiniciar contedores.
+_docker_container_action() {
+  local action="$1"
+  local scope="$2"
+  shift 2
+  local containers=()
+
+  mapfile -t containers < <(_docker_select_containers "$scope" true "Selecciona contedores para $action:")
+  if [ ${#containers[@]} -eq 0 ]; then
+    info "Non hai contedores dispoñibles para esta acción."
+    return 0
+  fi
+
+  docker container "$action" "$@" "${containers[@]}"
+}
+
+# Selecciona un ou varios contedores detidos e iníciaos.
+docker-container-start() {
+  local original_args=()
+
+  while (($#)); do
+    case "$1" in
+      -h|--help)
+        _docker_help docker-container-start
+        return 0
+        ;;
+      --)
+        shift
+        original_args=("$@")
+        break
+        ;;
+      *)
+        warning "Opción descoñecida: $1. Usa docker-container-start --help."
+        return 1
+        ;;
+    esac
+    shift
+  done
+  _docker_require || return 1
+  _docker_container_action start stopped "${original_args[@]}"
+}
+
+# Selecciona un ou varios contedores activos e detenos.
+docker-container-stop() {
+  local original_args=()
+
+  while (($#)); do
+    case "$1" in
+      -h|--help)
+        _docker_help docker-container-stop
+        return 0
+        ;;
+      --)
+        shift
+        original_args=("$@")
+        break
+        ;;
+      *)
+        warning "Opción descoñecida: $1. Usa docker-container-stop --help."
+        return 1
+        ;;
+    esac
+    shift
+  done
+  _docker_require || return 1
+  _docker_container_action stop running "${original_args[@]}"
+}
+
+# Selecciona un ou varios contedores activos e reiníciaos.
+docker-container-restart() {
+  local original_args=()
+
+  while (($#)); do
+    case "$1" in
+      -h|--help)
+        _docker_help docker-container-restart
+        return 0
+        ;;
+      --)
+        shift
+        original_args=("$@")
+        break
+        ;;
+      *)
+        warning "Opción descoñecida: $1. Usa docker-container-restart --help."
+        return 1
+        ;;
+    esac
+    shift
+  done
+  _docker_require || return 1
+  _docker_container_action restart running "${original_args[@]}"
+}
+
+# Borra contedores seleccionados, cunha confirmación adicional se se forza.
+docker-container-delete() {
+  local force=false
+  local original_args=()
+  local containers=()
+
+  while (($#)); do
+    case "$1" in
+      -f|--force) force=true ;;
+      -h|--help)
+        _docker_help docker-container-delete
+        return 0
+        ;;
+      --)
+        shift
+        original_args=("$@")
+        break
+        ;;
+      *)
+        warning "Opción descoñecida: $1. Usa docker-container-delete --help."
+        return 1
+        ;;
+    esac
+    shift
+  done
+
+  _docker_require || return 1
+  if $force; then
+    mapfile -t containers < <(_docker_select_containers all true "Selecciona contedores para borrar:")
+  else
+    mapfile -t containers < <(_docker_select_containers stopped true "Selecciona contedores para borrar:")
+  fi
+  if [ ${#containers[@]} -eq 0 ]; then
+    info "Non hai contedores dispoñibles para borrar."
+    return 0
+  fi
+
+  gum_confirm "Borrar ${#containers[@]} contedor(es) seleccionado(s)?" || return 0
+  if $force; then
+    gum_confirm "Confirmas o borrado forzado? Os procesos activos deteranse." || return 0
+    docker container rm --force "${original_args[@]}" "${containers[@]}"
+  else
+    docker container rm "${original_args[@]}" "${containers[@]}"
+  fi
+}
+
+# Lista as imaxes locais nunha táboa compacta.
+docker-images() {
+  local all=false
+  local original_args=()
+
+  while (($#)); do
+    case "$1" in
+      -a|--all) all=true ;;
+      -h|--help)
+        _docker_help docker-images
+        return 0
+        ;;
+      --)
+        shift
+        original_args=("$@")
+        break
+        ;;
+      *)
+        warning "Opción descoñecida: $1. Usa docker-images --help."
+        return 1
+        ;;
+    esac
+    shift
+  done
+
+  _docker_require || return 1
+  local args=(image ls --format 'table {{.ID}}\t{{.Repository}}:{{.Tag}}\t{{.Size}}\t{{.CreatedSince}}')
+  $all && args+=(--all)
+  docker "${args[@]}" "${original_args[@]}"
+}
+
+# Borra as imaxes seleccionadas, cunha confirmación adicional se se forza.
+docker-image-delete() {
+  local force=false
+  local original_args=()
+  local images=()
+
+  while (($#)); do
+    case "$1" in
+      -f|--force) force=true ;;
+      -h|--help)
+        _docker_help docker-image-delete
+        return 0
+        ;;
+      --)
+        shift
+        original_args=("$@")
+        break
+        ;;
+      *)
+        warning "Opción descoñecida: $1. Usa docker-image-delete --help."
+        return 1
+        ;;
+    esac
+    shift
+  done
+
+  _docker_require || return 1
+  mapfile -t images < <(_docker_select_images true "Selecciona imaxes para borrar:")
+  if [ ${#images[@]} -eq 0 ]; then
+    info "Non hai imaxes dispoñibles para borrar."
+    return 0
+  fi
+
+  gum_confirm "Borrar ${#images[@]} imaxe(s) seleccionada(s)?" || return 0
+  if $force; then
+    gum_confirm "Confirmas o borrado forzado das imaxes?" || return 0
+    docker image rm --force "${original_args[@]}" "${images[@]}"
+  else
+    docker image rm "${original_args[@]}" "${images[@]}"
+  fi
+}
+
+# Crea unha etiqueta nova a partir dunha imaxe local seleccionada.
+docker-tag() {
+  local original_args=()
+  local image destination
+
+  while (($#)); do
+    case "$1" in
+      -h|--help)
+        _docker_help docker-tag
+        return 0
+        ;;
+      --)
+        shift
+        original_args=("$@")
+        break
+        ;;
+      *)
+        warning "Opción descoñecida: $1. Usa docker-tag --help."
+        return 1
+        ;;
+    esac
+    shift
+  done
+  _docker_require || return 1
+
+  if ! image="$(_docker_select_images false "Selecciona a imaxe de orixe:")"; then
+    info "Non hai imaxes dispoñibles."
+    return 0
+  fi
+  destination="$(gum_input --header "Nova referencia da imaxe" --placeholder "usuario/imaxe:etiqueta")" || return 0
+  [ -n "$destination" ] || return 0
+
+  docker image tag "${original_args[@]}" "$image" "$destination"
+}
+
+# Lista as redes dispoñibles en Docker.
+docker-networks() {
+  local original_args=()
+
+  while (($#)); do
+    case "$1" in
+      -h|--help)
+        _docker_help docker-networks
+        return 0
+        ;;
+      --)
+        shift
+        original_args=("$@")
+        break
+        ;;
+      *)
+        warning "Opción descoñecida: $1. Usa docker-networks --help."
+        return 1
+        ;;
+    esac
+    shift
+  done
+  _docker_require || return 1
+  docker network ls "${original_args[@]}"
+}
+
+# Borra redes personalizadas seleccionadas tras pedir confirmación.
+docker-network-delete() {
+  local original_args=()
+  local selection line
+  local networks=()
+  local selected_networks=()
+
+  while (($#)); do
+    case "$1" in
+      -h|--help)
+        _docker_help docker-network-delete
+        return 0
+        ;;
+      --)
+        shift
+        original_args=("$@")
+        break
+        ;;
+      *)
+        warning "Opción descoñecida: $1. Usa docker-network-delete --help."
+        return 1
+        ;;
+    esac
+    shift
+  done
+  _docker_require || return 1
+
+  # awk separa por tabuladores e exclúe as tres redes internas de Docker.
+  mapfile -t networks < <(
+    docker network ls --format '{{.ID}}	{{.Name}}	{{.Driver}}' |
+      awk -F '\t' '$2 != "bridge" && $2 != "host" && $2 != "none"'
+  )
+  if [ ${#networks[@]} -eq 0 ]; then
+    info "Non hai redes personalizadas para borrar."
+    return 0
+  fi
+
+  selection="$(printf '%s\n' "${networks[@]}" |
+    gum_filter --no-limit --header "Selecciona redes para borrar:" --placeholder "Filtrar redes...")" || return 0
+  [ -n "$selection" ] || return 0
+  # Cada liña visible leva máis datos; para borrar consérvase só o primeiro ID.
+  while IFS= read -r line; do
+    selected_networks+=("${line%%$'\t'*}")
+  done <<< "$selection"
+
+  gum_confirm "Borrar ${#selected_networks[@]} rede(s) seleccionada(s)?" || return 0
+  docker network rm "${original_args[@]}" "${selected_networks[@]}"
+}
+
+# Lista os volumes dispoñibles en Docker.
+docker-volumes() {
+  local original_args=()
+
+  while (($#)); do
+    case "$1" in
+      -h|--help)
+        _docker_help docker-volumes
+        return 0
+        ;;
+      --)
+        shift
+        original_args=("$@")
+        break
+        ;;
+      *)
+        warning "Opción descoñecida: $1. Usa docker-volumes --help."
+        return 1
+        ;;
+    esac
+    shift
+  done
+  _docker_require || return 1
+  docker volume ls "${original_args[@]}"
+}
+
+# Borra volumes seleccionados cunha dobre confirmación para protexer os datos.
+docker-volume-delete() {
+  local original_args=()
+  local selection line
+  local volumes=()
+  local selected_volumes=()
+
+  while (($#)); do
+    case "$1" in
+      -h|--help)
+        _docker_help docker-volume-delete
+        return 0
+        ;;
+      --)
+        shift
+        original_args=("$@")
+        break
+        ;;
+      *)
+        warning "Opción descoñecida: $1. Usa docker-volume-delete --help."
+        return 1
+        ;;
+    esac
+    shift
+  done
+  _docker_require || return 1
+
+  mapfile -t volumes < <(docker volume ls --format '{{.Name}}	{{.Driver}}')
+  if [ ${#volumes[@]} -eq 0 ]; then
+    info "Non hai volumes para borrar."
+    return 0
+  fi
+
+  selection="$(printf '%s\n' "${volumes[@]}" |
+    gum_filter --no-limit --header "Selecciona volumes para borrar:" --placeholder "Filtrar volumes...")" || return 0
+  [ -n "$selection" ] || return 0
+  # O nome do volume é o campo anterior ao primeiro tabulador.
+  while IFS= read -r line; do
+    selected_volumes+=("${line%%$'\t'*}")
+  done <<< "$selection"
+
+  gum_confirm "Borrar ${#selected_volumes[@]} volume(s) seleccionado(s)?" || return 0
+  gum_confirm "Confirmas que os datos destes volumes xa non son necesarios?" || return 0
+  docker volume rm "${original_args[@]}" "${selected_volumes[@]}"
+}
+
+# Mostra o estado dos servizos do proxecto Compose actual.
+compose-ps() {
+  local original_args=()
+
+  while (($#)); do
+    case "$1" in
+      -h|--help)
+        _docker_help compose-ps
+        return 0
+        ;;
+      --)
+        shift
+        original_args=("$@")
+        break
+        ;;
+      *)
+        warning "Opción descoñecida: $1. Usa compose-ps --help."
+        return 1
+        ;;
+    esac
+    shift
+  done
+  _docker_require_compose_project || return 1
+  docker compose ps "${original_args[@]}"
+}
+
+# Inicia en segundo plano o proxecto Compose actual.
+compose-up() {
+  local original_args=()
+
+  while (($#)); do
+    case "$1" in
+      -h|--help)
+        _docker_help compose-up
+        return 0
+        ;;
+      --)
+        shift
+        original_args=("$@")
+        break
+        ;;
+      *)
+        warning "Opción descoñecida: $1. Usa compose-up --help."
+        return 1
+        ;;
+    esac
+    shift
+  done
+  _docker_require_compose_project || return 1
+  docker compose up -d "${original_args[@]}"
+}
+
+# Detén e retira o proxecto Compose actual tras pedir confirmación.
+compose-down() {
+  local original_args=()
+
+  while (($#)); do
+    case "$1" in
+      -h|--help)
+        _docker_help compose-down
+        return 0
+        ;;
+      --)
+        shift
+        original_args=("$@")
+        break
+        ;;
+      *)
+        warning "Opción descoñecida: $1. Usa compose-down --help."
+        return 1
+        ;;
+    esac
+    shift
+  done
+  _docker_require_compose_project || return 1
+  gum_confirm "Baixar o proxecto de Compose actual? Non se borrarán os volumes." || return 0
+  docker compose down "${original_args[@]}"
+}
+
+# Mostra os logs dos servizos de Compose seleccionados.
+compose-logs() {
+  local follow=false
+  local tail_lines=100
+  local original_args=()
+  local selection service
+  local services=()
+  local selected_services=()
+
+  while (($#)); do
+    case "$1" in
+      -f|--follow) follow=true ;;
+      --tail)
+        if [ $# -lt 2 ]; then
+          warning "Falta o número de liñas despois de --tail."
+          return 1
+        fi
+        tail_lines="$2"
+        shift
+        ;;
+      -h|--help)
+        _docker_help compose-logs
+        return 0
+        ;;
+      --)
+        shift
+        original_args=("$@")
+        break
+        ;;
+      *)
+        warning "Opción descoñecida: $1. Usa compose-logs --help."
+        return 1
+        ;;
+    esac
+    shift
+  done
+
+  # A expresión regular evita enviar valores non numéricos a `--tail`.
+  if ! [[ "$tail_lines" =~ ^[0-9]+$ ]]; then
+    warning "--tail debe recibir un número enteiro."
+    return 1
+  fi
+  _docker_require_compose_project || return 1
+  mapfile -t services < <(docker compose config --services)
+  [ ${#services[@]} -gt 0 ] || return 0
+
+  # O bloque agrupa a opción global e os servizos nunha soa entrada para gum.
+  selection="$(
+    {
+      printf '%s\n' "Todos os servizos"
+      printf '%s\n' "${services[@]}"
+    } | gum_filter --no-limit --header "Selecciona servizos:" --placeholder "Filtrar servizos..."
+  )" || return 0
+  [ -n "$selection" ] || return 0
+
+  if ! grep -qxF "Todos os servizos" <<< "$selection"; then
+    while IFS= read -r service; do
+      selected_services+=("$service")
+    done <<< "$selection"
+  fi
+
+  local args=(compose logs --tail "$tail_lines")
+  $follow && args+=(--follow)
+  docker "${args[@]}" "${original_args[@]}" "${selected_services[@]}"
+}
+
+# Reconstrúe as imaxes e inicia o proxecto Compose en segundo plano.
+compose-rebuild() {
+  local original_args=()
+
+  while (($#)); do
+    case "$1" in
+      -h|--help)
+        _docker_help compose-rebuild
+        return 0
+        ;;
+      --)
+        shift
+        original_args=("$@")
+        break
+        ;;
+      *)
+        warning "Opción descoñecida: $1. Usa compose-rebuild --help."
+        return 1
+        ;;
+    esac
+    shift
+  done
+  _docker_require_compose_project || return 1
+  docker compose up -d --build "${original_args[@]}"
+}
+
+# Descarga as imaxes novas e volve iniciar o proxecto Compose.
+compose-update() {
+  local original_args=()
+
+  while (($#)); do
+    case "$1" in
+      -h|--help)
+        _docker_help compose-update
+        return 0
+        ;;
+      --)
+        shift
+        original_args=("$@")
+        break
+        ;;
+      *)
+        warning "Opción descoñecida: $1. Usa compose-update --help."
+        return 1
+        ;;
+    esac
+    shift
+  done
+  _docker_require_compose_project || return 1
+  docker compose pull "${original_args[@]}" &&
+    docker compose up -d "${original_args[@]}"
+}
+
+# Constrúe con Buildx unha imaxe e cárgaa no almacén local de Docker.
+docker-build() {
+  local tag=""
+  local context=""
+  local original_args=()
+
+  while (($#)); do
+    case "$1" in
+      -t|--tag)
+        if [ $# -lt 2 ]; then
+          warning "Falta a referencia despois de $1."
+          return 1
+        fi
+        tag="$2"
+        shift
+        ;;
+      -C|--context)
+        if [ $# -lt 2 ]; then
+          warning "Falta a ruta despois de $1."
+          return 1
+        fi
+        context="$2"
+        shift
+        ;;
+      -h|--help)
+        _docker_help docker-build
+        return 0
+        ;;
+      --)
+        shift
+        original_args=("$@")
+        break
+        ;;
+      *)
+        warning "Opción descoñecida: $1. Usa docker-build --help."
+        return 1
+        ;;
+    esac
+    shift
+  done
+
+  _docker_require || return 1
+  # `${valor:-alternativa}` abre o input só cando non se pasou a opción.
+  tag="${tag:-$(gum_input --header "Etiqueta da imaxe" --placeholder "usuario/imaxe:latest")}" || return 0
+  [ -n "$tag" ] || return 0
+  context="${context:-$(gum_input --header "Contexto do build" --placeholder "." --value ".")}" || return 0
+  [ -n "$context" ] || return 0
+
+  docker buildx build --load --tag "$tag" "${original_args[@]}" "$context"
+}
+
+# Permite escoller e confirmar unha operación segura de limpeza de Docker.
+docker-clean() {
+  local original_args=()
+  local action
+
+  while (($#)); do
+    case "$1" in
+      -h|--help)
+        _docker_help docker-clean
+        return 0
+        ;;
+      --)
+        shift
+        original_args=("$@")
+        break
+        ;;
+      *)
+        warning "Opción descoñecida: $1. Usa docker-clean --help."
+        return 1
+        ;;
+    esac
+    shift
+  done
+  _docker_require || return 1
+
+  docker system df
+  echo
+  action="$(gum_choose --header "Que queres limpar?" \
+    "Contedores detidos" "Imaxes sen usar" "Caché de build" \
+    "Sistema sen volumes" "Volumes sen usar")" || return 0
+
+  gum_confirm "Executar a limpeza de «$action»?" || return 0
+  case "$action" in
+    "Contedores detidos")
+      docker container prune --force "${original_args[@]}"
+      ;;
+    "Imaxes sen usar")
+      docker image prune --all --force "${original_args[@]}"
+      ;;
+    "Caché de build")
+      docker builder prune --force "${original_args[@]}"
+      ;;
+    "Sistema sen volumes")
+      docker system prune --all --force "${original_args[@]}"
+      ;;
+    "Volumes sen usar")
+      gum_confirm "Confirmas que os datos dos volumes sen usar se poden borrar?" || return 0
+      docker volume prune --all --force "${original_args[@]}"
+      ;;
+  esac
+}
+
+# Inicia sesión en Docker Hub ou nun rexistro alternativo.
+docker-login() {
+  local server=""
+  local original_args=()
+
+  while (($#)); do
+    case "$1" in
+      --server)
+        if [ $# -lt 2 ]; then
+          warning "Falta o servidor despois de --server."
+          return 1
+        fi
+        server="$2"
+        shift
+        ;;
+      -h|--help)
+        _docker_help docker-login
+        return 0
+        ;;
+      --)
+        shift
+        original_args=("$@")
+        break
+        ;;
+      *)
+        warning "Opción descoñecida: $1. Usa docker-login --help."
+        return 1
+        ;;
+    esac
+    shift
+  done
+
+  _docker_require || return 1
+  if [ -n "$server" ]; then
+    docker login "${original_args[@]}" "$server"
+  else
+    docker login "${original_args[@]}"
+  fi
+}
+
+# Pecha a sesión do rexistro indicado tras pedir confirmación.
+docker-logout() {
+  local server=""
+  local original_args=()
+
+  while (($#)); do
+    case "$1" in
+      --server)
+        if [ $# -lt 2 ]; then
+          warning "Falta o servidor despois de --server."
+          return 1
+        fi
+        server="$2"
+        shift
+        ;;
+      -h|--help)
+        _docker_help docker-logout
+        return 0
+        ;;
+      --)
+        shift
+        original_args=("$@")
+        break
+        ;;
+      *)
+        warning "Opción descoñecida: $1. Usa docker-logout --help."
+        return 1
+        ;;
+    esac
+    shift
+  done
+
+  _docker_require || return 1
+  gum_confirm "Pechar a sesión de ${server:-Docker Hub}?" || return 0
+  if [ -n "$server" ]; then
+    docker logout "${original_args[@]}" "$server"
+  else
+    docker logout "${original_args[@]}"
+  fi
+}
+
+# Busca imaxes públicas en Docker Hub.
+docker-search() {
+  local term=""
+  local original_args=()
+
+  while (($#)); do
+    case "$1" in
+      --term)
+        if [ $# -lt 2 ]; then
+          warning "Falta o texto despois de --term."
+          return 1
+        fi
+        term="$2"
+        shift
+        ;;
+      -h|--help)
+        _docker_help docker-search
+        return 0
+        ;;
+      --)
+        shift
+        original_args=("$@")
+        break
+        ;;
+      *)
+        warning "Opción descoñecida: $1. Usa docker-search --help."
+        return 1
+        ;;
+    esac
+    shift
+  done
+
+  _docker_require || return 1
+  term="${term:-$(gum_input --header "Buscar en Docker Hub" --placeholder "Nome da imaxe")}" || return 0
+  [ -n "$term" ] || return 0
+  docker search "${original_args[@]}" "$term"
+}
+
+# Descarga unha imaxe indicada por opción ou mediante un input.
+docker-pull() {
+  local image=""
+  local original_args=()
+
+  while (($#)); do
+    case "$1" in
+      --image)
+        if [ $# -lt 2 ]; then
+          warning "Falta a referencia despois de --image."
+          return 1
+        fi
+        image="$2"
+        shift
+        ;;
+      -h|--help)
+        _docker_help docker-pull
+        return 0
+        ;;
+      --)
+        shift
+        original_args=("$@")
+        break
+        ;;
+      *)
+        warning "Opción descoñecida: $1. Usa docker-pull --help."
+        return 1
+        ;;
+    esac
+    shift
+  done
+
+  _docker_require || return 1
+  image="${image:-$(gum_input --header "Imaxe para descargar" --placeholder "usuario/imaxe:etiqueta")}" || return 0
+  [ -n "$image" ] || return 0
+  docker pull "${original_args[@]}" "$image"
+}
+
+# Selecciona unha imaxe local etiquetada e súbea ao seu rexistro.
+docker-push() {
+  local original_args=()
+  local selection reference
+  local images=()
+
+  while (($#)); do
+    case "$1" in
+      -h|--help)
+        _docker_help docker-push
+        return 0
+        ;;
+      --)
+        shift
+        original_args=("$@")
+        break
+        ;;
+      *)
+        warning "Opción descoñecida: $1. Usa docker-push --help."
+        return 1
+        ;;
+    esac
+    shift
+  done
+  _docker_require || return 1
+
+  # awk elimina as imaxes sen repositorio nin etiqueta, que non se poden subir.
+  mapfile -t images < <(
+    docker image ls --format '{{.Repository}}:{{.Tag}}	{{.ID}}	{{.Size}}' |
+      awk -F '\t' '$1 != "<none>:<none>"'
+  )
+  if [ ${#images[@]} -eq 0 ]; then
+    info "Non hai imaxes etiquetadas para subir."
+    return 0
+  fi
+
+  selection="$(printf '%s\n' "${images[@]}" |
+    gum_filter --header "Selecciona unha imaxe para subir:" --placeholder "Filtrar imaxes...")" || return 0
+  [ -n "$selection" ] || return 0
+  # A referencia que necesita push é o campo anterior ao primeiro tabulador.
+  reference="${selection%%$'\t'*}"
+
+  docker push "${original_args[@]}" "$reference"
+}
