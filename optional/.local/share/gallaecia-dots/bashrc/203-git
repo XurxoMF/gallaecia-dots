@@ -8,160 +8,387 @@ _git_help() {
   case "$1" in
     git-credenciales)
       cat <<'EOF'
-Uso: git-credenciales [-h|--help]
+USO
+  git-credenciales [OPCIÓNS]
 
-Configura o nome e o correo usados para asinar commits. Permite escoller se
-gardalos só no repositorio actual ou globalmente para todos os repositorios.
-Isto configura a autoría; non inicia sesión en GitHub.
+DESCRICIÓN
+  Configura interactivamente o nome e o correo usados para asinar commits.
+  Permite gardalos no repositorio actual ou globalmente. Non inicia sesión
+  en GitHub.
+
+OPCIÓNS
+  -h, --help   Mostra esta axuda.
+
+RESULTADO
+  Garda user.name e user.email na configuración de Git escollida.
+
+EXEMPLOS
+  git-credenciales
+  git-credenciales --help
 EOF
       ;;
     github-login)
       cat <<'EOF'
-Uso: github-login [-h|--help] [-- argumentos-gh]
+USO
+  github-login [OPCIÓNS] [-- ARGUMENTOS DE GH AUTH LOGIN]
 
-Inicia sesión en GitHub mediante GitHub CLI e o navegador.
+DESCRICIÓN
+  Inicia sesión en GitHub mediante GitHub CLI e o navegador.
 
-  -- ARGUMENTOS   Reenvía todo o que segue directamente a `gh auth login`.
+OPCIÓNS
+  -h, --help   Mostra esta axuda.
+  --           Remata as opcións do wrapper.
 
-Exemplo:
+RESULTADO
+  Autoriza GitHub CLI e garda as credenciais coa configuración de `gh`.
+
+EXEMPLOS
+  github-login
   github-login -- --hostname github.example.com
+
+COMANDO ORIXINAL
+  Todo o situado despois de `--` reenvíase a `gh auth login --web`.
+  Usa `github-login -- --help` para consultar as súas opcións.
 EOF
       ;;
     git-add)
       cat <<'EOF'
-Uso: git-add [-h|--help] [-- argumentos-git-add]
+USO
+  git-add [OPCIÓNS] [-- ARGUMENTOS DE GIT ADD]
 
-Permite preparar todos os cambios, usar o modo por parches ou seleccionar
-ficheiros concretos.
+DESCRICIÓN
+  Permite preparar todos os cambios, usar o modo por parches ou seleccionar
+  ficheiros concretos.
 
-  -- ARGUMENTOS   Reenvía todo o que segue directamente a `git add`.
+OPCIÓNS
+  -h, --help   Mostra esta axuda.
+  --           Remata as opcións do wrapper.
 
-Exemplo:
+RESULTADO
+  Engade ao índice de Git os cambios escollidos.
+
+EXEMPLOS
+  git-add
   git-add -- --intent-to-add
+
+COMANDO ORIXINAL
+  Todo o situado despois de `--` reenvíase a `git add`.
+  Usa `git-add -- --help` para consultar as súas opcións.
 EOF
       ;;
     git-commit)
       cat <<'EOF'
-Uso: git-commit [-h|--help] [-- argumentos-git-commit]
+USO
+  git-commit [OPCIÓNS] [-- ARGUMENTOS DE GIT COMMIT]
 
-Pide un título e un corpo opcional e crea un commit.
+DESCRICIÓN
+  Pide un título e un corpo opcional e crea un commit.
 
-  -- ARGUMENTOS   Reenvía todo o que segue directamente a `git commit`.
+OPCIÓNS
+  -h, --help   Mostra esta axuda.
+  --           Remata as opcións do wrapper.
 
-Exemplo:
+RESULTADO
+  Crea un commit cos cambios xa preparados.
+
+EXEMPLOS
+  git-commit
   git-commit -- --signoff
+
+COMANDO ORIXINAL
+  Todo o situado despois de `--` reenvíase a `git commit`.
+  Usa `git-commit -- --help` para consultar as súas opcións.
 EOF
       ;;
     git-save)
       cat <<'EOF'
-Uso: git-save [-h|--help] [-- argumentos-git-commit]
+USO
+  git-save [OPCIÓNS] [-- ARGUMENTOS DE GIT COMMIT]
 
-Executa primeiro `git-add` e, se hai cambios preparados, `git-commit`.
-Os argumentos posteriores a `--` envíanse ao commit, non a `git add`.
+DESCRICIÓN
+  Executa primeiro `git-add` e, se hai cambios preparados, `git-commit`.
+
+OPCIÓNS
+  -h, --help   Mostra esta axuda.
+  --           Remata as opcións do wrapper.
+
+RESULTADO
+  Prepara os cambios escollidos e crea un commit.
+
+EXEMPLOS
+  git-save
+  git-save -- --signoff
+
+COMANDO ORIXINAL
+  Todo o situado despois de `--` reenvíase a `git commit`, despois de
+  preparar os cambios; non se envía a `git add`.
 EOF
       ;;
     git-diff)
       cat <<'EOF'
-Uso: git-diff [-h|--help] [-- argumentos-git-diff]
+USO
+  git-diff [OPCIÓNS] [-- ARGUMENTOS DE GIT DIFF]
 
-Mostra os cambios sen preparar, os preparados ou os dun commit escollido.
+DESCRICIÓN
+  Mostra os cambios sen preparar, os preparados ou os dun commit escollido.
 
-  -- ARGUMENTOS   Reenvía todo o que segue directamente a `git diff`.
+OPCIÓNS
+  -h, --help   Mostra esta axuda.
+  --           Remata as opcións do wrapper.
+
+RESULTADO
+  Escribe na terminal o diff seleccionado.
+
+EXEMPLOS
+  git-diff
+  git-diff -- --stat
+
+COMANDO ORIXINAL
+  Todo o situado despois de `--` reenvíase a `git diff`.
+  Usa `git-diff -- --help` para consultar as súas opcións.
 EOF
       ;;
     git-pull)
       cat <<'EOF'
-Uso: git-pull [-h|--help] [-- argumentos-git-pull]
+USO
+  git-pull [OPCIÓNS] [-- ARGUMENTOS DE GIT PULL]
 
-Descarga cambios usando `git pull --ff-only` para evitar merges automáticos.
+DESCRICIÓN
+  Descarga cambios usando `git pull --ff-only` para evitar merges automáticos.
 
-  -- ARGUMENTOS   Engádese despois de `--ff-only` e permite indicar remoto,
-                  rama ou outras opcións de `git pull`.
+OPCIÓNS
+  -h, --help   Mostra esta axuda.
+  --           Remata as opcións do wrapper.
+
+RESULTADO
+  Actualiza a rama actual só cando pode avanzar mediante fast-forward.
+
+EXEMPLOS
+  git-pull
+  git-pull -- origin main
+
+COMANDO ORIXINAL
+  Todo o situado despois de `--` engádese a `git pull --ff-only`.
+  Usa `git-pull -- --help` para consultar as súas opcións.
 EOF
       ;;
     git-push)
       cat <<'EOF'
-Uso: git-push [-h|--help] [-- argumentos-git-push]
+USO
+  git-push [OPCIÓNS] [-- ARGUMENTOS DE GIT PUSH]
 
-Publica a rama actual. Se non ten upstream, permite escoller un remoto e
-configúrao automaticamente con `-u`.
+DESCRICIÓN
+  Publica a rama actual. Se non ten upstream, permite escoller un remoto e
+  configúrao automaticamente con `-u`.
 
-  -- ARGUMENTOS   Reenvía todo o que segue directamente a `git push`.
+OPCIÓNS
+  -h, --help   Mostra esta axuda.
+  --           Remata as opcións do wrapper.
+
+RESULTADO
+  Envía os commits da rama actual ao repositorio remoto.
+
+EXEMPLOS
+  git-push
+  git-push -- --force-with-lease
+
+COMANDO ORIXINAL
+  Todo o situado despois de `--` reenvíase a `git push`.
+  Usa `git-push -- --help` para consultar as súas opcións.
 EOF
       ;;
     git-branch-switch)
       cat <<'EOF'
-Uso: git-branch-switch [-h|--help] [-- argumentos-git-switch]
+USO
+  git-branch-switch [OPCIÓNS] [-- ARGUMENTOS DE GIT SWITCH]
 
-Selecciona unha rama local e cambia a ela.
+DESCRICIÓN
+  Selecciona unha rama local e cambia a ela.
 
-  -- ARGUMENTOS   Reenvía opcións adicionais a `git switch`.
+OPCIÓNS
+  -h, --help   Mostra esta axuda.
+  --           Remata as opcións do wrapper.
+
+RESULTADO
+  Establece como activa a rama escollida.
+
+EXEMPLOS
+  git-branch-switch
+  git-branch-switch -- --discard-changes
+
+COMANDO ORIXINAL
+  Todo o situado despois de `--` reenvíase a `git switch`.
+  Usa `git-branch-switch -- --help` para consultar as súas opcións.
 EOF
       ;;
     git-branch-new)
       cat <<'EOF'
-Uso: git-branch-new [-h|--help] [-- argumentos-git-switch]
+USO
+  git-branch-new [OPCIÓNS] [-- ARGUMENTOS DE GIT SWITCH]
 
-Pide un nome e crea unha rama nova con `git switch -c`.
+DESCRICIÓN
+  Pide un nome e crea unha rama nova con `git switch -c`.
 
-  -- ARGUMENTOS   Reenvía opcións adicionais a `git switch`.
+OPCIÓNS
+  -h, --help   Mostra esta axuda.
+  --           Remata as opcións do wrapper.
+
+RESULTADO
+  Crea a rama e cambia inmediatamente a ela.
+
+EXEMPLOS
+  git-branch-new
+  git-branch-new -- --no-track
+
+COMANDO ORIXINAL
+  Todo o situado despois de `--` engádese a `git switch -c`.
+  Usa `git-branch-new -- --help` para consultar as súas opcións.
 EOF
       ;;
     git-branch-delete)
       cat <<'EOF'
-Uso: git-branch-delete [-f|--force] [-h|--help] [-- argumentos-git-branch]
+USO
+  git-branch-delete [OPCIÓNS] [-- ARGUMENTOS DE GIT BRANCH]
 
-Selecciona unha ou varias ramas locais e pide confirmación antes de borralas.
+DESCRICIÓN
+  Selecciona unha ou varias ramas locais e confirma antes de borralas.
 
-  -f, --force     Usa `git branch -D` e require unha segunda confirmación.
-  -- ARGUMENTOS   Reenvía opcións adicionais a `git branch`.
+OPCIÓNS
+  -f, --force   Usa `git branch -D` e require unha segunda confirmación.
+  -h, --help    Mostra esta axuda.
+  --            Remata as opcións do wrapper.
+
+RESULTADO
+  Borra as ramas seleccionadas; sen `--force`, só se xa están integradas.
+
+EXEMPLOS
+  git-branch-delete
+  git-branch-delete --force
+
+COMANDO ORIXINAL
+  Todo o situado despois de `--` reenvíase a `git branch -d` ou `-D`.
+  Usa `git-branch-delete -- --help` para consultar as súas opcións.
 EOF
       ;;
     git-branch-merge)
       cat <<'EOF'
-Uso: git-branch-merge [-h|--help] [-- argumentos-git-merge]
+USO
+  git-branch-merge [OPCIÓNS] [-- ARGUMENTOS DE GIT MERGE]
 
-Selecciona unha rama e confirma antes de integrala na rama actual.
+DESCRICIÓN
+  Selecciona unha rama e confirma antes de integrala na rama actual.
 
-  -- ARGUMENTOS   Reenvía opcións adicionais a `git merge`.
+OPCIÓNS
+  -h, --help   Mostra esta axuda.
+  --           Remata as opcións do wrapper.
+
+RESULTADO
+  Integra a rama escollida na rama activa.
+
+EXEMPLOS
+  git-branch-merge
+  git-branch-merge -- --no-ff
+
+COMANDO ORIXINAL
+  Todo o situado despois de `--` reenvíase a `git merge`.
+  Usa `git-branch-merge -- --help` para consultar as súas opcións.
 EOF
       ;;
     git-log)
       cat <<'EOF'
-Uso: git-log [-h|--help] [-- argumentos-git-log]
+USO
+  git-log [OPCIÓNS] [-- ARGUMENTOS DE GIT LOG]
 
-Mostra un historial compacto con gráfico, referencias e todas as ramas.
+DESCRICIÓN
+  Mostra un historial compacto con gráfico, referencias e todas as ramas.
 
-  -- ARGUMENTOS   Reenvía opcións adicionais a `git log`.
+OPCIÓNS
+  -h, --help   Mostra esta axuda.
+  --           Remata as opcións do wrapper.
+
+RESULTADO
+  Escribe o historial na terminal sen modificar o repositorio.
+
+EXEMPLOS
+  git-log
+  git-log -- --since="last week"
+
+COMANDO ORIXINAL
+  Todo o situado despois de `--` reenvíase a `git log`.
+  Usa `git-log -- --help` para consultar as súas opcións.
 EOF
       ;;
     git-commit-show)
       cat <<'EOF'
-Uso: git-commit-show [-h|--help] [-- argumentos-git-show]
+USO
+  git-commit-show [OPCIÓNS] [-- ARGUMENTOS DE GIT SHOW]
 
-Selecciona un commit do historial e mostra os seus datos e cambios.
+DESCRICIÓN
+  Selecciona un commit do historial e mostra os seus datos e cambios.
 
-  -- ARGUMENTOS   Reenvía opcións adicionais a `git show`.
+OPCIÓNS
+  -h, --help   Mostra esta axuda.
+  --           Remata as opcións do wrapper.
+
+RESULTADO
+  Escribe na terminal os detalles do commit escollido.
+
+EXEMPLOS
+  git-commit-show
+  git-commit-show -- --stat
+
+COMANDO ORIXINAL
+  Todo o situado despois de `--` reenvíase a `git show`.
+  Usa `git-commit-show -- --help` para consultar as súas opcións.
 EOF
       ;;
     git-stash-save)
       cat <<'EOF'
-Uso: git-stash-save [-u|--include-untracked] [-h|--help] [-- argumentos-git-stash]
+USO
+  git-stash-save [OPCIÓNS] [-- ARGUMENTOS DE GIT STASH PUSH]
 
-Garda temporalmente os cambios e permite engadir unha descrición.
+DESCRICIÓN
+  Garda temporalmente os cambios e permite engadir unha descrición.
 
+OPCIÓNS
   -u, --include-untracked   Inclúe ficheiros aínda non rastrexados.
-  -- ARGUMENTOS             Reenvía opcións adicionais a `git stash push`.
+  -h, --help                Mostra esta axuda.
+  --                        Remata as opcións do wrapper.
+
+RESULTADO
+  Crea unha entrada no stash e limpa os cambios gardados da árbore de traballo.
+
+EXEMPLOS
+  git-stash-save
+  git-stash-save --include-untracked
+
+COMANDO ORIXINAL
+  Todo o situado despois de `--` reenvíase a `git stash push`.
+  Usa `git-stash-save -- --help` para consultar as súas opcións.
 EOF
       ;;
     git-stash-pop)
       cat <<'EOF'
-Uso: git-stash-pop [-h|--help] [-- argumentos-git-stash]
+USO
+  git-stash-pop [OPCIÓNS] [-- ARGUMENTOS DE GIT STASH POP]
 
-Selecciona un stash, pide confirmación e aplícao con `git stash pop`.
-Ao completarse correctamente, Git elimina esa entrada do stash.
+DESCRICIÓN
+  Selecciona un stash, pide confirmación e aplícao.
 
-  -- ARGUMENTOS   Reenvía opcións adicionais a `git stash pop`.
+OPCIÓNS
+  -h, --help   Mostra esta axuda.
+  --           Remata as opcións do wrapper.
+
+RESULTADO
+  Recupera os cambios e, se non hai erros, elimina esa entrada do stash.
+
+EXEMPLOS
+  git-stash-pop
+  git-stash-pop -- --index
+
+COMANDO ORIXINAL
+  Todo o situado despois de `--` reenvíase a `git stash pop`.
+  Usa `git-stash-pop -- --help` para consultar as súas opcións.
 EOF
       ;;
   esac

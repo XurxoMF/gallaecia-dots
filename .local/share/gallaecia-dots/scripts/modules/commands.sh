@@ -5,18 +5,61 @@ _commands_help() {
   case "$1" in
     has_command)
       cat <<'EOF'
-Uso: has_command [-h|--help] [--] COMANDO
+USO
+  has_command [OPCIÓNS] COMANDO
 
-Devolve éxito se COMANDO está dispoñible no PATH mediante `command -v`.
-`--` permite comprobar un nome que comece por guión.
+DESCRICIÓN
+  Comproba mediante `command -v` se un comando está dispoñible no PATH.
+
+PARÁMETROS
+  COMANDO
+      Nome do comando que se quere comprobar.
+
+OPCIÓNS
+  -h, --help
+      Mostra esta axuda.
+
+  --
+      Remata as opcións e permite comprobar un nome que comece por guión.
+
+RESULTADO
+  Devolve 0 se o comando existe e un código distinto de 0 se non existe.
+
+EXEMPLOS
+  has_command git
+  has_command -- -comando
 EOF
       ;;
     ensure_command)
       cat <<'EOF'
-Uso: ensure_command [-h|--help] [--] COMANDO PAQUETE
+USO
+  ensure_command [OPCIÓNS] COMANDO PAQUETE
 
-Instala PAQUETE con Pacman só cando COMANDO non está dispoñible no PATH.
-Non admite passthrough porque combina a comprobación, sudo e Pacman.
+DESCRICIÓN
+  Instala un paquete con Pacman só cando o comando asociado non está
+  dispoñible no PATH.
+
+PARÁMETROS
+  COMANDO
+      Nome do executable que se comprobará.
+
+  PAQUETE
+      Nome do paquete que se instalará se falta o comando.
+
+OPCIÓNS
+  -h, --help
+      Mostra esta axuda.
+
+  --
+      Remata as opcións e permite valores que comecen por guión.
+
+RESULTADO
+  Devolve 0 se o comando xa existía ou o paquete se instalou correctamente.
+  Devolve un código distinto de 0 se a validación ou Pacman fallan.
+
+EXEMPLOS
+  ensure_command gum gum
+  ensure_command git git
 EOF
       ;;
   esac

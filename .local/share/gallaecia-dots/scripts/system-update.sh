@@ -99,9 +99,7 @@ update_dotfiles() {
   fi
 
   if dotfiles_need_update; then
-    if warn_dirty_repo; then
-      echo
-    fi
+    warn_dirty_repo
 
     if ! gum_confirm "Hai updates novos nos dotfiles. Queres actualizalos e relanzar o instalador?"; then
       info "Actualización dos dotfiles cancelada."
@@ -125,7 +123,6 @@ update_dotfiles() {
     return 1
   fi
 
-  echo
 }
 
 # Actualiza Rust só se rustup está instalado.
@@ -209,8 +206,6 @@ main() {
     fail "Algo fallou ao actualizar os dotfiles."
     return 1
   fi
-
-  echo
 
   if gum_confirm "Reiniciar sistema? (Recomendado se se actualizaron paquetes)"; then
     systemctl reboot

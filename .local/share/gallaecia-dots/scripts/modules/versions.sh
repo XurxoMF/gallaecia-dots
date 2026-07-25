@@ -10,9 +10,28 @@
 
 # Avisa de que estes helpers só deben empregarse no fluxo de actualización.
 _versions_internal_help() {
-  cat <<'EOF'
-NON USAR: esta función pertence á API interna do sistema de versións.
-Pode modificar o estado de instalación e actualización de Gallaecia Dots.
+  cat <<EOF
+USO
+  ${FUNCNAME[1]} -h|--help
+
+DESCRICIÓN
+  NON USAR: esta función pertence á API interna do sistema de versións.
+  Pode modificar o estado de instalación e actualización de Gallaecia Dots.
+
+OPCIÓNS
+  -h, --help
+      Mostra este aviso.
+
+RESULTADO
+  A axuda devolve 0 sen modificar o estado. O resto do comportamento forma
+  parte do fluxo interno e non constitúe unha API pública.
+
+EXEMPLOS
+  ${FUNCNAME[1]} --help
+
+ALTERNATIVAS
+  Para comandos personalizados usa os helpers documentados de ui.sh, files.sh
+  e commands.sh.
 EOF
 }
 

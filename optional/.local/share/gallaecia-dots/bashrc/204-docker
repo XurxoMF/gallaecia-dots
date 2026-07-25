@@ -7,231 +7,550 @@ _docker_help() {
   case "$1" in
     docker-ps)
       cat <<'EOF'
-Uso: docker-ps [COLUMNAS] [-a|--all] [-h|--help] [-- argumentos-docker-ps]
+USO
+  docker-ps [OPCIÓNS] [-- ARGUMENTOS DE DOCKER PS]
 
-Lista contedores nunha táboa configurable.
+DESCRICIÓN
+  Lista contedores nunha táboa configurable. Sen escoller columnas mostra
+  nome, imaxe, estado e portos.
 
+OPCIÓNS
   --id, --name, --image, --status, --ports, --created, --labels
-                  Engade columnas na orde indicada.
-  -a, --all       Inclúe tamén os contedores detidos.
-  -- ARGUMENTOS   Reenvía argumentos adicionais a `docker ps`.
+                Engade cada columna na orde indicada.
+  -a, --all     Inclúe tamén os contedores detidos.
+  -h, --help    Mostra esta axuda.
+  --            Remata as opcións do wrapper.
 
-Sen columnas mostra nome, imaxe, estado e portos.
-Exemplo: docker-ps --all --name --created --status -- --filter label=app=web
+RESULTADO
+  Escribe na terminal a táboa de contedores.
+
+EXEMPLOS
+  docker-ps
+  docker-ps --all --name --created --status -- --filter label=app=web
+
+COMANDO ORIXINAL
+  Todo o situado despois de `--` reenvíase a `docker ps`.
+  Usa `docker-ps -- --help` para consultar as súas opcións.
 EOF
       ;;
     docker-shell)
       cat <<'EOF'
-Uso: docker-shell [--shell COMANDO] [-h|--help] [-- argumentos-docker-exec]
+USO
+  docker-shell [OPCIÓNS] [-- ARGUMENTOS DE DOCKER EXEC]
 
-Selecciona un contedor activo e abre unha shell interactiva. Detecta bash e
-usa sh como alternativa.
+DESCRICIÓN
+  Selecciona un contedor activo e abre unha shell interactiva. Detecta `bash`
+  e usa `sh` como alternativa.
 
-  --shell CMD     Forza a shell ou comando que se vai executar.
-  -- ARGUMENTOS   Reenvía opcións adicionais a `docker exec`.
+OPCIÓNS
+  --shell COMANDO   Forza a shell ou comando que se executará.
+  -h, --help        Mostra esta axuda.
+  --                Remata as opcións do wrapper.
+
+RESULTADO
+  Conecta a terminal a un proceso novo dentro do contedor.
+
+EXEMPLOS
+  docker-shell
+  docker-shell --shell /bin/ash
+
+COMANDO ORIXINAL
+  Todo o situado despois de `--` reenvíase a `docker exec`.
+  Usa `docker-shell -- --help` para consultar as súas opcións.
 EOF
       ;;
     docker-attach)
       cat <<'EOF'
-Uso: docker-attach [-h|--help] [-- argumentos-docker-attach]
+USO
+  docker-attach [OPCIÓNS] [-- ARGUMENTOS DE DOCKER ATTACH]
 
-Selecciona un contedor activo e conecta a terminal ao seu proceso principal.
-Para separarte sen detelo usa Ctrl-p seguido de Ctrl-q.
+DESCRICIÓN
+  Selecciona un contedor activo e conecta a terminal ao seu proceso principal.
+  Para separarte sen detelo usa Ctrl-p seguido de Ctrl-q.
 
-  -- ARGUMENTOS   Reenvía opcións adicionais a `docker attach`.
+OPCIÓNS
+  -h, --help   Mostra esta axuda.
+  --           Remata as opcións do wrapper.
+
+RESULTADO
+  Conecta a entrada e a saída da terminal ao contedor.
+
+EXEMPLOS
+  docker-attach
+  docker-attach -- --no-stdin
+
+COMANDO ORIXINAL
+  Todo o situado despois de `--` reenvíase a `docker attach`.
+  Usa `docker-attach -- --help` para consultar as súas opcións.
 EOF
       ;;
     docker-logs)
       cat <<'EOF'
-Uso: docker-logs [-f|--follow] [--tail LIÑAS] [-h|--help] [-- argumentos-docker-logs]
+USO
+  docker-logs [OPCIÓNS] [-- ARGUMENTOS DE DOCKER LOGS]
 
-Selecciona un contedor e mostra os seus logs.
+DESCRICIÓN
+  Selecciona un contedor e mostra os seus logs.
 
-  -f, --follow    Mantén os logs abertos.
-  --tail N        Mostra as últimas N liñas; por defecto 100.
-  -- ARGUMENTOS   Reenvía opcións adicionais a `docker logs`.
+OPCIÓNS
+  -f, --follow   Mantén os logs abertos.
+  --tail LIÑAS   Mostra as últimas LIÑAS; por defecto, 100.
+  -h, --help     Mostra esta axuda.
+  --             Remata as opcións do wrapper.
+
+RESULTADO
+  Escribe os logs na terminal e, con `--follow`, continúa escoitándoos.
+
+EXEMPLOS
+  docker-logs --follow
+  docker-logs --tail 50 -- --timestamps
+
+COMANDO ORIXINAL
+  Todo o situado despois de `--` reenvíase a `docker logs`.
+  Usa `docker-logs -- --help` para consultar as súas opcións.
 EOF
       ;;
     docker-container-start|docker-container-stop|docker-container-restart)
       cat <<EOF
-Uso: $1 [-h|--help] [-- argumentos-docker]
+USO
+  $1 [OPCIÓNS] [-- ARGUMENTOS DO COMANDO DOCKER]
 
-Selecciona un ou varios contedores e executa a acción indicada polo nome.
+DESCRICIÓN
+  Selecciona un ou varios contedores e executa a acción indicada polo nome.
 
-  -- ARGUMENTOS   Reenvía opcións adicionais ao comando orixinal.
+OPCIÓNS
+  -h, --help   Mostra esta axuda.
+  --           Remata as opcións do wrapper.
+
+RESULTADO
+  Cambia o estado dos contedores seleccionados.
+
+EXEMPLOS
+  $1
+
+COMANDO ORIXINAL
+  Todo o situado despois de \`--\` reenvíase a \`docker container ${1#docker-container-}\`.
+  Usa \`$1 -- --help\` para consultar as súas opcións.
 EOF
       ;;
     docker-container-delete)
       cat <<'EOF'
-Uso: docker-container-delete [-f|--force] [-h|--help] [-- argumentos-docker-rm]
+USO
+  docker-container-delete [OPCIÓNS] [-- ARGUMENTOS DE DOCKER CONTAINER RM]
 
-Selecciona contedores e pide confirmación antes de borralos.
+DESCRICIÓN
+  Selecciona contedores e confirma antes de borralos.
 
-  -f, --force     Inclúe contedores activos, usa `docker rm --force` e pide
-                  unha segunda confirmación.
-  -- ARGUMENTOS   Reenvía opcións adicionais a `docker container rm`.
+OPCIÓNS
+  -f, --force   Inclúe contedores activos, forza o borrado e require unha
+                segunda confirmación.
+  -h, --help    Mostra esta axuda.
+  --            Remata as opcións do wrapper.
+
+RESULTADO
+  Elimina os contedores seleccionados.
+
+EXEMPLOS
+  docker-container-delete
+  docker-container-delete --force
+
+COMANDO ORIXINAL
+  Todo o situado despois de `--` reenvíase a `docker container rm`.
+  Usa `docker-container-delete -- --help` para consultar as súas opcións.
 EOF
       ;;
     docker-images)
       cat <<'EOF'
-Uso: docker-images [-a|--all] [-h|--help] [-- argumentos-docker-images]
+USO
+  docker-images [OPCIÓNS] [-- ARGUMENTOS DE DOCKER IMAGE LS]
 
-Lista imaxes con ID, referencia, tamaño e antigüidade.
+DESCRICIÓN
+  Lista imaxes con ID, referencia, tamaño e antigüidade.
 
-  -a, --all       Inclúe imaxes intermedias.
-  -- ARGUMENTOS   Reenvía argumentos adicionais a `docker image ls`.
+OPCIÓNS
+  -a, --all    Inclúe imaxes intermedias.
+  -h, --help   Mostra esta axuda.
+  --           Remata as opcións do wrapper.
+
+RESULTADO
+  Escribe na terminal a táboa de imaxes locais.
+
+EXEMPLOS
+  docker-images
+  docker-images --all -- --digests
+
+COMANDO ORIXINAL
+  Todo o situado despois de `--` reenvíase a `docker image ls`.
+  Usa `docker-images -- --help` para consultar as súas opcións.
 EOF
       ;;
     docker-image-delete)
       cat <<'EOF'
-Uso: docker-image-delete [-f|--force] [-h|--help] [-- argumentos-docker-rmi]
+USO
+  docker-image-delete [OPCIÓNS] [-- ARGUMENTOS DE DOCKER IMAGE RM]
 
-Selecciona unha ou varias imaxes e confirma antes de borralas.
+DESCRICIÓN
+  Selecciona unha ou varias imaxes e confirma antes de borralas.
 
-  -f, --force     Forza o borrado e require unha segunda confirmación.
-  -- ARGUMENTOS   Reenvía opcións adicionais a `docker image rm`.
+OPCIÓNS
+  -f, --force   Forza o borrado e require unha segunda confirmación.
+  -h, --help    Mostra esta axuda.
+  --            Remata as opcións do wrapper.
+
+RESULTADO
+  Elimina as imaxes seleccionadas do almacenamento local.
+
+EXEMPLOS
+  docker-image-delete
+  docker-image-delete --force
+
+COMANDO ORIXINAL
+  Todo o situado despois de `--` reenvíase a `docker image rm`.
+  Usa `docker-image-delete -- --help` para consultar as súas opcións.
 EOF
       ;;
     docker-tag)
       cat <<'EOF'
-Uso: docker-tag [-h|--help] [-- argumentos-docker-tag]
+USO
+  docker-tag [OPCIÓNS] [-- ARGUMENTOS DE DOCKER IMAGE TAG]
 
-Selecciona unha imaxe de orixe e pide a referencia de destino no formato
-repositorio[:etiqueta].
+DESCRICIÓN
+  Selecciona unha imaxe de orixe e pide unha referencia de destino.
 
-  -- ARGUMENTOS   Reenvía opcións adicionais a `docker image tag`.
+OPCIÓNS
+  -h, --help   Mostra esta axuda.
+  --           Remata as opcións do wrapper.
+
+RESULTADO
+  Crea unha etiqueta local co formato `repositorio[:etiqueta]`.
+
+EXEMPLOS
+  docker-tag
+
+COMANDO ORIXINAL
+  Todo o situado despois de `--` reenvíase a `docker image tag`.
+  Usa `docker-tag -- --help` para consultar as súas opcións.
 EOF
       ;;
     docker-networks|docker-volumes)
       cat <<EOF
-Uso: $1 [-h|--help] [-- argumentos-docker]
+USO
+  $1 [OPCIÓNS] [-- ARGUMENTOS DO COMANDO DOCKER]
 
-Lista os recursos indicados polo nome do comando.
+DESCRICIÓN
+  Lista os recursos indicados polo nome do wrapper.
 
-  -- ARGUMENTOS   Reenvía argumentos adicionais ao comando orixinal.
+OPCIÓNS
+  -h, --help   Mostra esta axuda.
+  --           Remata as opcións do wrapper.
+
+RESULTADO
+  Escribe na terminal as redes ou os volumes locais.
+
+EXEMPLOS
+  $1
+
+COMANDO ORIXINAL
+  Todo o situado despois de \`--\` reenvíase ao comando de listaxe de Docker.
+  Usa \`$1 -- --help\` para consultar as súas opcións.
 EOF
       ;;
     docker-network-delete)
       cat <<'EOF'
-Uso: docker-network-delete [-h|--help] [-- argumentos-docker-network-rm]
+USO
+  docker-network-delete [OPCIÓNS] [-- ARGUMENTOS DE DOCKER NETWORK RM]
 
-Selecciona redes, excluíndo bridge, host e none, e confirma antes de borralas.
+DESCRICIÓN
+  Selecciona redes, excluíndo `bridge`, `host` e `none`, e confirma antes de
+  borralas.
 
-  -- ARGUMENTOS   Reenvía opcións adicionais a `docker network rm`.
+OPCIÓNS
+  -h, --help   Mostra esta axuda.
+  --           Remata as opcións do wrapper.
+
+RESULTADO
+  Elimina as redes seleccionadas.
+
+EXEMPLOS
+  docker-network-delete
+
+COMANDO ORIXINAL
+  Todo o situado despois de `--` reenvíase a `docker network rm`.
+  Usa `docker-network-delete -- --help` para consultar as súas opcións.
 EOF
       ;;
     docker-volume-delete)
       cat <<'EOF'
-Uso: docker-volume-delete [-h|--help] [-- argumentos-docker-volume-rm]
+USO
+  docker-volume-delete [OPCIÓNS] [-- ARGUMENTOS DE DOCKER VOLUME RM]
 
-Selecciona volumes e pide unha dobre confirmación porque poden conter datos.
+DESCRICIÓN
+  Selecciona volumes e require unha dobre confirmación porque poden conter
+  datos persistentes.
 
-  -- ARGUMENTOS   Reenvía opcións adicionais a `docker volume rm`.
+OPCIÓNS
+  -h, --help   Mostra esta axuda.
+  --           Remata as opcións do wrapper.
+
+RESULTADO
+  Elimina permanentemente os volumes seleccionados.
+
+EXEMPLOS
+  docker-volume-delete
+
+COMANDO ORIXINAL
+  Todo o situado despois de `--` reenvíase a `docker volume rm`.
+  Usa `docker-volume-delete -- --help` para consultar as súas opcións.
 EOF
       ;;
     compose-ps|compose-up|compose-rebuild|compose-update)
       cat <<EOF
-Uso: $1 [-h|--help] [-- argumentos-compose]
+USO
+  $1 [OPCIÓNS] [-- ARGUMENTOS DE DOCKER COMPOSE]
 
-Executa a operación de Compose indicada no proxecto do directorio actual.
+DESCRICIÓN
+  Executa no proxecto actual a operación indicada polo nome do wrapper.
+  \`compose-up\` inicia en segundo plano; \`compose-rebuild\` reconstrúe antes
+  de iniciar; \`compose-update\` descarga imaxes e volve aplicar o proxecto.
 
-  -- ARGUMENTOS   Reenvía argumentos adicionais a \`docker compose\`.
+OPCIÓNS
+  -h, --help   Mostra esta axuda.
+  --           Remata as opcións do wrapper.
 
-compose-up usa modo detached; compose-rebuild reconstrúe antes de iniciar;
-compose-update descarga imaxes e volve aplicar o proxecto.
+RESULTADO
+  Mostra ou actualiza o estado dos servizos do proxecto Compose.
+
+EXEMPLOS
+  $1
+
+COMANDO ORIXINAL
+  Todo o situado despois de \`--\` reenvíase á operación de \`docker compose\`.
+  Usa \`$1 -- --help\` para consultar as súas opcións.
 EOF
       ;;
     compose-down)
       cat <<'EOF'
-Uso: compose-down [-h|--help] [-- argumentos-compose-down]
+USO
+  compose-down [OPCIÓNS] [-- ARGUMENTOS DE DOCKER COMPOSE DOWN]
 
-Pide confirmación e baixa o proxecto actual sen eliminar volumes.
+DESCRICIÓN
+  Confirma e baixa o proxecto actual sen eliminar volumes por defecto.
 
-  -- ARGUMENTOS   Reenvía opcións adicionais a `docker compose down`.
+OPCIÓNS
+  -h, --help   Mostra esta axuda.
+  --           Remata as opcións do wrapper.
+
+RESULTADO
+  Detén e elimina os contedores e redes creados por Compose.
+
+EXEMPLOS
+  compose-down
+  compose-down -- --remove-orphans
+
+COMANDO ORIXINAL
+  Todo o situado despois de `--` reenvíase a `docker compose down`.
+  Usa `compose-down -- --help` para consultar as súas opcións.
 EOF
       ;;
     compose-logs)
       cat <<'EOF'
-Uso: compose-logs [-f|--follow] [--tail LIÑAS] [-h|--help] [-- argumentos-compose-logs]
+USO
+  compose-logs [OPCIÓNS] [-- ARGUMENTOS DE DOCKER COMPOSE LOGS]
 
-Selecciona un ou varios servizos do proxecto e mostra os seus logs.
+DESCRICIÓN
+  Selecciona un ou varios servizos do proxecto e mostra os seus logs.
 
-  -f, --follow    Mantén os logs abertos.
-  --tail N        Mostra as últimas N liñas; por defecto 100.
-  -- ARGUMENTOS   Reenvía opcións adicionais a `docker compose logs`.
+OPCIÓNS
+  -f, --follow   Mantén os logs abertos.
+  --tail LIÑAS   Mostra as últimas LIÑAS; por defecto, 100.
+  -h, --help     Mostra esta axuda.
+  --             Remata as opcións do wrapper.
+
+RESULTADO
+  Escribe os logs dos servizos seleccionados na terminal.
+
+EXEMPLOS
+  compose-logs --follow
+  compose-logs --tail 50 -- --timestamps
+
+COMANDO ORIXINAL
+  Todo o situado despois de `--` reenvíase a `docker compose logs`.
+  Usa `compose-logs -- --help` para consultar as súas opcións.
 EOF
       ;;
     docker-build)
       cat <<'EOF'
-Uso: docker-build [-t|--tag IMAXE] [-C|--context RUTA] [-h|--help] [-- argumentos-buildx]
+USO
+  docker-build [OPCIÓNS] [-- ARGUMENTOS DE DOCKER BUILDX BUILD]
 
-Constrúe unha imaxe local mediante Buildx e `--load`. Se non se indican,
-pide interactivamente a etiqueta e o contexto.
+DESCRICIÓN
+  Constrúe unha imaxe local mediante Buildx e `--load`. Pide os valores que
+  non se indiquen como opcións.
 
-  -t, --tag REF       Referencia da imaxe resultante.
-  -C, --context RUTA  Contexto de build; por defecto o directorio actual.
-  -- ARGUMENTOS       Reenvía opcións adicionais a `docker buildx build`.
+OPCIÓNS
+  -t, --tag IMAXE      Referencia da imaxe resultante.
+  -C, --context RUTA   Contexto de build; por defecto, o directorio actual.
+  -h, --help           Mostra esta axuda.
+  --                   Remata as opcións do wrapper.
+
+RESULTADO
+  Constrúe a imaxe e cárgaa no almacén local de Docker.
+
+EXEMPLOS
+  docker-build --tag exemplo:latest
+  docker-build -t exemplo:dev -C ./app -- --no-cache
+
+COMANDO ORIXINAL
+  Todo o situado despois de `--` reenvíase a `docker buildx build`.
+  Usa `docker-build -- --help` para consultar as súas opcións.
 EOF
       ;;
     docker-clean)
       cat <<'EOF'
-Uso: docker-clean [-h|--help] [-- argumentos-prune]
+USO
+  docker-clean [OPCIÓNS] [-- ARGUMENTOS DO COMANDO PRUNE]
 
-Mostra o uso de disco e permite limpar contedores, imaxes, caché, volumes ou
-o sistema. Sempre confirma; os volumes requiren unha segunda confirmación.
+DESCRICIÓN
+  Mostra o uso de disco e permite limpar contedores, imaxes, caché, volumes
+  ou todo o sistema. Sempre confirma; os volumes requiren dobre confirmación.
 
-  -- ARGUMENTOS   Reenvía opcións adicionais ao comando prune escollido.
+OPCIÓNS
+  -h, --help   Mostra esta axuda.
+  --           Remata as opcións do wrapper.
+
+RESULTADO
+  Elimina os recursos sen uso da categoría escollida.
+
+EXEMPLOS
+  docker-clean
+  docker-clean -- --filter until=24h
+
+COMANDO ORIXINAL
+  Todo o situado despois de `--` reenvíase ao comando `prune` escollido.
 EOF
       ;;
     docker-login)
       cat <<'EOF'
-Uso: docker-login [--server SERVIDOR] [-h|--help] [-- argumentos-docker-login]
+USO
+  docker-login [OPCIÓNS] [-- ARGUMENTOS DE DOCKER LOGIN]
 
-Inicia sesión en Docker Hub ou noutro rexistro usando o fluxo seguro de Docker.
+DESCRICIÓN
+  Inicia sesión en Docker Hub ou noutro rexistro usando o fluxo de Docker.
 
-  --server HOST   Rexistro alternativo; se se omite usa Docker Hub.
-  -- ARGUMENTOS   Reenvía opcións adicionais a `docker login`.
+OPCIÓNS
+  --server SERVIDOR   Usa un rexistro diferente de Docker Hub.
+  -h, --help          Mostra esta axuda.
+  --                  Remata as opcións do wrapper.
 
-Exemplo: docker-login -- --username meu-usuario
+RESULTADO
+  Garda as credenciais segundo a configuración do cliente de Docker.
+
+EXEMPLOS
+  docker-login
+  docker-login --server registry.example.com -- --username usuario
+
+COMANDO ORIXINAL
+  Todo o situado despois de `--` reenvíase a `docker login`.
+  Usa `docker-login -- --help` para consultar as súas opcións.
 EOF
       ;;
     docker-logout)
       cat <<'EOF'
-Uso: docker-logout [--server SERVIDOR] [-h|--help] [-- argumentos-docker-logout]
+USO
+  docker-logout [OPCIÓNS] [-- ARGUMENTOS DE DOCKER LOGOUT]
 
-Pide confirmación e pecha a sesión de Docker Hub ou doutro rexistro.
+DESCRICIÓN
+  Confirma e pecha a sesión de Docker Hub ou doutro rexistro.
 
-  --server HOST   Rexistro alternativo; se se omite usa Docker Hub.
-  -- ARGUMENTOS   Reenvía opcións adicionais a `docker logout`.
+OPCIÓNS
+  --server SERVIDOR   Usa un rexistro diferente de Docker Hub.
+  -h, --help          Mostra esta axuda.
+  --                  Remata as opcións do wrapper.
+
+RESULTADO
+  Elimina as credenciais gardadas para o rexistro indicado.
+
+EXEMPLOS
+  docker-logout
+  docker-logout --server registry.example.com
+
+COMANDO ORIXINAL
+  Todo o situado despois de `--` reenvíase a `docker logout`.
+  Usa `docker-logout -- --help` para consultar as súas opcións.
 EOF
       ;;
     docker-search)
       cat <<'EOF'
-Uso: docker-search [--term TEXTO] [-h|--help] [-- argumentos-docker-search]
+USO
+  docker-search [OPCIÓNS] [-- ARGUMENTOS DE DOCKER SEARCH]
 
-Busca imaxes públicas en Docker Hub.
+DESCRICIÓN
+  Busca imaxes públicas en Docker Hub.
 
-  --term TEXTO    Termo de busca; se se omite pídese cun input.
-  -- ARGUMENTOS   Reenvía opcións adicionais a `docker search`.
+OPCIÓNS
+  --term TEXTO   Termo de busca; se se omite, pídese cun input.
+  -h, --help     Mostra esta axuda.
+  --             Remata as opcións do wrapper.
+
+RESULTADO
+  Escribe na terminal as imaxes que coinciden coa busca.
+
+EXEMPLOS
+  docker-search --term alpine
+  docker-search --term nginx -- --limit 10
+
+COMANDO ORIXINAL
+  Todo o situado despois de `--` reenvíase a `docker search`.
+  Usa `docker-search -- --help` para consultar as súas opcións.
 EOF
       ;;
     docker-pull)
       cat <<'EOF'
-Uso: docker-pull [--image REFERENCIA] [-h|--help] [-- argumentos-docker-pull]
+USO
+  docker-pull [OPCIÓNS] [-- ARGUMENTOS DE DOCKER PULL]
 
-Descarga unha imaxe de Docker Hub ou doutro rexistro.
+DESCRICIÓN
+  Descarga unha imaxe de Docker Hub ou doutro rexistro.
 
-  --image REF     Imaxe que se descargará; se se omite pídese cun input.
-  -- ARGUMENTOS   Reenvía opcións adicionais a `docker pull`.
+OPCIÓNS
+  --image REFERENCIA   Imaxe que se descargará; se se omite, pídese cun input.
+  -h, --help           Mostra esta axuda.
+  --                   Remata as opcións do wrapper.
+
+RESULTADO
+  Garda localmente a imaxe e as súas capas.
+
+EXEMPLOS
+  docker-pull --image alpine:latest
+  docker-pull --image alpine -- --platform linux/amd64
+
+COMANDO ORIXINAL
+  Todo o situado despois de `--` reenvíase a `docker pull`.
+  Usa `docker-pull -- --help` para consultar as súas opcións.
 EOF
       ;;
     docker-push)
       cat <<'EOF'
-Uso: docker-push [-h|--help] [-- argumentos-docker-push]
+USO
+  docker-push [OPCIÓNS] [-- ARGUMENTOS DE DOCKER PUSH]
 
-Selecciona unha imaxe local etiquetada e súbea ao seu rexistro.
+DESCRICIÓN
+  Selecciona unha imaxe local etiquetada e súbea ao seu rexistro.
 
-  -- ARGUMENTOS   Reenvía opcións adicionais a `docker push`.
+OPCIÓNS
+  -h, --help   Mostra esta axuda.
+  --           Remata as opcións do wrapper.
+
+RESULTADO
+  Publica no rexistro a imaxe e as capas que falten.
+
+EXEMPLOS
+  docker-push
+  docker-push -- --quiet
+
+COMANDO ORIXINAL
+  Todo o situado despois de `--` reenvíase a `docker push`.
+  Usa `docker-push -- --help` para consultar as súas opcións.
 EOF
       ;;
   esac
@@ -1180,7 +1499,6 @@ docker-clean() {
   _docker_require || return 1
 
   docker system df
-  echo
   action="$(gum_choose --header "Que queres limpar?" \
     "Contedores detidos" "Imaxes sen usar" "Caché de build" \
     "Sistema sen volumes" "Volumes sen usar")" || return 0

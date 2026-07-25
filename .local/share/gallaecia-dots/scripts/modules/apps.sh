@@ -10,10 +10,28 @@
 
 # Avisa de que os helpers deste módulo son internos e non unha API pública.
 _apps_internal_help() {
-  cat <<'EOF'
-NON USAR: esta función pertence á API interna do instalador de aplicacións.
-Pode modificar colas e estado global. Para comandos personalizados usa os
-helpers documentados de ui.sh, files.sh e commands.sh.
+  cat <<EOF
+USO
+  ${FUNCNAME[1]} -h|--help
+
+DESCRICIÓN
+  NON USAR: esta función pertence á API interna do instalador de aplicacións.
+  Pode modificar colas e estado global.
+
+OPCIÓNS
+  -h, --help
+      Mostra este aviso.
+
+RESULTADO
+  A axuda devolve 0 sen modificar o estado. O resto do comportamento forma
+  parte do fluxo interno e non constitúe unha API pública.
+
+EXEMPLOS
+  ${FUNCNAME[1]} --help
+
+ALTERNATIVAS
+  Para comandos personalizados usa os helpers documentados de ui.sh, files.sh
+  e commands.sh.
 EOF
 }
 

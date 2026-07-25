@@ -799,8 +799,6 @@ install_base_version() {
 
   info "Agora que temos os dotfiles descargados, vamos a instalalos!"
 
-  echo
-
   title "Cambiar idioma a Galego"
   info "Como bos dotfiles en Galego, temos que cambiar o idioma a Galego. Se engade un fallback a Español e logo a Inglés en caso de non haber nigún dos dous."
 
@@ -878,12 +876,8 @@ install_base_version() {
 
   info "Xa temos os dotfiles base instalados e configurados! Agora imos escoller aplicacións."
 
-  echo
-
   title "Aplicacións principais"
   info "Selecciona polo menos unha aplicación por categoría. Se escolles varias, poderás indicar cal usar por defecto."
-
-  echo
 
   if configure_required_apps; then
     success "Aplicacións principais seleccionadas con éxito!"
@@ -891,12 +885,8 @@ install_base_version() {
     fail "Algo fallou ao seleccionar as aplicacións principais! Abortando instalación..."
   fi
 
-  echo
-
   title "Aplicacións opcionais"
   info "Selecciona aplicacións opcionais por categoría. Podes deixar categorías baleiras."
-
-  echo
 
   if configure_optional_apps; then
     success "Aplicacións opcionais seleccionadas con éxito!"
@@ -904,7 +894,6 @@ install_base_version() {
     fail "Algo fallou ao seleccionar as aplicacións opcionais! Abortando instalación..."
   fi
 
-  echo
   title "Resumo da instalación de apps"
   # shellcheck disable=SC2154
   info "Paquetes pacman/AUR pendentes: ${#pkgs_apps[@]}"
@@ -951,8 +940,6 @@ main() {
   info "Con este script poderás instalar os dotfiles paso por paso para que poidas personalizar algunhas cousas e gardar copias de seguridade antes de que se sobreescriban polos dotfiles."
   info "Simplemente responde as preguntas que irán aparecendo en pantalla deixa que ocurra a maxia pagana."
 
-  echo
-
   if ! gum_confirm "Queres instalar Gallaecia Dots agora?"; then
     info "Instalación cancelada."
     exit 0
@@ -965,8 +952,6 @@ main() {
   title "Reiniciar o sistema"
   info "Recoméndase reiniciar o sistema para aplicar correctamente todos os cambios."
   
-  echo
-
   if gum_confirm "Reiniciar o sistema agora?"; then
     systemctl reboot
   fi

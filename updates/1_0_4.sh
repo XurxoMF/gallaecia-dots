@@ -9,9 +9,7 @@ MODULES_DIR="$DOTFILES_DIR/.local/share/gallaecia-dots/scripts/modules"
 
 if [ ! -r "$MODULES_DIR/ui.sh" ] ||
   [ ! -r "$MODULES_DIR/commands.sh" ] ||
-  [ ! -r "$MODULES_DIR/files.sh" ] ||
-  [ ! -r "$MODULES_DIR/versions.sh" ] ||
-  [ ! -r "$MODULES_DIR/apps.sh" ]; then
+  [ ! -r "$MODULES_DIR/files.sh" ]; then
   echo "Non se atoparon os módulos de Gallaecia Dots en $MODULES_DIR." >&2
   exit 1
 fi
@@ -22,28 +20,44 @@ source "$MODULES_DIR/ui.sh"
 source "$MODULES_DIR/commands.sh"
 # shellcheck source=/dev/null
 source "$MODULES_DIR/files.sh"
-# shellcheck source=/dev/null
-source "$MODULES_DIR/versions.sh"
-# shellcheck source=/dev/null
-source "$MODULES_DIR/apps.sh"
 
+# Instala Ark para integrar a compresión en Dolphin cando este está dispoñible.
+install_ark_for_dolphin() {
+  if ! has_command dolphin; then
+    return 0
+  fi
+
+  if ! yay -Sy --needed ark; then
+    return 1
+  fi
+}
+
+# Actualiza a configuración compartida de Hyprland.
+update_hyprland_config() {
+  replace_file \
+    "$DOTFILES_DIR/.local/share/gallaecia-dots/hypr/gallaecia.lua" \
+    "$HOME/.local/share/gallaecia-dots/hypr/gallaecia.lua"
+}
+
+# Mostra o resumo visible dos cambios incluídos na migración.
 show_changelog() {
-  echo
   title "Update $VERSION"
   info "Cambios que se van aplicar:"
   info "· Engadido ark para engadir compresión de arquivos a dolphin (solo se tes dolphin)."
   info "· Actualizadas animacións de Hyprland rotas dende a 0.56.0."
-  echo
 }
 
+# Executa cada cambio da migración e detense no primeiro erro.
 apply_update() {
-  if has_command dolphin; then
-    yay -Sy --needed ark
+  if ! install_ark_for_dolphin; then
+    return 1
   fi
-
-  replace_file "$DOTFILES_DIR/.local/share/gallaecia-dots/hypr/gallaecia.lua" "$HOME/.local/share/gallaecia-dots/hypr/gallaecia.lua"
+  if ! update_hyprland_config; then
+    return 1
+  fi
 }
 
+# Confirma e executa a migración, propagando calquera erro ao instalador.
 main() {
   show_changelog
 

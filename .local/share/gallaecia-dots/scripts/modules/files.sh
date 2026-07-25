@@ -5,41 +5,129 @@ _files_help() {
   case "$1" in
     replace_path)
       cat <<'EOF'
-Uso: replace_path [--dry-run] [-h|--help] [--] ORIXE DESTINO
+USO
+  replace_path [OPCIÓNS] ORIXE DESTINO
 
-Elimina a árbore de destino e substitúea por unha copia da orixe.
+DESCRICIÓN
+  Elimina a árbore de destino e substitúea por unha copia da orixe.
 
-  --dry-run   Mostra a operación sen modificar ficheiros.
-  --          Remata as opcións e permite rutas que comecen por guión.
+PARÁMETROS
+  ORIXE
+      Directorio que se copiará.
+
+  DESTINO
+      Ruta que se eliminará e substituirá.
+
+OPCIÓNS
+  --dry-run
+      Mostra a operación sen modificar ficheiros.
+
+  -h, --help
+      Mostra esta axuda.
+
+  --
+      Remata as opcións e permite rutas que comecen por guión.
+
+RESULTADO
+  Devolve 0 se a substitución se completa e un código distinto de 0 se falla.
+
+EXEMPLOS
+  replace_path ./config ~/.config/app
+  replace_path --dry-run ./config ~/.config/app
 EOF
       ;;
     merge_path)
       cat <<'EOF'
-Uso: merge_path [--dry-run] [-h|--help] [--] ORIXE DESTINO
+USO
+  merge_path [OPCIÓNS] ORIXE DESTINO
 
-Crea o destino se non existe e copia dentro del a árbore de orixe sen borrar
-previamente o contido existente.
+DESCRICIÓN
+  Crea o destino se non existe e copia nel o contido da orixe sen borrar
+  previamente os ficheiros existentes.
 
-  --dry-run   Mostra a operación sen modificar ficheiros.
-  --          Remata as opcións e permite rutas que comecen por guión.
+PARÁMETROS
+  ORIXE
+      Directorio cuxo contido se copiará.
+
+  DESTINO
+      Directorio no que se combinará o contido.
+
+OPCIÓNS
+  --dry-run
+      Mostra a operación sen modificar ficheiros.
+
+  -h, --help
+      Mostra esta axuda.
+
+  --
+      Remata as opcións e permite rutas que comecen por guión.
+
+RESULTADO
+  Devolve 0 se a combinación se completa e un código distinto de 0 se falla.
+
+EXEMPLOS
+  merge_path ./config ~/.config/app
+  merge_path --dry-run ./config ~/.config/app
 EOF
       ;;
     replace_file)
       cat <<'EOF'
-Uso: replace_file [--dry-run] [-h|--help] [--] ORIXE DESTINO
+USO
+  replace_file [OPCIÓNS] ORIXE DESTINO
 
-Elimina o ficheiro de destino e substitúeo por unha copia da orixe.
+DESCRICIÓN
+  Elimina o ficheiro de destino e substitúeo por unha copia da orixe.
 
-  --dry-run   Mostra a operación sen modificar ficheiros.
-  --          Remata as opcións e permite rutas que comecen por guión.
+PARÁMETROS
+  ORIXE
+      Ficheiro que se copiará.
+
+  DESTINO
+      Ruta do ficheiro que se substituirá.
+
+OPCIÓNS
+  --dry-run
+      Mostra a operación sen modificar ficheiros.
+
+  -h, --help
+      Mostra esta axuda.
+
+  --
+      Remata as opcións e permite rutas que comecen por guión.
+
+RESULTADO
+  Devolve 0 se a substitución se completa e un código distinto de 0 se falla.
+
+EXEMPLOS
+  replace_file ./config.toml ~/.config/app/config.toml
+  replace_file --dry-run ./config.toml ~/.config/app/config.toml
 EOF
       ;;
     file_exists)
       cat <<'EOF'
-Uso: file_exists [-h|--help] [--] RUTA
+USO
+  file_exists [OPCIÓNS] RUTA
 
-Devolve éxito se a ruta recibida existe e é un ficheiro normal.
-`--` permite comprobar unha ruta que comece por guión.
+DESCRICIÓN
+  Comproba se unha ruta existe e é un ficheiro normal.
+
+PARÁMETROS
+  RUTA
+      Ficheiro que se quere comprobar.
+
+OPCIÓNS
+  -h, --help
+      Mostra esta axuda.
+
+  --
+      Remata as opcións e permite unha ruta que comece por guión.
+
+RESULTADO
+  Devolve 0 se o ficheiro existe e un código distinto de 0 se non existe.
+
+EXEMPLOS
+  file_exists ~/.bashrc
+  file_exists -- ./-ficheiro
 EOF
       ;;
   esac

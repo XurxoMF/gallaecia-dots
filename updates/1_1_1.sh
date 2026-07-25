@@ -25,19 +25,19 @@ update_system_update() {
     "$HOME/.local/share/gallaecia-dots/scripts/system-update.sh"
 }
 
-# Mostra os cambios e a reparación que aplicará esta migración.
+# Mostra o resumo visible dos cambios incluídos na migración.
 show_changelog() {
-  echo
   title "Update $VERSION"
   info "Cambios que se van aplicar:"
   info "· Corrixida a entrada interactiva das migracións para evitar EOF."
   info "· O actualizador comproba versións pendentes aínda co repo ao día."
-  echo
 }
 
-# Instala o actualizador corrixido e reexecuta a migración anterior.
+# Executa cada cambio da migración e detense no primeiro erro.
 apply_update() {
-  update_system_update || return 1
+  if ! update_system_update; then
+    return 1
+  fi
 }
 
 # Confirma e executa a migración, propagando calquera erro ao instalador.

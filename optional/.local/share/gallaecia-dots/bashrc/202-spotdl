@@ -5,21 +5,41 @@ _spotdl_help() {
   case "$1" in
     spotdl-musica)
       cat <<'EOF'
-Uso: spotdl-musica [--once] [--url URL] [-h|--help] [-- argumentos-spotdl]
+USO
+  spotdl-musica [OPCIÓNS] [-- ARGUMENTOS DE SPOTDL DOWNLOAD]
 
-Descarga música mediante `spotdl download`. Sen opcións, pide URLs
-repetidamente ata cancelar o input.
+DESCRICIÓN
+  Descarga música mediante `spotdl download`. Sen opcións, pide URLs
+  repetidamente ata cancelar o input.
 
-  --once         Pide unha única URL e remata despois da descarga.
-  --url URL      Usa directamente esta URL e implica --once.
-  -h, --help     Mostra esta axuda.
-  -- ARGUMENTOS  Reenvía todo o posterior a `spotdl download`, antes da URL.
+OPCIÓNS
+  --once
+      Pide unha única URL e remata despois da descarga.
 
-Exemplos:
+  --url URL
+      Descarga directamente a URL indicada e implica `--once`.
+
+  -h, --help
+      Mostra esta axuda.
+
+  --
+      Remata as opcións do wrapper. Todo o posterior reenvíase a
+      `spotdl download`.
+
+RESULTADO
+  Devolve o código da última execución de SpotDL.
+  Cancelar o input sen descargar nada devolve 0.
+
+EXEMPLOS
   spotdl-musica --once
   spotdl-musica --url URL -- --format flac
   spotdl-musica -- --bitrate 320k
+
+COMANDO ORIXINAL
+  Para consultar a axuda ou a versión de SpotDL:
+
   spotdl-musica -- --help
+  spotdl-musica -- --version
 EOF
       ;;
   esac
@@ -79,8 +99,6 @@ spotdl-musica() {
   done
 
   while true; do
-    echo
-
     if [ -z "$url" ]; then
       url="$(gum_input --prompt "URL de Spotify (ou youtube|spotify): " --placeholder "Pega unha URL")" || return 0
     fi

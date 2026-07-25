@@ -47,70 +47,231 @@ _ui_help() {
   case "$1" in
     gum_style)
       cat <<'EOF'
-Uso: gum_style [-h|--help] [argumentos-gum-style] [-- argumentos-gum-style]
+USO
+  gum_style [OPCIÓNS] TEXTO... [-- ARGUMENTOS DE GUM STYLE]
 
-Executa `gum style` coa paleta de Gallaecia. Os argumentos directos mantéñense
-por compatibilidade; `--` permite reenviar literalmente opcións como --help.
+DESCRICIÓN
+  Mostra un ou máis textos usando `gum style` e a paleta de Gallaecia.
 
-Exemplo: gum_style "Texto" -- --border rounded --bold
+PARÁMETROS
+  TEXTO...
+      Un ou máis textos que se mostrarán.
+
+OPCIÓNS
+  -h, --help
+      Mostra esta axuda.
+
+  --
+      Remata as opcións do helper. Todo o posterior reenvíase a `gum style`.
+
+RESULTADO
+  Escribe o texto formatado en stdout e devolve o código de `gum style`.
+
+EXEMPLOS
+  gum_style "Texto normal"
+  gum_style "Título" -- --border rounded --bold
+
+COMANDO ORIXINAL
+  Os argumentos de Gum tamén se aceptan directamente por compatibilidade,
+  pero recoméndase escribilos despois de `--`.
+
+  gum_style "Axuda" -- --help
 EOF
       ;;
     info|title|warning|success|fail)
       cat <<EOF
-Uso: $1 [-h|--help] MENSAXE [-- argumentos-gum-style]
+USO
+  $1 [OPCIÓNS] MENSAXE [-- ARGUMENTOS DE GUM STYLE]
 
-Mostra unha mensaxe co estilo de Gallaecia correspondente ao nome do helper.
-Os argumentos posteriores a \`--\` reenvíanse a \`gum style\`.
+DESCRICIÓN
+  Mostra unha mensaxe co estilo de Gallaecia correspondente a \`$1\`.
 
-Exemplo: $1 "Mensaxe" -- --border rounded
+PARÁMETROS
+  MENSAXE
+      Texto que se mostrará.
+
+OPCIÓNS
+  -h, --help
+      Mostra esta axuda.
+
+  --
+      Remata as opcións do helper. Todo o posterior reenvíase a \`gum style\`.
+
+RESULTADO
+  Escribe a mensaxe formatada en stdout.
+  \`fail\` remata o proceso con código 1; os demais helpers devolven o código
+  de \`gum style\`.
+
+EXEMPLOS
+  $1 "Mensaxe"
+  $1 "Mensaxe con bordo" -- --border rounded
+
+COMANDO ORIXINAL
+  Para consultar as opcións admitidas por Gum:
+
+  $1 "Axuda" -- --help
 EOF
       ;;
     gum_confirm)
       cat <<'EOF'
-Uso: gum_confirm [-h|--help] [argumentos-gum-confirm] [-- argumentos-gum-confirm]
+USO
+  gum_confirm [OPCIÓNS] PREGUNTA [-- ARGUMENTOS DE GUM CONFIRM]
 
-Executa `gum confirm` coa paleta de Gallaecia e os textos Si/No. Devolve 0 ao
-confirmar e un código distinto de cero ao cancelar.
+DESCRICIÓN
+  Mostra unha pregunta de confirmación coa paleta de Gallaecia e as opcións
+  «Si» e «No».
 
-Exemplo: gum_confirm "Continuar?" -- --default=false
+PARÁMETROS
+  PREGUNTA
+      Texto que se mostrará ao usuario.
+
+OPCIÓNS
+  -h, --help
+      Mostra esta axuda.
+
+  --
+      Remata as opcións do helper. Todo o posterior reenvíase a `gum confirm`.
+
+RESULTADO
+  Devolve 0 se o usuario escolle «Si».
+  Devolve un código distinto de 0 se escolle «No» ou cancela.
+
+EXEMPLOS
+  gum_confirm "Continuar coa instalación?"
+  gum_confirm "Eliminar o ficheiro?" -- --default=false
+  gum_confirm "Publicar?" -- --affirmative "Publicar" --negative "Cancelar"
+
+COMANDO ORIXINAL
+  Os argumentos de Gum tamén se aceptan directamente por compatibilidade,
+  pero recoméndase escribilos despois de `--`.
+
+  gum_confirm "Axuda" -- --help
 EOF
       ;;
     gum_choose)
       cat <<'EOF'
-Uso: gum_choose [-h|--help] [argumentos-gum-choose] [-- argumentos-gum-choose]
+USO
+  gum_choose [OPCIÓNS] OPCIÓN... [-- ARGUMENTOS DE GUM CHOOSE]
 
-Executa `gum choose` coa paleta de Gallaecia. A selección escríbese en stdout;
-usa --no-limit para permitir varias opcións.
+DESCRICIÓN
+  Mostra un selector coa paleta de Gallaecia.
 
-Exemplo: gum_choose --header "Escolle:" "A" "B"
+PARÁMETROS
+  OPCIÓN...
+      Unha ou máis opcións que se mostrarán no selector.
+
+OPCIÓNS
+  -h, --help
+      Mostra esta axuda.
+
+  --
+      Remata as opcións do helper. Todo o posterior reenvíase a `gum choose`.
+
+RESULTADO
+  Escribe cada opción seleccionada nunha liña de stdout.
+  Devolve un código distinto de 0 se o usuario cancela.
+
+EXEMPLOS
+  gum_choose "Git" "Docker" "Bruno"
+  gum_choose "Git" "Docker" -- --header "Escolle unha ferramenta:"
+  gum_choose "Git" "Docker" -- --header "Escolle varias:" --no-limit
+
+COMANDO ORIXINAL
+  Os argumentos de Gum tamén se aceptan directamente por compatibilidade,
+  pero recoméndase escribilos despois de `--`.
+
+  gum_choose "Exemplo" -- --help
 EOF
       ;;
     gum_input)
       cat <<'EOF'
-Uso: gum_input [-h|--help] [argumentos-gum-input] [-- argumentos-gum-input]
+USO
+  gum_input [OPCIÓNS] [-- ARGUMENTOS DE GUM INPUT]
 
-Executa `gum input` coa paleta de Gallaecia e devolve o texto por stdout.
+DESCRICIÓN
+  Mostra unha entrada de texto coa paleta de Gallaecia.
 
-Exemplo: gum_input -- --password --header "Contrasinal"
+OPCIÓNS
+  -h, --help
+      Mostra esta axuda.
+
+  --
+      Remata as opcións do helper. Todo o posterior reenvíase a `gum input`.
+
+RESULTADO
+  Escribe en stdout o texto introducido.
+  Devolve un código distinto de 0 se o usuario cancela.
+
+EXEMPLOS
+  gum_input
+  gum_input -- --header "Nome" --placeholder "Escribe o teu nome"
+  gum_input -- --password --header "Contrasinal"
+
+COMANDO ORIXINAL
+  Os argumentos de Gum tamén se aceptan directamente por compatibilidade,
+  pero recoméndase escribilos despois de `--`.
+
+  gum_input -- --help
 EOF
       ;;
     gum_filter)
       cat <<'EOF'
-Uso: gum_filter [-h|--help] [argumentos-gum-filter] [-- argumentos-gum-filter]
+USO
+  gum_filter [OPCIÓNS] [-- ARGUMENTOS DE GUM FILTER]
 
-Filtra as opcións recibidas por stdin e escribe a selección en stdout. Usa
---no-limit para permitir varias seleccións.
+DESCRICIÓN
+  Filtra interactivamente as opcións recibidas por stdin.
 
-Exemplo: printf '%s\n' A B C | gum_filter -- --no-limit
+OPCIÓNS
+  -h, --help
+      Mostra esta axuda.
+
+  --
+      Remata as opcións do helper. Todo o posterior reenvíase a `gum filter`.
+
+RESULTADO
+  Escribe cada opción seleccionada nunha liña de stdout.
+  Devolve un código distinto de 0 se o usuario cancela.
+
+EXEMPLOS
+  printf '%s\n' A B C | gum_filter
+  printf '%s\n' A B C | gum_filter -- --no-limit --header "Escolle:"
+
+COMANDO ORIXINAL
+  Os argumentos de Gum tamén se aceptan directamente por compatibilidade,
+  pero recoméndase escribilos despois de `--`.
+
+  printf '%s\n' exemplo | gum_filter -- --help
 EOF
       ;;
     gum_write)
       cat <<'EOF'
-Uso: gum_write [-h|--help] [argumentos-gum-write] [-- argumentos-gum-write]
+USO
+  gum_write [OPCIÓNS] [-- ARGUMENTOS DE GUM WRITE]
 
-Executa `gum write` coa paleta de Gallaecia e devolve texto multilínea.
+DESCRICIÓN
+  Mostra un editor de texto multilínea coa paleta de Gallaecia.
 
-Exemplo: gum_write -- --height 10 --show-line-numbers
+OPCIÓNS
+  -h, --help
+      Mostra esta axuda.
+
+  --
+      Remata as opcións do helper. Todo o posterior reenvíase a `gum write`.
+
+RESULTADO
+  Escribe en stdout o texto introducido.
+  Devolve un código distinto de 0 se o usuario cancela.
+
+EXEMPLOS
+  gum_write
+  gum_write -- --height 10 --show-line-numbers
+
+COMANDO ORIXINAL
+  Os argumentos de Gum tamén se aceptan directamente por compatibilidade,
+  pero recoméndase escribilos despois de `--`.
+
+  gum_write -- --help
 EOF
       ;;
   esac
@@ -176,7 +337,7 @@ info() {
 	"${original_args[@]}"
 }
 
-# Título de sección.
+# Título de sección, separado do contido anterior e posterior.
 title() {
   local original_args=()
 
@@ -198,6 +359,7 @@ title() {
     shift
   done
 
+  echo
   gum_style -- \
 	--foreground="$ACCENT_FOREGROUND" \
 	--bold \
@@ -293,7 +455,7 @@ fail() {
   exit 1
 }
 
-# Confirmación si/non co estilo de Gallaecia.
+# Confirmación si/non co estilo de Gallaecia e cun espazo visual previo.
 gum_confirm() {
   local original_args=()
 
@@ -315,6 +477,8 @@ gum_confirm() {
     shift
   done
 
+  # Escríbese en stderr para non contaminar unha posible saída capturada.
+  echo >&2
   gum confirm \
 	--affirmative="Si" \
 	--negative="No" \
@@ -328,7 +492,7 @@ gum_confirm() {
 	"${original_args[@]}"
 }
 
-# Selector de opcións co estilo de Gallaecia.
+# Selector de opcións co estilo de Gallaecia e cun espazo visual previo.
 gum_choose() {
   local original_args=()
 
@@ -350,6 +514,8 @@ gum_choose() {
     shift
   done
 
+  # A selección debe ser o único contido devolto por stdout.
+  echo >&2
   gum choose \
 	--cursor.foreground="$CHOOSE_CURSOR_FOREGROUND" \
 	--cursor.background="$CHOOSE_CURSOR_BACKGROUND" \
@@ -363,7 +529,7 @@ gum_choose() {
 	"${original_args[@]}"
 }
 
-# Entrada de texto co mesmo estilo visual que o resto da UI.
+# Entrada de texto co estilo común e cun espazo visual previo.
 gum_input() {
   local original_args=()
 
@@ -385,6 +551,8 @@ gum_input() {
     shift
   done
 
+  # O salto vai por stderr para que stdout conteña unicamente o texto escrito.
+  echo >&2
   gum input \
 	--prompt.foreground="$INPUT_PROMPT_FOREGROUND" \
 	--prompt.background="$INPUT_PROMPT_BACKGROUND" \
@@ -398,7 +566,7 @@ gum_input() {
 	"${original_args[@]}"
 }
 
-# Filtro interactivo para listas longas ou selección múltiple.
+# Filtro interactivo para listas longas, separado visualmente do contido previo.
 gum_filter() {
   local original_args=()
 
@@ -420,6 +588,8 @@ gum_filter() {
     shift
   done
 
+  # A selección filtrada debe poder capturarse sen unha liña baleira adicional.
+  echo >&2
   gum filter \
 	--indicator.foreground="$CHOOSE_CURSOR_FOREGROUND" \
 	--indicator.background="$CHOOSE_CURSOR_BACKGROUND" \
@@ -443,7 +613,7 @@ gum_filter() {
 	"${original_args[@]}"
 }
 
-# Entrada de texto de varias liñas co estilo común.
+# Entrada de varias liñas co estilo común e cun espazo visual previo.
 gum_write() {
   local original_args=()
 
@@ -465,6 +635,8 @@ gum_write() {
     shift
   done
 
+  # O salto vai por stderr para non formar parte do texto devolto.
+  echo >&2
   gum write \
 	--base.foreground="$FOREGROUND" \
 	--base.background="$BACKGROUND" \

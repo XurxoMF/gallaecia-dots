@@ -109,6 +109,9 @@ git-log -- --since="1 week ago"
 yt-dlp-video -- --cookies-from-browser firefox
 ```
 
+Os prompts, menús, filtros e inputs sepáranse sempre do texto ou da saída
+anterior cunha liña baleira, sen modificar os valores devoltos polos comandos.
+
 ### Git e GitHub
 
 Os helpers de Git permiten:

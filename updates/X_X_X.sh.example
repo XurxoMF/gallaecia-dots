@@ -11,6 +11,7 @@ VERSION="0.0.0"
 DOTFILES_DIR="$HOME/.dotfiles"
 MODULES_DIR="$DOTFILES_DIR/.local/share/gallaecia-dots/scripts/modules"
 
+# Ao copiar a plantilla, conserva só os módulos que empregue a migración.
 if [ ! -r "$MODULES_DIR/ui.sh" ] ||
   [ ! -r "$MODULES_DIR/commands.sh" ] ||
   [ ! -r "$MODULES_DIR/files.sh" ] ||
@@ -31,22 +32,29 @@ source "$MODULES_DIR/versions.sh"
 # shellcheck source=/dev/null
 source "$MODULES_DIR/apps.sh"
 
-show_changelog() {
-  echo
-  title "Update $VERSION"
-  info "Cambios que se van aplicar:"
-  info "· Describe aquí o primeiro cambio."
-  info "· Describe aquí o segundo cambio."
-  echo
-}
-
-apply_update() {
-  # Engade aquí os cambios da update.
-  # Exemplo:
+# Separa cada cambio real nunha función cunha única responsabilidade.
+apply_example_change() {
+  # Substitúe este exemplo pola operación necesaria.
   # replace_file "$DOTFILES_DIR/.bashrc" "$HOME/.bashrc"
   true
 }
 
+# Mostra o resumo visible dos cambios incluídos na migración.
+show_changelog() {
+  title "Update $VERSION"
+  info "Cambios que se van aplicar:"
+  info "· Describe aquí o primeiro cambio."
+  info "· Describe aquí o segundo cambio."
+}
+
+# Executa cada cambio da migración e detense no primeiro erro.
+apply_update() {
+  if ! apply_example_change; then
+    return 1
+  fi
+}
+
+# Confirma e executa a migración, propagando calquera erro ao instalador.
 main() {
   show_changelog
 

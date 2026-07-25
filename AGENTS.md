@@ -66,6 +66,17 @@ Non obrigues unha instalación nova a reproducir migracións históricas. Evita 
 
 As migracións deben poder aplicarse secuencialmente, reutilizar os módulos compartidos e modificar só o necesario. Usa `updates/X_X_X.sh.example` como punto de partida e mantén nela un changelog breve e comprensible.
 
+Todos os updaters `updates/X_Y_Z.sh`, incluída a plantilla
+`updates/X_X_X.sh.example`, deben conservar exactamente a mesma estrutura:
+
+1. Constantes, validación e carga dos módulos necesarios.
+2. Unha función pequena por cada instalación, copia ou configuración.
+3. `show_changelog()` para o resumo visible.
+4. `apply_update()` como orquestrador, comprobando cada función con `if ! funcion; then return 1; fi`.
+5. `main()` para confirmar, executar e comunicar o resultado.
+
+Non concentres varias operacións nunha cadea `comando && comando || return 1`. A separación en funcións e os bloques `if` explícitos deben deixar claro que paso fallou e garantir que a versión non se marque cando quede unha acción incompleta.
+
 ## Separación entre base e personalización
 
 Respecta a propiedade de cada ficheiro:
@@ -126,7 +137,21 @@ Mantén o mesmo formato nos módulos compartidos e nos Bashrc:
 
 - Se un ficheiro expón varios comandos, centraliza os textos nunha función privada `_nome_help()` e fai que cada comando chame a súa sección.
 - Todos os comandos públicos deben procesar opcións cun `while (($#)); do` e un `case "$1" in`, mesmo cando inicialmente só admitan `-h|--help` e `--`. A estrutura uniforme facilita engadir opcións no futuro.
-- `-h|--help` mostra unha mini guía do wrapper: descrición xeral, opcións, uso do passthrough e exemplos relevantes.
+- `-h|--help` debe usar sempre o mesmo formato, con seccións en maiúsculas e
+  nesta orde: `USO`, `DESCRICIÓN`, `PARÁMETROS` cando existan, `OPCIÓNS`,
+  `RESULTADO`, `EXEMPLOS` e `COMANDO ORIXINAL` cando exista passthrough.
+- En `USO`, escribe os nomes substituíbles en maiúsculas. Usa `VALOR` para un
+  parámetro obrigatorio, `[VALOR]` para un opcional, `VALOR...` para un
+  repetible e `[-- ARGUMENTOS DE COMANDO]` para o passthrough.
+- `DESCRICIÓN` debe explicar brevemente o propósito e o comportamento
+  relevante do wrapper. `PARÁMETROS` e `OPCIÓNS` deben listar cada elemento
+  nunha liña propia cunha explicación clara, sen mesturar os argumentos do
+  wrapper cos do comando orixinal.
+- `RESULTADO` debe indicar que produce ou modifica a función e os códigos de
+  saída relevantes. `EXEMPLOS` debe incluír polo menos un uso habitual e outro
+  coas opcións máis útiles cando corresponda.
+- `COMANDO ORIXINAL` debe explicar a que comando se reenvía o situado despois
+  de `--` e mostrar como consultar a súa axuda cando realmente funcione.
 - `--` remata as opcións do wrapper. Garda todo o posterior nun array local, normalmente `original_args=("$@")`, e reenvíao ao comando orixinal. Así `wrapper -- --help` mostra a axuda do programa real.
 - Se o helper combina varios comandos ou non pode reenviar argumentos de forma coherente, non inventes passthrough. Documenta esta limitación na súa axuda e ofrece só opcións propias útiles, como `--dry-run`.
 - As opcións descoñecidas antes de `--` deben producir unha mensaxe clara que indique como consultar `--help`.
@@ -144,6 +169,9 @@ Mantén o mesmo formato nos módulos compartidos e nos Bashrc:
 ## Interface e idioma
 
 A interface interactiva está centralizada en `modules/ui.sh` e usa `gum`. Emprega os wrappers `gum_style`, `info`, `title`, `warning`, `success`, `fail`, `gum_confirm`, `gum_choose`, `gum_input`, `gum_filter` e `gum_write` para conservar o estilo e as cores xeradas por Noctalia.
+
+- O espazado visual pertence aos wrappers de UI. `title` separa a sección anterior e posterior; `gum_confirm`, `gum_choose`, `gum_input`, `gum_filter` e `gum_write` engaden sempre unha liña baleira antes da interacción.
+- Non engadas un `echo` antes destes helpers só para crear espazo. Se un helper devolve datos por `stdout`, calquera separación visual interna debe escribirse en `stderr` para non contaminar command substitutions, arrays ou pipelines.
 
 Escribe en galego as mensaxes novas e revisa a ortografía antes de rematar. Conserva a orde de idiomas do sistema:
 
@@ -194,4 +222,6 @@ Antes de entregar un cambio:
 4. Revisa paquetes, comandos, ficheiros `.desktop`, asociacións MIME e placeholders relacionados.
 5. Executa as validacións estáticas aplicables.
 6. Actualiza o `README.md` cando cambie o comportamento visible, os requisitos, as categorías ou o proceso de instalación.
-7. Resume que se cambiou, como se validou e que non se puido probar de forma segura.
+7. Se se crea ou modifica unha regra de estilo, formato ou estrutura, actualiza
+   `AGENTS.md` no mesmo cambio para mantelo como fonte de verdade.
+8. Resume que se cambiou, como se validou e que non se puido probar de forma segura.
