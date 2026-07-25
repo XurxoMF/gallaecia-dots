@@ -173,7 +173,7 @@ Mantén o mesmo formato nos módulos compartidos e nos Bashrc:
 
 A interface interactiva está centralizada en `modules/ui.sh` e usa `gum`. Emprega os wrappers `gum_style`, `info`, `title`, `warning`, `success`, `fail`, `gum_confirm`, `gum_choose`, `gum_input`, `gum_filter` e `gum_write` para conservar o estilo e as cores xeradas por Noctalia.
 
-- O espazado visual pertence aos wrappers de UI. `title` separa a sección anterior e posterior; `gum_confirm`, `gum_choose`, `gum_input`, `gum_filter` e `gum_write` engaden sempre unha liña baleira antes da interacción.
+- O espazado visual pertence aos wrappers de UI. `title` separa a sección anterior e posterior; `gum_confirm`, `gum_choose`, `gum_input` e `gum_write` engaden sempre unha liña baleira antes da interacción. `gum_filter` non engade padding porque ocupa a pantalla completa.
 - Implementa ese espazado co `--padding` de Gum, non con `echo`: o padding
   forma parte da interface e Gum elimínao ao pechala, mentres que un `echo`
   deixa liñas baleiras permanentes. Non engadas un `echo` antes destes helpers

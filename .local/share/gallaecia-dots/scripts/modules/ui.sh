@@ -582,7 +582,7 @@ gum_input() {
 	"${original_args[@]}"
 }
 
-# Filtro interactivo para listas longas con padding superior.
+# Filtro interactivo a pantalla completa para listas longas.
 gum_filter() {
   local original_args=()
 
@@ -604,6 +604,7 @@ gum_filter() {
     shift
   done
 
+  # O fondo baleiro do indicador desmarcado anula tamén estilos do ambiente.
   gum filter \
 	--show-help \
 	--indicator.foreground="$CHOOSE_CURSOR_FOREGROUND" \
@@ -611,6 +612,7 @@ gum_filter() {
 	--selected-indicator.foreground="$CHOOSE_SELECTED_FOREGROUND" \
 	--selected-indicator.background="$CHOOSE_SELECTED_BACKGROUND" \
 	--unselected-prefix.foreground="$CHOOSE_ITEM_FOREGROUND" \
+	--unselected-prefix.background="" \
 	--header.foreground="$CHOOSE_HEADER_FOREGROUND" \
 	--header.background="$CHOOSE_HEADER_BACKGROUND" \
 	--text.foreground="$CHOOSE_ITEM_FOREGROUND" \
@@ -622,7 +624,6 @@ gum_filter() {
 	--prompt.background="$INPUT_PROMPT_BACKGROUND" \
 	--placeholder.foreground="$INPUT_PLACEHOLDER_FOREGROUND" \
 	--placeholder.background="$INPUT_PLACEHOLDER_BACKGROUND" \
-	--padding="1 0 0 0" \
 	"${original_args[@]}"
 }
 
