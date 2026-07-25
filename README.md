@@ -91,11 +91,78 @@ As categorías actuais son:
 - Oficina e notas
 - Xogos e tendas
 - Utilidades
-- Desenvolvemento
+- Desenvolvemento, incluídos Docker + Compose e Git
 - Rede e privacidade
 - Descargas e personalización
 
 Moitas categorías permiten escoller varias opcións, e nalgúns casos tamén definir unha app por defecto.
+
+## 🐚 Helpers interactivos
+
+As aplicacións opcionais poden instalar funcións Bash guiadas con `gum` para
+as tarefas máis habituais. Cada comando dispón de axuda propia con `--help` e
+permite reenviar opcións ao programa orixinal despois de `--`:
+
+```bash
+docker-logs --follow -- --timestamps
+git-log -- --since="1 week ago"
+yt-dlp-video -- --cookies-from-browser firefox
+```
+
+### Git e GitHub
+
+Os helpers de Git permiten:
+
+- Configurar a autoría con `git-credenciales` e iniciar sesión con
+  `github-login`.
+- Preparar e gardar cambios con `git-add`, `git-commit` e `git-save`.
+- Consultar cambios e historial con `git-diff`, `git-log` e
+  `git-commit-show`.
+- Descargar e publicar cambios con `git-pull` e `git-push`.
+- Cambiar, crear, borrar e integrar ramas con `git-branch-switch`,
+  `git-branch-new`, `git-branch-delete` e `git-branch-merge`.
+- Gardar e recuperar traballo temporal con `git-stash-save` e
+  `git-stash-pop`.
+
+### Docker, Compose e Buildx
+
+Os helpers de Docker cobren:
+
+- Listaxe, shell, consola e logs con `docker-ps`, `docker-shell`,
+  `docker-attach` e `docker-logs`.
+- Inicio, parada, reinicio e borrado con `docker-container-start`,
+  `docker-container-stop`, `docker-container-restart` e
+  `docker-container-delete`.
+- Listaxe, etiquetado e borrado de imaxes con `docker-images`,
+  `docker-tag` e `docker-image-delete`.
+- Listaxe e borrado de redes e volumes con `docker-networks`,
+  `docker-network-delete`, `docker-volumes` e `docker-volume-delete`.
+- Estado, inicio, parada, logs, reconstrución e actualización de Compose con
+  `compose-ps`, `compose-up`, `compose-down`, `compose-logs`,
+  `compose-rebuild` e `compose-update`.
+- Builds locais e limpeza guiada con `docker-build` e `docker-clean`.
+- Acceso a Docker Hub ou outros rexistros con `docker-login`,
+  `docker-logout`, `docker-search`, `docker-pull` e `docker-push`.
+
+As operacións de borrado sempre piden confirmación. As accións forzadas ou que
+poden eliminar datos importantes, como volumes, requiren unha segunda
+confirmación.
+
+Ao instalar Docker tamén se activa `docker.service` e engádese o usuario ao
+grupo `docker`. O acceso sen `sudo` queda dispoñible despois de reiniciar.
+
+### Descargas e helpers reutilizables
+
+`yt-dlp-video`, `yt-dlp-musica` e `spotdl-musica` admiten `--once`, `--url` e
+opcións adicionais para o programa orixinal despois de `--`.
+
+Os helpers públicos de interface, comandos e ficheiros tamén ofrecen
+`--help`. As operacións de ficheiros permiten revisar o resultado con
+`--dry-run`.
+
+Os comandos propios do usuario poden gardarse en
+`~/.config/bashrc/NNN-nome`. Estes ficheiros están pensados para
+personalización e non deben ser substituídos polas actualizacións habituais.
 
 ## 🚀 Instalación
 

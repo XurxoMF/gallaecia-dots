@@ -17,6 +17,8 @@ Emprega o galego nos comentarios, mensaxes da interface, documentación e nomes 
 - `updates/X_X_X.sh.example`: plantilla para crear unha migración.
 - `.local/share/gallaecia-dots/scripts/modules/`: funcións Bash compartidas para aplicacións, comandos, ficheiros, interface e versións.
 - `.local/share/gallaecia-dots/scripts/system-update.sh`: actualizador interactivo do sistema e dos dotfiles.
+- `.config/bashrc/`: módulos base e espazo de personalización do usuario, cargados por orde numérica.
+- `optional/.local/share/gallaecia-dots/bashrc/`: comandos Bash opcionais que só se instalan coa aplicación correspondente.
 - `.local/share/gallaecia-dots/hypr/gallaecia.lua`: base de Hyprland controlada polo proxecto.
 - `.config/hypr/hyprland.lua`: wrapper de Hyprland que recibe as aplicacións escollidas e deixa espazo para personalización.
 - `.config/noctalia/gallaecia.toml`: configuración de Noctalia controlada polo proxecto.
@@ -42,6 +44,12 @@ O estado gárdase en `~/.local/share/gallaecia-dots/`:
 - `instalado`: data da última instalación ou actualización.
 
 Os nomes `updates/1_0_4.sh` convértense en versións `1.0.4`. O instalador só executa ficheiros co patrón numérico esperado e ordénaos por versión.
+
+Emprega versionado semántico para escoller a seguinte versión:
+
+- Incrementa o parche (`1.0.4` → `1.0.5`) para correccións pequenas que non engaden unha capacidade relevante.
+- Incrementa a versión menor (`1.0.4` → `1.1.0`) para grupos amplos de cambios ou funcionalidade nova compatible, como novas integracións e comandos públicos.
+- Reserva a versión maior para cambios incompatibles que requiran unha migración ou decisión explícita do usuario.
 
 ### Regra fundamental da base e das actualizacións
 
@@ -69,6 +77,8 @@ Respecta a propiedade de cada ficheiro:
 - `gallaecia.toml` está controlado polo proxecto; `custom.toml` non se debe sobrescribir se xa existe.
 - O wrapper `~/.config/hypr/hyprland.lua` carga a base compartida de Hyprland. Conserva os placeholders `{{terminal}}`, `{{editor}}`, `{{ide}}`, `{{navegador}}` e `{{explorador_de_arquivos}}` ata que o instalador os substitúa.
 - `.bashrc` está controlado polo proxecto. A personalización do usuario debe ir en ficheiros `~/.config/bashrc/NNN-nome`.
+- Os ficheiros xa existentes en `~/.config/bashrc/` considéranse personalización do usuario. Non os substitúas nunha migración: mesmo os módulos creados inicialmente por Gallaecia poden ter cambios persoais.
+- Os Bashrc opcionais de `~/.local/share/gallaecia-dots/bashrc/` pertencen á aplicación correspondente. Actualízaos só cando esa aplicación estea instalada ou seleccionada.
 
 Antes de cambiar unha operación de copia, comproba se o destino está pensado para ser controlado por Gallaecia ou para conservar cambios do usuario. Non substitúas unha operación `merge_path` por `replace_path` sen unha razón explícita.
 
@@ -99,19 +109,41 @@ As categorías principais esixen polo menos unha selección e poden pedir unha a
 ## Convencións de Bash
 
 - Usa Bash e conserva os shebangs existentes.
-- Nas funcións e variables locais usa `snake_case`; reserva maiúsculas para constantes e arrays globais de configuración.
+- Nas funcións internas e variables locais usa `snake_case`; reserva maiúsculas para constantes e arrays globais de configuración. Os comandos públicos cargados no Bashrc poden usar nomes con guión, como `git-branch-delete`.
 - Declara variables de función con `local`.
 - Cita as expansións de variables e rutas salvo cando a separación en palabras sexa deliberada, como no campo de paquetes das entradas de aplicacións.
 - Os scripts principais usan `set -u` e `set -o pipefail`. Non introduzas `set -e` sen revisar todo o control explícito de erros.
-- Propaga os erros con `return`, `if`, `&&` ou `||` segundo o estilo existente.
+- Escribe as condicións e validacións con bloques explícitos `if ...; then ...; fi`. Non uses construcións como `[ condición ] || { ...; }` para simular un `if`; son máis difíciles de ler. Pódese conservar `comando || return` ou `comando && seguinte_comando` cando sexa unha propagación curta e directa.
 - Ten en conta que `fail` imprime a mensaxe e remata o proceso con código 1.
 - Reutiliza `has_command`, `ensure_command`, `replace_file`, `replace_path`, `merge_path` e os wrappers de `gum` antes de crear alternativas.
 - Engade `# shellcheck source=/dev/null` nas cargas dinámicas cando corresponda.
-- Mantén os comentarios centrados no motivo ou no comportamento non evidente.
+- Engade un comentario breve antes de cada función e alias explicando para que serve.
+- Comenta tamén regex, formatos especiais, expansións de parámetros, separación mediante NUL ou tabuladores e calquera bloque que non resulte evidente nunha primeira lectura. Non describas liña por liña o código trivial.
+
+### Formato dos módulos e comandos Bash
+
+Mantén o mesmo formato nos módulos compartidos e nos Bashrc:
+
+- Se un ficheiro expón varios comandos, centraliza os textos nunha función privada `_nome_help()` e fai que cada comando chame a súa sección.
+- Todos os comandos públicos deben procesar opcións cun `while (($#)); do` e un `case "$1" in`, mesmo cando inicialmente só admitan `-h|--help` e `--`. A estrutura uniforme facilita engadir opcións no futuro.
+- `-h|--help` mostra unha mini guía do wrapper: descrición xeral, opcións, uso do passthrough e exemplos relevantes.
+- `--` remata as opcións do wrapper. Garda todo o posterior nun array local, normalmente `original_args=("$@")`, e reenvíao ao comando orixinal. Así `wrapper -- --help` mostra a axuda do programa real.
+- Se o helper combina varios comandos ou non pode reenviar argumentos de forma coherente, non inventes passthrough. Documenta esta limitación na súa axuda e ofrece só opcións propias útiles, como `--dry-run`.
+- As opcións descoñecidas antes de `--` deben producir unha mensaxe clara que indique como consultar `--help`.
+- Prefire repetir un parser curto dentro de cada comando antes que ocultar o fluxo en helpers xenéricos difíciles de seguir. Extrae funcións privadas cando aforren unha cantidade importante de código e sigan sendo evidentes, como os selectores compartidos de contedores ou imaxes.
+- Mantén os helpers específicos no ficheiro da aplicación que os utiliza. Non movas lóxica exclusiva de Git, Docker, yt-dlp ou SpotDL a módulos globais.
+- Os módulos internos de aplicacións e versións deben advertir claramente que non son unha API para comandos personalizados. Os helpers reutilizables son os de interface, ficheiros e comandos.
+
+### Operacións interactivas e destrutivas
+
+- Usa os wrappers de `gum` para inputs, seleccións, filtros, mensaxes e confirmacións.
+- Despois de seleccionar recursos para borrar, pide sempre unha confirmación Si/No antes de executar a operación.
+- Usa unha segunda confirmación cando a acción sexa forzada ou poida eliminar datos importantes, por exemplo volumes, commits non integrados ou contedores activos.
+- Cancelar unha selección ou confirmación debe saír sen executar a acción destrutiva.
 
 ## Interface e idioma
 
-A interface interactiva está centralizada en `modules/ui.sh` e usa `gum`. Emprega os wrappers `info`, `title`, `warning`, `success`, `fail`, `gum_confirm`, `gum_choose` e `gum_input` para conservar o estilo e as cores xeradas por Noctalia.
+A interface interactiva está centralizada en `modules/ui.sh` e usa `gum`. Emprega os wrappers `gum_style`, `info`, `title`, `warning`, `success`, `fail`, `gum_confirm`, `gum_choose`, `gum_input`, `gum_filter` e `gum_write` para conservar o estilo e as cores xeradas por Noctalia.
 
 Escribe en galego as mensaxes novas e revisa a ortografía antes de rematar. Conserva a orde de idiomas do sistema:
 
@@ -137,7 +169,9 @@ Non hai unha suite automatizada de probas. Fai comprobacións estáticas proporc
 ```bash
 bash -n install.sh updates/*.sh \
   .local/share/gallaecia-dots/scripts/*.sh \
-  .local/share/gallaecia-dots/scripts/modules/*.sh
+  .local/share/gallaecia-dots/scripts/modules/*.sh \
+  .bashrc .config/bashrc/* \
+  optional/.local/share/gallaecia-dots/bashrc/*
 ```
 
 Se ShellCheck está instalado, execútao sobre os scripts Bash modificados. Valida tamén segundo o formato:

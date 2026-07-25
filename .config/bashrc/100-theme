@@ -1,6 +1,10 @@
 # shellcheck shell=bash
 
+# Mostra con cores os tipos de ficheiro.
 alias ls='ls --color=auto'
+
+# Resalta con cores as coincidencias das buscas.
 alias grep='grep --color=auto'
 
+# Prompt minimalista: nome do directorio actual seguido de `$`.
 PS1='\W $ '

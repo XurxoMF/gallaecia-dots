@@ -1,5 +1,21 @@
 # shellcheck shell=bash
 
+###############################################################################
+# NON USAR ESTAS FUNCIÓNS EN COMANDOS PERSONALIZADOS
+#
+# Este módulo é API interna do sistema de migracións de Gallaecia Dots. Cambia
+# o rexistro de versións instaladas e pode alterar o fluxo de actualización.
+# Para scripts propios usa os módulos ui.sh, files.sh e commands.sh.
+###############################################################################
+
+# Avisa de que estes helpers só deben empregarse no fluxo de actualización.
+_versions_internal_help() {
+  cat <<'EOF'
+NON USAR: esta función pertence á API interna do sistema de versións.
+Pode modificar o estado de instalación e actualización de Gallaecia Dots.
+EOF
+}
+
 # Rutas do repo.
 DOTFILES_DIR="$HOME/.dotfiles"
 UPDATES_DIR="$DOTFILES_DIR/updates"
@@ -19,6 +35,13 @@ ensure_gallaecia_state_dir() {
 
 # Devolve éxito se a versión recibida xa aparece en versions-instaladas.
 is_version_installed() {
+  while (($#)); do
+    case "$1" in
+      -h|--help) _versions_internal_help; return 0 ;;
+      *) break ;;
+    esac
+  done
+
   local version="$1"
 
   [ -f "$INSTALLED_VERSIONS_FILE" ] &&
@@ -41,6 +64,13 @@ clear_installed_versions() {
 
 # Marca unha versión como instalada sen duplicala se xa estaba rexistrada.
 mark_version_installed() {
+  while (($#)); do
+    case "$1" in
+      -h|--help) _versions_internal_help; return 0 ;;
+      *) break ;;
+    esac
+  done
+
   local version="$1"
 
   ensure_gallaecia_state_dir &&
@@ -64,11 +94,13 @@ list_available_versions() {
   while IFS= read -r update_file; do
     [ -n "$update_file" ] || continue
 
+    # As expansións eliminan a ruta, o sufixo .sh e cambian 1_2_3 por 1.2.3.
     version_name="${update_file##*/}"
     version_name="${version_name%.sh}"
     version_name="${version_name//_/.}"
 
     printf '%s\n' "$version_name"
+  # O patrón só acepta migracións numéricas e sort -V ordénaas por versión.
   done < <(find "$UPDATES_DIR" -maxdepth 1 -type f -name '[0-9]*_[0-9]*_[0-9]*.sh' | sort -V)
 }
 
@@ -92,6 +124,13 @@ latest_available_version() {
 
 # Garda a versión actual e a data da última instalación/update aplicado.
 set_gallaecia_current_version() {
+  while (($#)); do
+    case "$1" in
+      -h|--help) _versions_internal_help; return 0 ;;
+      *) break ;;
+    esac
+  done
+
   local version="$1"
 
   ensure_gallaecia_state_dir &&

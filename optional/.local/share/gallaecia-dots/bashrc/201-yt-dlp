@@ -1,27 +1,187 @@
 # shellcheck shell=bash
 
-# Descarga un vídeo de YouTube usando yt-dlp
+# Mostra a mini guía do wrapper de vídeo ou música solicitado.
+_yt_dlp_help() {
+  case "$1" in
+    yt-dlp-video)
+      cat <<'EOF'
+Uso: yt-dlp-video [--once] [--url URL] [-h|--help] [-- argumentos-yt-dlp]
+
+Descarga vídeos usando a configuración de YouTube de Gallaecia. Sen opcións,
+pide URLs repetidamente ata cancelar o input.
+
+  --once         Pide unha única URL e remata despois da descarga.
+  --url URL      Usa directamente esta URL e implica --once.
+  -h, --help     Mostra esta axuda.
+  -- ARGUMENTOS  Reenvía todo o posterior a `yt-dlp`, antes da URL.
+
+Exemplos:
+  yt-dlp-video --once
+  yt-dlp-video --url URL -- --cookies-from-browser firefox
+  yt-dlp-video -- --embed-subs --sub-langs gl,es
+  yt-dlp-video -- --help
+EOF
+      ;;
+    yt-dlp-musica)
+      cat <<'EOF'
+Uso: yt-dlp-musica [--once] [--url URL] [-h|--help] [-- argumentos-yt-dlp]
+
+Descarga música usando a configuración de YouTube Music de Gallaecia. Sen
+opcións, pide URLs repetidamente ata cancelar o input.
+
+  --once         Pide unha única URL e remata despois da descarga.
+  --url URL      Usa directamente esta URL e implica --once.
+  -h, --help     Mostra esta axuda.
+  -- ARGUMENTOS  Reenvía todo o posterior a `yt-dlp`, antes da URL.
+
+Exemplos:
+  yt-dlp-musica --once
+  yt-dlp-musica --url URL -- --cookies-from-browser firefox
+  yt-dlp-musica -- --embed-thumbnail --embed-metadata
+  yt-dlp-musica -- --help
+EOF
+      ;;
+  esac
+}
+
+# Descarga un vídeo de YouTube usando yt-dlp.
 yt-dlp-video() {
+  local once=false
+  local url=""
+  local original_args=()
+  local arg command_status
+
+  while (($#)); do
+    case "$1" in
+      --once)
+        once=true
+        ;;
+      --url)
+        if [ $# -lt 2 ]; then
+          warning "Falta a URL despois de --url."
+          return 1
+        fi
+        url="$2"
+        once=true
+        shift
+        ;;
+      -h|--help)
+        _yt_dlp_help yt-dlp-video
+        return 0
+        ;;
+      --)
+        # Todo o posterior pertence a yt-dlp e non se interpreta neste wrapper.
+        shift
+        original_args=("$@")
+        break
+        ;;
+      *)
+        warning "Opción descoñecida: $1. Usa yt-dlp-video --help."
+        return 1
+        ;;
+    esac
+    shift
+  done
+
+  # Help e versión non precisan URL: execútanse directamente e rematan.
+  for arg in "${original_args[@]}"; do
+    case "$arg" in
+      -h|--help|--version)
+        yt-dlp \
+          --config-location "$HOME/.config/yt-dlp/youtube-com.conf" \
+          "${original_args[@]}"
+        return
+        ;;
+    esac
+  done
+
   while true; do
     echo
 
-    url="$(gum_input --prompt "URL do vídeo: " --placeholder "Pega unha URL")" || return 0
+    if [ -z "$url" ]; then
+      url="$(gum_input --prompt "URL do vídeo: " --placeholder "Pega unha URL")" || return 0
+    fi
 
     [ -z "$url" ] && continue
 
-    yt-dlp --config-location "$HOME/.config/yt-dlp/youtube-com.conf" "$@" -- "$url"
+    yt-dlp \
+      --config-location "$HOME/.config/yt-dlp/youtube-com.conf" \
+      "${original_args[@]}" \
+      -- "$url"
+    command_status=$?
+
+    $once && return "$command_status"
+    url=""
   done
 }
 
-# Descarga unha canción de YouTube ou YouTube Music usando yt-dlp
+# Descarga unha canción de YouTube ou YouTube Music usando yt-dlp.
 yt-dlp-musica() {
+  local once=false
+  local url=""
+  local original_args=()
+  local arg command_status
+
+  while (($#)); do
+    case "$1" in
+      --once)
+        once=true
+        ;;
+      --url)
+        if [ $# -lt 2 ]; then
+          warning "Falta a URL despois de --url."
+          return 1
+        fi
+        url="$2"
+        once=true
+        shift
+        ;;
+      -h|--help)
+        _yt_dlp_help yt-dlp-musica
+        return 0
+        ;;
+      --)
+        # Todo o posterior pertence a yt-dlp e non se interpreta neste wrapper.
+        shift
+        original_args=("$@")
+        break
+        ;;
+      *)
+        warning "Opción descoñecida: $1. Usa yt-dlp-musica --help."
+        return 1
+        ;;
+    esac
+    shift
+  done
+
+  # Help e versión non precisan URL: execútanse directamente e rematan.
+  for arg in "${original_args[@]}"; do
+    case "$arg" in
+      -h|--help|--version)
+        yt-dlp \
+          --config-location "$HOME/.config/yt-dlp/music-youtube-com.conf" \
+          "${original_args[@]}"
+        return
+        ;;
+    esac
+  done
+
   while true; do
     echo
-    
-    url="$(gum_input --prompt "URL da canción: " --placeholder "Pega unha URL")" || return 0
+
+    if [ -z "$url" ]; then
+      url="$(gum_input --prompt "URL da canción: " --placeholder "Pega unha URL")" || return 0
+    fi
 
     [ -z "$url" ] && continue
 
-    yt-dlp --config-location "$HOME/.config/yt-dlp/music-youtube-com.conf" "$@" -- "$url"
+    yt-dlp \
+      --config-location "$HOME/.config/yt-dlp/music-youtube-com.conf" \
+      "${original_args[@]}" \
+      -- "$url"
+    command_status=$?
+
+    $once && return "$command_status"
+    url=""
   done
 }

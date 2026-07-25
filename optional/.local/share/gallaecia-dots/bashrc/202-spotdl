@@ -1,16 +1,96 @@
 # shellcheck shell=bash
 
-# Descarga unha canción de Spotify ou YouTube Music usando SpotDL
+# Mostra a mini guía do wrapper interactivo de SpotDL.
+_spotdl_help() {
+  case "$1" in
+    spotdl-musica)
+      cat <<'EOF'
+Uso: spotdl-musica [--once] [--url URL] [-h|--help] [-- argumentos-spotdl]
+
+Descarga música mediante `spotdl download`. Sen opcións, pide URLs
+repetidamente ata cancelar o input.
+
+  --once         Pide unha única URL e remata despois da descarga.
+  --url URL      Usa directamente esta URL e implica --once.
+  -h, --help     Mostra esta axuda.
+  -- ARGUMENTOS  Reenvía todo o posterior a `spotdl download`, antes da URL.
+
+Exemplos:
+  spotdl-musica --once
+  spotdl-musica --url URL -- --format flac
+  spotdl-musica -- --bitrate 320k
+  spotdl-musica -- --help
+EOF
+      ;;
+  esac
+}
+
+# Descarga unha canción de Spotify ou YouTube Music usando SpotDL.
 spotdl-musica() {
-  local url
+  local once=false
+  local url=""
+  local original_args=()
+  local arg command_status
+
+  while (($#)); do
+    case "$1" in
+      --once)
+        once=true
+        ;;
+      --url)
+        if [ $# -lt 2 ]; then
+          warning "Falta a URL despois de --url."
+          return 1
+        fi
+        url="$2"
+        once=true
+        shift
+        ;;
+      -h|--help)
+        _spotdl_help spotdl-musica
+        return 0
+        ;;
+      --)
+        # Todo o posterior pertence a SpotDL e non se interpreta neste wrapper.
+        shift
+        original_args=("$@")
+        break
+        ;;
+      *)
+        warning "Opción descoñecida: $1. Usa spotdl-musica --help."
+        return 1
+        ;;
+    esac
+    shift
+  done
+
+  # Help e versión non precisan URL e deben evitar o bucle interactivo.
+  for arg in "${original_args[@]}"; do
+    case "$arg" in
+      -h|--help)
+        spotdl download "${original_args[@]}"
+        return
+        ;;
+      --version)
+        spotdl --version
+        return
+        ;;
+    esac
+  done
 
   while true; do
     echo
 
-    url="$(gum_input --prompt "URL de spotify (ou youtube|spotify): " --placeholder "Pega unha URL")" || return 0
+    if [ -z "$url" ]; then
+      url="$(gum_input --prompt "URL de Spotify (ou youtube|spotify): " --placeholder "Pega unha URL")" || return 0
+    fi
 
     [ -z "$url" ] && continue
 
-    spotdl download "$@" "$url"
+    spotdl download "${original_args[@]}" "$url"
+    command_status=$?
+
+    $once && return "$command_status"
+    url=""
   done
 }

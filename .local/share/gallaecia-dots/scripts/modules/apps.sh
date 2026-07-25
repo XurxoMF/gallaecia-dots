@@ -1,5 +1,22 @@
 #!/usr/bin/env bash
 
+###############################################################################
+# NON USAR ESTAS FUNCIÓNS EN COMANDOS PERSONALIZADOS
+#
+# Este módulo é API interna do instalador de Gallaecia Dots. Modifica colas e
+# arrays globais compartidos e depende da orde concreta do fluxo de selección.
+# Para scripts propios usa os módulos ui.sh, files.sh e commands.sh.
+###############################################################################
+
+# Avisa de que os helpers deste módulo son internos e non unha API pública.
+_apps_internal_help() {
+  cat <<'EOF'
+NON USAR: esta función pertence á API interna do instalador de aplicacións.
+Pode modificar colas e estado global. Para comandos personalizados usa os
+helpers documentados de ui.sh, files.sh e commands.sh.
+EOF
+}
+
 # Colas de instalación compartidas polos scripts que usen este módulo.
 # Cada choose_* engade aquí os paquetes escollidos, e logo o script final
 # decide cando chamar yay/flatpak/pipx para instalalos.
@@ -15,6 +32,13 @@ DEFAULT_ENTRY=""
 
 # Engade un paquete á lista pacman/AUR sen duplicalo.
 add_pkg_app() {
+  while (($#)); do
+    case "$1" in
+      -h|--help) _apps_internal_help; return 0 ;;
+      *) break ;;
+    esac
+  done
+
   local package_name="$1"
   local app
 
@@ -29,6 +53,13 @@ add_pkg_app() {
 
 # Engade un paquete á lista flatpak sen duplicalo.
 add_flatpak_app() {
+  while (($#)); do
+    case "$1" in
+      -h|--help) _apps_internal_help; return 0 ;;
+      *) break ;;
+    esac
+  done
+
   local package_name="$1"
   local app
 
@@ -43,6 +74,13 @@ add_flatpak_app() {
 
 # Engade un paquete á lista pipx sen duplicalo.
 add_pipx_app() {
+  while (($#)); do
+    case "$1" in
+      -h|--help) _apps_internal_help; return 0 ;;
+      *) break ;;
+    esac
+  done
+
   local package_name="$1"
   local app
 
@@ -57,6 +95,13 @@ add_pipx_app() {
 
 # Comproba se un paquete xa foi escollido para instalar por pacman/AUR.
 has_pkg_app() {
+  while (($#)); do
+    case "$1" in
+      -h|--help) _apps_internal_help; return 0 ;;
+      *) break ;;
+    esac
+  done
+
   local package_name="$1"
   local app
 
@@ -71,6 +116,13 @@ has_pkg_app() {
 
 # Comproba se un paquete xa foi escollido para instalar por flatpak.
 has_flatpak_app() {
+  while (($#)); do
+    case "$1" in
+      -h|--help) _apps_internal_help; return 0 ;;
+      *) break ;;
+    esac
+  done
+
   local package_name="$1"
   local app
 
@@ -85,6 +137,13 @@ has_flatpak_app() {
 
 # Comproba se unha app xa foi escollida para instalar por pipx.
 has_pipx_app() {
+  while (($#)); do
+    case "$1" in
+      -h|--help) _apps_internal_help; return 0 ;;
+      *) break ;;
+    esac
+  done
+
   local package_name="$1"
   local app
 
@@ -99,6 +158,13 @@ has_pipx_app() {
 
 # Comproba se un paquete pacman/AUR xa está instalado no sistema.
 is_pkg_installed() {
+  while (($#)); do
+    case "$1" in
+      -h|--help) _apps_internal_help; return 0 ;;
+      *) break ;;
+    esac
+  done
+
   local package_name="$1"
 
   pacman -Q "$package_name" &> /dev/null
@@ -122,34 +188,89 @@ is_pkg_installed() {
 # 4. comando: valor configurable para scripts, Hyprland, ENV, etc.
 # 5. .desktop: ficheiro usado en mimeapps.list. Pode quedar baleiro se non aplica.
 app_field() {
+  while (($#)); do
+    case "$1" in
+      -h|--help) _apps_internal_help; return 0 ;;
+      *) break ;;
+    esac
+  done
+
   local entry="$1"
   local index="$2"
 
+  # `cut` interpreta `|` como separador e devolve o campo numerado desde 1.
   cut -d '|' -f "$index" <<< "$entry"
 }
 
+# Devolve o tipo de instalación dunha entrada: pkg, flatpak ou pipx.
 app_type() {
+  while (($#)); do
+    case "$1" in
+      -h|--help) _apps_internal_help; return 0 ;;
+      *) break ;;
+    esac
+  done
+
   app_field "$1" 1
 }
 
+# Devolve o nome visible dunha entrada.
 app_label() {
+  while (($#)); do
+    case "$1" in
+      -h|--help) _apps_internal_help; return 0 ;;
+      *) break ;;
+    esac
+  done
+
   app_field "$1" 2
 }
 
+# Devolve a lista de paquetes ou IDs dunha entrada.
 app_packages() {
+  while (($#)); do
+    case "$1" in
+      -h|--help) _apps_internal_help; return 0 ;;
+      *) break ;;
+    esac
+  done
+
   app_field "$1" 3
 }
 
+# Devolve o comando asociado á entrada para Hyprland ou variables de contorno.
 app_command() {
+  while (($#)); do
+    case "$1" in
+      -h|--help) _apps_internal_help; return 0 ;;
+      *) break ;;
+    esac
+  done
+
   app_field "$1" 4
 }
 
+# Devolve o nome do ficheiro .desktop asociado á entrada.
 app_desktop() {
+  while (($#)); do
+    case "$1" in
+      -h|--help) _apps_internal_help; return 0 ;;
+      *) break ;;
+    esac
+  done
+
   app_field "$1" 5
 }
 
 # Busca unha entrada completa polo seu nome visible.
 find_app_by_label() {
+  while (($#)); do
+    case "$1" in
+      -h|--help) _apps_internal_help; return 0 ;;
+      *) break ;;
+    esac
+  done
+
   local label="$1"
   shift
   local entry
@@ -167,6 +288,13 @@ find_app_by_label() {
 # Comproba se unha app foi escollida na categoría actual.
 # Acepta tanto o nome visible como calquera paquete da entrada.
 has_selected_app() {
+  while (($#)); do
+    case "$1" in
+      -h|--help) _apps_internal_help; return 0 ;;
+      *) break ;;
+    esac
+  done
+
   local app_name="$1"
   local selected_entry package
 
@@ -187,6 +315,13 @@ has_selected_app() {
 
 # Engade á cola de instalación todos os paquetes dunha entrada.
 add_entry_packages() {
+  while (($#)); do
+    case "$1" in
+      -h|--help) _apps_internal_help; return 0 ;;
+      *) break ;;
+    esac
+  done
+
   local entry="$1"
   local install_type packages package
 
@@ -214,6 +349,13 @@ add_entry_packages() {
 
 # Mostra unha lista multi-selección e devolve as entradas completas escollidas.
 choose_entries() {
+  while (($#)); do
+    case "$1" in
+      -h|--help) _apps_internal_help; return 0 ;;
+      *) break ;;
+    esac
+  done
+
   local header="$1"
   shift
   local entries=("$@")
@@ -229,6 +371,7 @@ choose_entries() {
     --header "$header" \
     "${labels[@]}")
 
+  # Léese liña a liña porque gum devolve unha selección por liña.
   while IFS= read -r label; do
     [ -n "$label" ] || continue
     find_app_by_label "$label" "${entries[@]}"
@@ -237,6 +380,13 @@ choose_entries() {
 
 # Dada unha lista de entradas xa escollidas, pide cal será a predeterminada.
 choose_default_entry() {
+  while (($#)); do
+    case "$1" in
+      -h|--help) _apps_internal_help; return 0 ;;
+      *) break ;;
+    esac
+  done
+
   local header="$1"
   shift
   local entries=("$@")
@@ -280,6 +430,13 @@ add_selected_entries_packages() {
 # Non escolle DEFAULT_ENTRY por si mesma. Se a categoría precisa unha app por
 # defecto, o script pode chamar choose_default_entry despois.
 choose_required_category() {
+  while (($#)); do
+    case "$1" in
+      -h|--help) _apps_internal_help; return 0 ;;
+      *) break ;;
+    esac
+  done
+
   local header="$1"
   shift
   local entries=("$@")
@@ -288,6 +445,7 @@ choose_required_category() {
   DEFAULT_ENTRY=""
 
   while [ ${#SELECTED_ENTRIES[@]} -eq 0 ]; do
+    # `mapfile` conserva cada entrada devolta por choose_entries como un elemento.
     mapfile -t SELECTED_ENTRIES < <(choose_entries "$header" "${entries[@]}")
     if [ ${#SELECTED_ENTRIES[@]} -eq 0 ]; then
       warning "Tes que escoller polo menos unha opción."
@@ -299,6 +457,13 @@ choose_required_category() {
 
 # Selección opcional: pode quedar baleira.
 choose_optional_category() {
+  while (($#)); do
+    case "$1" in
+      -h|--help) _apps_internal_help; return 0 ;;
+      *) break ;;
+    esac
+  done
+
   local header="$1"
   shift
   local entries=("$@")
@@ -307,6 +472,7 @@ choose_optional_category() {
   # shellcheck disable=SC2034
   DEFAULT_ENTRY=""
 
+  # A substitución de proceso alimenta mapfile sen executar o bucle nun subshell.
   mapfile -t SELECTED_ENTRIES < <(choose_entries "$header" "${entries[@]}")
 
   add_selected_entries_packages

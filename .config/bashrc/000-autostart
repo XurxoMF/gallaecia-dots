@@ -1,10 +1,10 @@
 # shellcheck shell=bash
 
-# Automcompleta comandos executados con sudo
+# Permite autocompletar tamén os comandos executados con sudo.
 complete -cf sudo
 
-# PATH para apps de pipx
+# Engade ao PATH os executables instalados localmente, incluídos os de pipx.
 export PATH="$PATH:$HOME/.local/bin"
 
-# Suxerencias de apps instaladas con pipx
+# Activa o autocompletado dos comandos e opcións de pipx.
 eval "$(register-python-argcomplete pipx)"

@@ -208,6 +208,8 @@ main() {
     return 1
   fi
 
+  echo
+
   if gum_confirm "Reiniciar sistema? (Recomendado se se actualizaron paquetes)"; then
     systemctl reboot
   fi
