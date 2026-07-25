@@ -27,7 +27,6 @@ CHOOSE_CURSOR_BACKGROUND="${CHOOSE_CURSOR_BACKGROUND:-}"
 CHOOSE_HEADER_FOREGROUND="${CHOOSE_HEADER_FOREGROUND:-#dbe3ed}"
 CHOOSE_HEADER_BACKGROUND="${CHOOSE_HEADER_BACKGROUND:-}"
 CHOOSE_ITEM_FOREGROUND="${CHOOSE_ITEM_FOREGROUND:-#dbe3ed}"
-CHOOSE_ITEM_BACKGROUND="${CHOOSE_ITEM_BACKGROUND:-}"
 CHOOSE_SELECTED_FOREGROUND="${CHOOSE_SELECTED_FOREGROUND:-#90cdff}"
 CHOOSE_SELECTED_BACKGROUND="${CHOOSE_SELECTED_BACKGROUND:-}"
 INPUT_PROMPT_FOREGROUND="${INPUT_PROMPT_FOREGROUND:-#90cdff}"
@@ -167,6 +166,17 @@ OPCIÓNS
   --
       Remata as opcións do helper. Todo o posterior reenvíase a `gum choose`.
 
+CONTROIS
+  Frechas ou j/k
+      Move o cursor pola lista.
+
+  Tab ou Ctrl+Espazo
+      Marca ou desmarca o elemento actual cando se usa `--limit` ou
+      `--no-limit`.
+
+  Enter
+      Confirma a selección.
+
 RESULTADO
   Escribe cada opción seleccionada nunha liña de stdout.
   Devolve un código distinto de 0 se o usuario cancela.
@@ -228,6 +238,20 @@ OPCIÓNS
 
   --
       Remata as opcións do helper. Todo o posterior reenvíase a `gum filter`.
+
+CONTROIS
+  Escribir
+      Filtra a lista usando o texto introducido.
+
+  Frechas ou Ctrl+j/Ctrl+k
+      Move o cursor polos resultados.
+
+  Tab ou Ctrl+Espazo
+      Marca ou desmarca o resultado actual cando se usa `--limit` ou
+      `--no-limit`. Espazo sen Ctrl forma parte do texto do filtro.
+
+  Enter
+      Confirma a selección.
 
 RESULTADO
   Escribe cada opción seleccionada nunha liña de stdout.
@@ -337,7 +361,7 @@ info() {
 	"${original_args[@]}"
 }
 
-# Título de sección, separado do contido anterior e posterior.
+# Título de sección, separado do contido anterior e posterior mediante padding.
 title() {
   local original_args=()
 
@@ -359,12 +383,11 @@ title() {
     shift
   done
 
-  echo
   gum_style -- \
 	--foreground="$ACCENT_FOREGROUND" \
 	--bold \
+	--padding="1 0 1 0" \
 	"${original_args[@]}"
-  echo
 }
 
 # Aviso visible, pero sen abortar.
@@ -395,7 +418,7 @@ warning() {
 	"${original_args[@]}"
 }
 
-# Mensaxe de éxito.
+# Mensaxe de éxito, separada do contido anterior e posterior mediante padding.
 success() {
   local original_args=()
 
@@ -417,15 +440,14 @@ success() {
     shift
   done
 
-  echo
   gum_style -- \
 	--foreground="$SUCCESS_FOREGROUND" \
 	--bold \
+	--padding="1 0 1 0" \
 	"${original_args[@]}"
-  echo
 }
 
-# Mensaxe de erro fatal: imprime e sae con código 1.
+# Mensaxe de erro fatal: engade padding superior, imprime e sae con código 1.
 fail() {
   local original_args=()
 
@@ -447,15 +469,15 @@ fail() {
     shift
   done
 
-  echo
   gum_style -- \
 	--foreground="$ERROR_FOREGROUND" \
 	--bold \
+	--padding="1 0 0 0" \
 	"${original_args[@]}"
   exit 1
 }
 
-# Confirmación si/non co estilo de Gallaecia e cun espazo visual previo.
+# Confirmación si/non co estilo de Gallaecia e padding superior.
 gum_confirm() {
   local original_args=()
 
@@ -477,8 +499,6 @@ gum_confirm() {
     shift
   done
 
-  # Escríbese en stderr para non contaminar unha posible saída capturada.
-  echo >&2
   gum confirm \
 	--affirmative="Si" \
 	--negative="No" \
@@ -488,11 +508,11 @@ gum_confirm() {
 	--selected.background="$CONFIRM_SELECTED_BACKGROUND" \
 	--unselected.foreground="$CONFIRM_UNSELECTED_FOREGROUND" \
 	--unselected.background="$CONFIRM_UNSELECTED_BACKGROUND" \
-	--padding="0 0" \
+	--padding="1 0 0 0" \
 	"${original_args[@]}"
 }
 
-# Selector de opcións co estilo de Gallaecia e cun espazo visual previo.
+# Selector de opcións co estilo de Gallaecia e padding superior.
 gum_choose() {
   local original_args=()
 
@@ -514,22 +534,20 @@ gum_choose() {
     shift
   done
 
-  # A selección debe ser o único contido devolto por stdout.
-  echo >&2
   gum choose \
+	--show-help \
 	--cursor.foreground="$CHOOSE_CURSOR_FOREGROUND" \
 	--cursor.background="$CHOOSE_CURSOR_BACKGROUND" \
 	--header.foreground="$CHOOSE_HEADER_FOREGROUND" \
 	--header.background="$CHOOSE_HEADER_BACKGROUND" \
 	--item.foreground="$CHOOSE_ITEM_FOREGROUND" \
-	--item.background="$CHOOSE_ITEM_BACKGROUND" \
 	--selected.foreground="$CHOOSE_SELECTED_FOREGROUND" \
 	--selected.background="$CHOOSE_SELECTED_BACKGROUND" \
-	--padding="0 0" \
+	--padding="1 0 0 0" \
 	"${original_args[@]}"
 }
 
-# Entrada de texto co estilo común e cun espazo visual previo.
+# Entrada de texto co estilo común e padding superior.
 gum_input() {
   local original_args=()
 
@@ -551,8 +569,6 @@ gum_input() {
     shift
   done
 
-  # O salto vai por stderr para que stdout conteña unicamente o texto escrito.
-  echo >&2
   gum input \
 	--prompt.foreground="$INPUT_PROMPT_FOREGROUND" \
 	--prompt.background="$INPUT_PROMPT_BACKGROUND" \
@@ -562,11 +578,11 @@ gum_input() {
 	--cursor.background="$INPUT_CURSOR_BACKGROUND" \
 	--header.foreground="$INPUT_HEADER_FOREGROUND" \
 	--header.background="$INPUT_HEADER_BACKGROUND" \
-	--padding="0 0" \
+	--padding="1 0 0 0" \
 	"${original_args[@]}"
 }
 
-# Filtro interactivo para listas longas, separado visualmente do contido previo.
+# Filtro interactivo para listas longas con padding superior.
 gum_filter() {
   local original_args=()
 
@@ -588,19 +604,16 @@ gum_filter() {
     shift
   done
 
-  # A selección filtrada debe poder capturarse sen unha liña baleira adicional.
-  echo >&2
   gum filter \
+	--show-help \
 	--indicator.foreground="$CHOOSE_CURSOR_FOREGROUND" \
 	--indicator.background="$CHOOSE_CURSOR_BACKGROUND" \
 	--selected-indicator.foreground="$CHOOSE_SELECTED_FOREGROUND" \
 	--selected-indicator.background="$CHOOSE_SELECTED_BACKGROUND" \
 	--unselected-prefix.foreground="$CHOOSE_ITEM_FOREGROUND" \
-	--unselected-prefix.background="$CHOOSE_ITEM_BACKGROUND" \
 	--header.foreground="$CHOOSE_HEADER_FOREGROUND" \
 	--header.background="$CHOOSE_HEADER_BACKGROUND" \
 	--text.foreground="$CHOOSE_ITEM_FOREGROUND" \
-	--text.background="$CHOOSE_ITEM_BACKGROUND" \
 	--cursor-text.foreground="$CHOOSE_SELECTED_FOREGROUND" \
 	--cursor-text.background="$CHOOSE_SELECTED_BACKGROUND" \
 	--match.foreground="$ACCENT_FOREGROUND" \
@@ -609,11 +622,11 @@ gum_filter() {
 	--prompt.background="$INPUT_PROMPT_BACKGROUND" \
 	--placeholder.foreground="$INPUT_PLACEHOLDER_FOREGROUND" \
 	--placeholder.background="$INPUT_PLACEHOLDER_BACKGROUND" \
-	--padding="0 0" \
+	--padding="1 0 0 0" \
 	"${original_args[@]}"
 }
 
-# Entrada de varias liñas co estilo común e cun espazo visual previo.
+# Entrada de varias liñas co estilo común e padding superior.
 gum_write() {
   local original_args=()
 
@@ -635,8 +648,6 @@ gum_write() {
     shift
   done
 
-  # O salto vai por stderr para non formar parte do texto devolto.
-  echo >&2
   gum write \
 	--base.foreground="$FOREGROUND" \
 	--base.background="$BACKGROUND" \
@@ -648,6 +659,6 @@ gum_write() {
 	--placeholder.background="$INPUT_PLACEHOLDER_BACKGROUND" \
 	--prompt.foreground="$INPUT_PROMPT_FOREGROUND" \
 	--prompt.background="$INPUT_PROMPT_BACKGROUND" \
-	--padding="0 0" \
+	--padding="1 0 0 0" \
 	"${original_args[@]}"
 }

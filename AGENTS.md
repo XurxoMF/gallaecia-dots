@@ -139,7 +139,8 @@ Mantén o mesmo formato nos módulos compartidos e nos Bashrc:
 - Todos os comandos públicos deben procesar opcións cun `while (($#)); do` e un `case "$1" in`, mesmo cando inicialmente só admitan `-h|--help` e `--`. A estrutura uniforme facilita engadir opcións no futuro.
 - `-h|--help` debe usar sempre o mesmo formato, con seccións en maiúsculas e
   nesta orde: `USO`, `DESCRICIÓN`, `PARÁMETROS` cando existan, `OPCIÓNS`,
-  `RESULTADO`, `EXEMPLOS` e `COMANDO ORIXINAL` cando exista passthrough.
+  `CONTROIS` cando a interacción teña teclas non evidentes, `RESULTADO`,
+  `EXEMPLOS` e `COMANDO ORIXINAL` cando exista passthrough.
 - En `USO`, escribe os nomes substituíbles en maiúsculas. Usa `VALOR` para un
   parámetro obrigatorio, `[VALOR]` para un opcional, `VALOR...` para un
   repetible e `[-- ARGUMENTOS DE COMANDO]` para o passthrough.
@@ -150,6 +151,8 @@ Mantén o mesmo formato nos módulos compartidos e nos Bashrc:
 - `RESULTADO` debe indicar que produce ou modifica a función e os códigos de
   saída relevantes. `EXEMPLOS` debe incluír polo menos un uso habitual e outro
   coas opcións máis útiles cando corresponda.
+- `CONTROIS` debe explicar as teclas necesarias para navegar, marcar e
+  confirmar cando non sexan evidentes, especialmente nos selectores múltiples.
 - `COMANDO ORIXINAL` debe explicar a que comando se reenvía o situado despois
   de `--` e mostrar como consultar a súa axuda cando realmente funcione.
 - `--` remata as opcións do wrapper. Garda todo o posterior nun array local, normalmente `original_args=("$@")`, e reenvíao ao comando orixinal. Así `wrapper -- --help` mostra a axuda do programa real.
@@ -171,7 +174,10 @@ Mantén o mesmo formato nos módulos compartidos e nos Bashrc:
 A interface interactiva está centralizada en `modules/ui.sh` e usa `gum`. Emprega os wrappers `gum_style`, `info`, `title`, `warning`, `success`, `fail`, `gum_confirm`, `gum_choose`, `gum_input`, `gum_filter` e `gum_write` para conservar o estilo e as cores xeradas por Noctalia.
 
 - O espazado visual pertence aos wrappers de UI. `title` separa a sección anterior e posterior; `gum_confirm`, `gum_choose`, `gum_input`, `gum_filter` e `gum_write` engaden sempre unha liña baleira antes da interacción.
-- Non engadas un `echo` antes destes helpers só para crear espazo. Se un helper devolve datos por `stdout`, calquera separación visual interna debe escribirse en `stderr` para non contaminar command substitutions, arrays ou pipelines.
+- Implementa ese espazado co `--padding` de Gum, non con `echo`: o padding
+  forma parte da interface e Gum elimínao ao pechala, mentres que un `echo`
+  deixa liñas baleiras permanentes. Non engadas un `echo` antes destes helpers
+  só para crear espazo.
 
 Escribe en galego as mensaxes novas e revisa a ortografía antes de rematar. Conserva a orde de idiomas do sistema:
 
