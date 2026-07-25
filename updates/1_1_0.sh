@@ -33,6 +33,7 @@ install_docker() {
   sudo usermod -aG docker "$USER"
 }
 
+# Instala os helpers interactivos de Git no directorio controlado por Gallaecia.
 configure_git() {
   mkdir -p "$HOME/.local/share/gallaecia-dots/bashrc" &&
   replace_file \
@@ -40,6 +41,7 @@ configure_git() {
     "$HOME/.local/share/gallaecia-dots/bashrc/203-git"
 }
 
+# Instala os helpers interactivos de Docker no directorio controlado por Gallaecia.
 configure_docker() {
   mkdir -p "$HOME/.local/share/gallaecia-dots/bashrc" &&
   replace_file \
@@ -47,6 +49,7 @@ configure_docker() {
     "$HOME/.local/share/gallaecia-dots/bashrc/204-docker"
 }
 
+# Actualiza os módulos internos e reutilizables empregados polos scripts.
 update_helpers_modules() {
   local module_name
 
@@ -58,6 +61,7 @@ update_helpers_modules() {
   done
 }
 
+# Actualiza yt-dlp e SpotDL só cando o comando correspondente está instalado.
 update_bash_modules() {
   mkdir -p "$HOME/.local/share/gallaecia-dots/bashrc" || return 1
 
@@ -74,12 +78,14 @@ update_bash_modules() {
   fi
 }
 
+# Instala a versión máis recente do actualizador interactivo do sistema.
 update_system_update() {
   replace_file \
     "$DOTFILES_DIR/.local/share/gallaecia-dots/scripts/system-update.sh" \
     "$HOME/.local/share/gallaecia-dots/scripts/system-update.sh"
 }
 
+# Mostra o resumo visible dos cambios incluídos na migración.
 show_changelog() {
   echo
   title "Update $VERSION"
@@ -92,23 +98,41 @@ show_changelog() {
   echo
 }
 
+# Actualiza os ficheiros comúns e ofrece as novas integracións opcionais.
 apply_update() {
   update_helpers_modules &&
   update_bash_modules &&
   update_system_update || return 1
 
   if gum_confirm "Queres instalar e configurar Git + GitHub CLI?"; then
-    yay -Syu --needed git github-cli &&
+    if ! yay -Syu --needed git github-cli; then
+      return 1
+    fi
+    if ! is_pkg_installed git || ! is_pkg_installed github-cli; then
+      warning "Git ou GitHub CLI non quedaron instalados correctamente."
+      return 1
+    fi
     configure_git || return 1
   fi
 
+  echo
+
   if gum_confirm "Queres instalar e configurar Docker, Docker Compose e Docker Buildx? (Non elimina contedores existentes)"; then
-    yay -Syu --needed docker docker-compose docker-buildx &&
-    install_docker &&
+    if ! yay -Syu --needed docker docker-compose docker-buildx; then
+      return 1
+    fi
+    if ! is_pkg_installed docker ||
+      ! is_pkg_installed docker-compose ||
+      ! is_pkg_installed docker-buildx; then
+      warning "Docker, Compose ou Buildx non quedaron instalados correctamente."
+      return 1
+    fi
+    install_docker || return 1
     configure_docker || return 1
   fi
 }
 
+# Confirma e executa a migración, propagando calquera erro ao instalador.
 main() {
   show_changelog
 

@@ -81,7 +81,7 @@ warn_dirty_repo() {
   return 1
 }
 
-# Actualiza os dotfiles se o usuario o acepta e relanza o instalador.
+# Actualiza o repo cando fai falta e comproba sempre as migracións pendentes.
 update_dotfiles() {
   title "Actualizar dotfiles"
 
@@ -98,30 +98,31 @@ update_dotfiles() {
     return 1
   fi
 
-  if ! dotfiles_need_update; then
+  if dotfiles_need_update; then
+    if warn_dirty_repo; then
+      echo
+    fi
+
+    if ! gum_confirm "Hai updates novos nos dotfiles. Queres actualizalos e relanzar o instalador?"; then
+      info "Actualización dos dotfiles cancelada."
+      return 0
+    fi
+
+    title "Actualizando repo de dotfiles"
+
+    if ! checkout_dotfiles_branch || ! git -C "$DOTFILES_DIR" pull --ff-only origin "$REPO_BRANCH"; then
+      fail "Non se puido actualizar o repo de dotfiles."
+      return 1
+    fi
+  else
     info "Os dotfiles xa están actualizados."
-    return 0
   fi
 
-  if warn_dirty_repo; then
-    echo
-  fi
-
-  if ! gum_confirm "Hai updates novos nos dotfiles. Queres actualizalos e relanzar o instalador?"; then
-    info "Actualización dos dotfiles cancelada."
-    return 0
-  fi
-
-  title "Actualizando repo de dotfiles"
-
-  if ! checkout_dotfiles_branch || ! git -C "$DOTFILES_DIR" pull --ff-only origin "$REPO_BRANCH"; then
-    fail "Non se puido actualizar o repo de dotfiles."
+  info "Comprobando actualizacións pendentes..."
+  if ! SKIP_CLONE=1 REPO_BRANCH="$REPO_BRANCH" INSTALL_MODE="update" bash "$INSTALLER"; then
+    warning "Non se completaron todas as actualizacións dos dotfiles."
     return 1
   fi
-
-  info "Relanzando o instalador cos dotfiles xa actualizados..."
-
-  SKIP_CLONE=1 REPO_BRANCH="$REPO_BRANCH" INSTALL_MODE="update" bash "$INSTALLER"
 
   echo
 }

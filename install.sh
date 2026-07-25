@@ -55,15 +55,23 @@ download_dotfiles() {
 run_versioned_updates() {
   local update_script
   local version_name
+  local update_scripts=()
 
   if [ ! -d "$UPDATES_DIR" ]; then
     echo "Non se atopou o directorio de updates en $UPDATES_DIR."
     return 1
   fi
 
-  while IFS= read -r update_script; do
-    [ -n "$update_script" ] || continue
+  # Carga primeiro os nomes para que os scripts conserven o stdin da terminal.
+  # Se o bucle lese directamente do find, yay e gum recibirían esa entrada e
+  # poderían atopar un EOF en lugar de poder preguntar ao usuario.
+  mapfile -t update_scripts < <(
+    find "$UPDATES_DIR" -maxdepth 1 -type f \
+      -name "[0-9]*_[0-9]*_[0-9]*.sh" |
+      sort -V
+  )
 
+  for update_script in "${update_scripts[@]}"; do
     version_name="${update_script##*/}"
     version_name="${version_name%.sh}"
     version_name="${version_name//_/.}"
@@ -78,7 +86,7 @@ run_versioned_updates() {
     fi
 
     mark_version_from_script "$update_script" || return 1
-  done < <(find "$UPDATES_DIR" -maxdepth 1 -type f -name "[0-9]*_[0-9]*_[0-9]*.sh" | sort -V)
+  done
 }
 
 # Executa a instalación base.
