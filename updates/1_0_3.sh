@@ -6,26 +6,36 @@ set -o pipefail
 VERSION="1.0.3"
 DOTFILES_DIR="$HOME/.dotfiles"
 MODULES_DIR="$DOTFILES_DIR/.local/share/gallaecia-dots/scripts/modules"
+INTERNAL_DIR="$DOTFILES_DIR/.local/share/gallaecia-dots/scripts/internal"
 
-if [ ! -r "$MODULES_DIR/ui.sh" ] ||
+if [ ! -r "$MODULES_DIR/apps.sh" ] ||
   [ ! -r "$MODULES_DIR/commands.sh" ] ||
-  [ ! -r "$MODULES_DIR/files.sh" ]; then
-  echo "Non se atoparon os módulos de Gallaecia Dots en $MODULES_DIR." >&2
+  [ ! -r "$MODULES_DIR/files.sh" ] ||
+  [ ! -r "$MODULES_DIR/gallaecia.sh" ] ||
+  [ ! -r "$MODULES_DIR/ui.sh" ] ||
+  [ ! -r "$INTERNAL_DIR/apps.sh" ] ||
+  [ ! -r "$INTERNAL_DIR/versions.sh" ]; then
+  echo "Non se atoparon os módulos ou librarías internas en $DOTFILES_DIR." >&2
   exit 1
 fi
 
 # shellcheck source=/dev/null
-source "$MODULES_DIR/ui.sh"
+source "$MODULES_DIR/apps.sh"
 # shellcheck source=/dev/null
 source "$MODULES_DIR/commands.sh"
 # shellcheck source=/dev/null
 source "$MODULES_DIR/files.sh"
 # shellcheck source=/dev/null
-source "$MODULES_DIR/versions.sh"
+source "$MODULES_DIR/gallaecia.sh"
 # shellcheck source=/dev/null
-source "$MODULES_DIR/apps.sh"
+source "$MODULES_DIR/ui.sh"
+# shellcheck source=/dev/null
+source "$INTERNAL_DIR/apps.sh"
+# shellcheck source=/dev/null
+source "$INTERNAL_DIR/versions.sh"
 
-# Instala o Bashrc e a configuración nova de SpotDL cando está dispoñible.
+# Se SpotDL xa está instalado, copia o wrapper Bash e substitúe a súa configuración.
+# Se non existe, omite o paso para respectar a selección previa do usuario.
 update_spotdl_config() {
   if ! has_command spotdl; then
     return 0
@@ -46,7 +56,8 @@ update_spotdl_config() {
   fi
 }
 
-# Mostra o resumo visible dos cambios incluídos na migración.
+# Imprime os cambios específicos de SpotDL que se ofrecen nesta versión.
+# Non instala nin modifica nada antes da confirmación.
 show_changelog() {
   title "Update $VERSION"
   info "Cambios que se van aplicar:"
@@ -54,14 +65,16 @@ show_changelog() {
   info "· Actualizada a config de SpotDL."
 }
 
-# Executa cada cambio da migración e detense no primeiro erro.
+# Delega no único paso opcional e propaga o seu código.
+# O éxito tamén inclúe o caso no que SpotDL non estaba instalado.
 apply_update() {
   if ! update_spotdl_config; then
     return 1
   fi
 }
 
-# Confirma e executa a migración, propagando calquera erro ao instalador.
+# Mostra, confirma e aplica a migración; unha cancelación devolve erro.
+# Só un resultado completo permite que o instalador rexistre esta versión.
 main() {
   show_changelog
 

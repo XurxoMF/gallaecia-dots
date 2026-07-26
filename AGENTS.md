@@ -15,7 +15,8 @@ Emprega o galego nos comentarios, mensaxes da interface, documentación e nomes 
 - `updates/base.sh`: instalación inicial completa. Debe representar sempre o estado máis recente do proxecto.
 - `updates/X_Y_Z.sh`: migracións incrementais para instalacións antigas.
 - `updates/X_X_X.sh.example`: plantilla para crear unha migración.
-- `.local/share/gallaecia-dots/scripts/modules/`: funcións Bash compartidas para aplicacións, comandos, ficheiros, interface e versións.
+- `.local/share/gallaecia-dots/scripts/modules/`: API Bash pública cargada polo `.bashrc`, con helpers de aplicacións, comandos, ficheiros, interface e o dispatcher `gallaecia`.
+- `.local/share/gallaecia-dots/scripts/internal/`: librarías internas de aplicacións, catálogo e versións, cargadas explicitamente polo instalador e por todos os updates, pero nunca polo `.bashrc`.
 - `.local/share/gallaecia-dots/scripts/system-update.sh`: actualizador interactivo do sistema e dos dotfiles.
 - `.config/bashrc/`: módulos base e espazo de personalización do usuario, cargados por orde numérica.
 - `optional/.local/share/gallaecia-dots/bashrc/`: comandos Bash opcionais que só se instalan coa aplicación correspondente.
@@ -36,6 +37,10 @@ Emprega o galego nos comentarios, mensaxes da interface, documentación e nomes 
 - `install`: executa `updates/base.sh` para unha instalación nova.
 - `update`: executa, por orde de versión, as migracións aínda non rexistradas.
 - `reinstall`: limpa o estado de versións e volve aplicar a base.
+
+O repositorio de instalación e actualización sincronízase sempre desde a rama
+`release`. Non engadas opcións, argumentos nin variables de contorno para
+escoller outra rama nos scripts ou no comando `gallaecia`.
 
 O estado gárdase en `~/.local/share/gallaecia-dots/`:
 
@@ -69,13 +74,23 @@ As migracións deben poder aplicarse secuencialmente, reutilizar os módulos com
 Todos os updaters `updates/X_Y_Z.sh`, incluída a plantilla
 `updates/X_X_X.sh.example`, deben conservar exactamente a mesma estrutura:
 
-1. Constantes, validación e carga dos módulos necesarios.
+1. Constantes, validación e carga de todos os módulos públicos de
+   `scripts/modules/` e todas as librarías de `scripts/internal/`, aínda que a
+   migración concreta non empregue algunha delas.
 2. Unha función pequena por cada instalación, copia ou configuración.
 3. `show_changelog()` para o resumo visible.
 4. `apply_update()` como orquestrador, comprobando cada función con `if ! funcion; then return 1; fi`.
 5. `main()` para confirmar, executar e comunicar o resultado.
 
 Non concentres varias operacións nunha cadea `comando && comando || return 1`. A separación en funcións e os bloques `if` explícitos deben deixar claro que paso fallou e garantir que a versión non se marque cando quede unha acción incompleta.
+
+`install.sh` e as cabeceiras dos updates deben manter sempre o mesmo estándar
+despois de que o repo estea dispoñible: declarar `MODULES_DIR` e `INTERNAL_DIR`,
+comprobar que se poden ler `apps.sh`, `commands.sh`, `files.sh`, `gallaecia.sh`
+e `ui.sh` dentro de módulos, comprobar tamén `apps.sh` e `versions.sh` dentro
+de internal, e facer `source` explícito dos sete ficheiros con cadanseu
+comentario de ShellCheck. Non retires unha carga por non ser necesaria nese
+momento; a dispoñibilidade uniforme de todos os helpers é intencionada.
 
 ## Separación entre base e personalización
 
@@ -95,7 +110,8 @@ Antes de cambiar unha operación de copia, comproba se o destino está pensado p
 
 ## Aplicacións
 
-As aplicacións descríbense en `updates/base.sh` con entradas neste formato:
+As aplicacións descríbense no catálogo de `scripts/internal/apps.sh` con
+entradas neste formato:
 
 ```text
 tipo|Nome visible|paquetes|comando|ficheiro .desktop
@@ -111,11 +127,19 @@ O campo de paquetes pode conter varios nomes separados por espazos. O comando ú
 
 As categorías principais esixen polo menos unha selección e poden pedir unha aplicación predeterminada. As categorías opcionais poden quedar baleiras. Ao engadir unha aplicación:
 
-- Emprega os helpers de `modules/apps.sh` e non dupliques a lóxica das colas.
+- Emprega os helpers de `scripts/internal/apps.sh` e non dupliques a lóxica das colas.
+- Mantén o catálogo unicamente en `scripts/internal/apps.sh`; `updates/base.sh`
+  e `gallaecia install-category` deben consumir esa mesma fonte de verdade.
 - Evita engadir dúas veces un paquete compartido por varias categorías.
 - Instala configuración opcional só se a aplicación foi escollida.
 - Actualiza as asociacións MIME cando a categoría teña unha aplicación predeterminada.
+- Usa unha única elección predeterminada para MIME e para a asignación
+  correspondente da táboa `Gallaecia` de `~/.config/hypr/hyprland.lua`.
+  A actualización debe funcionar tanto cos placeholders iniciais como con
+  valores xa substituídos, sen volver preguntar ao usuario.
 - Conserva a orde intencionada das opcións; a primeira adoita ser a recomendada.
+- Actualiza no mesmo cambio o catálogo de categorías e aplicacións do
+  `README.md`, indicando o xestor e os identificadores reais dos paquetes.
 
 ## Convencións de Bash
 
@@ -126,9 +150,15 @@ As categorías principais esixen polo menos unha selección e poden pedir unha a
 - Os scripts principais usan `set -u` e `set -o pipefail`. Non introduzas `set -e` sen revisar todo o control explícito de erros.
 - Escribe as condicións e validacións con bloques explícitos `if ...; then ...; fi`. Non uses construcións como `[ condición ] || { ...; }` para simular un `if`; son máis difíciles de ler. Pódese conservar `comando || return` ou `comando && seguinte_comando` cando sexa unha propagación curta e directa.
 - Ten en conta que `fail` imprime a mensaxe e remata o proceso con código 1.
-- Reutiliza `has_command`, `ensure_command`, `replace_file`, `replace_path`, `merge_path` e os wrappers de `gum` antes de crear alternativas.
+- Reutiliza `has_command`, `has_package`, `replace_file`,
+  `replace_path`, `merge_path` e os wrappers de `gum` antes de crear
+  alternativas.
 - Engade `# shellcheck source=/dev/null` nas cargas dinámicas cando corresponda.
-- Engade un comentario breve antes de cada función e alias explicando para que serve.
+- Engade comentarios antes de cada función e alias. Nas funcións triviais chega
+  con explicar o propósito; nas que reciben estado, modifican globais, teñen
+  varios `case` ou forman parte dun fluxo, documenta tamén entradas, saída,
+  efectos laterais, relación coa fase anterior/seguinte e por que unhas
+  categorías ou casos aparecen e outros non.
 - Comenta tamén regex, formatos especiais, expansións de parámetros, separación mediante NUL ou tabuladores e calquera bloque que non resulte evidente nunha primeira lectura. Non describas liña por liña o código trivial.
 
 ### Formato dos módulos e comandos Bash
@@ -160,7 +190,35 @@ Mantén o mesmo formato nos módulos compartidos e nos Bashrc:
 - As opcións descoñecidas antes de `--` deben producir unha mensaxe clara que indique como consultar `--help`.
 - Prefire repetir un parser curto dentro de cada comando antes que ocultar o fluxo en helpers xenéricos difíciles de seguir. Extrae funcións privadas cando aforren unha cantidade importante de código e sigan sendo evidentes, como os selectores compartidos de contedores ou imaxes.
 - Mantén os helpers específicos no ficheiro da aplicación que os utiliza. Non movas lóxica exclusiva de Git, Docker, yt-dlp ou SpotDL a módulos globais.
-- Os módulos internos de aplicacións e versións deben advertir claramente que non son unha API para comandos personalizados. Os helpers reutilizables son os de interface, ficheiros e comandos.
+- Os módulos internos de aplicacións e versións deben advertir claramente que
+  non son unha API para comandos personalizados. Os helpers reutilizables son
+  os de aplicacións, interface, ficheiros e comandos.
+- Conserva en `scripts/modules/` só helpers públicos seguros para cargar en cada shell. As librarías exclusivas do instalador deben vivir en `scripts/internal/` e cargarse explicitamente desde `~/.dotfiles`.
+- O módulo público `gallaecia.sh` expón só a función `gallaecia`; os seus
+  helpers comezan por `_gallaecia_`. Calquera carga de `scripts/internal/`
+  iniciada desde ese comando debe facerse nun subshell para non deixar
+  funcións, arrays nin variables internas na terminal do usuario.
+- Ao engadir, retirar ou renomear un comando, función ou alias público,
+  actualiza no mesmo cambio a referencia do `README.md`. Indica tamén a
+  aplicación e categoría necesarias cando o comando pertenza a un Bashrc
+  opcional.
+
+### Documentación pública
+
+O `README.md` funciona tamén como referencia de uso e debe manter sempre:
+
+- Un índice sincronizado con todos os seus apartados e subapartados.
+- O catálogo completo das categorías e aplicacións de
+  `scripts/internal/apps.sh`, co
+  xestor e os identificadores de paquete correspondentes.
+- A lista completa de comandos, funcións e alias públicos dos módulos e dos
+  Bashrc opcionais, cunha descrición breve e a súa dispoñibilidade.
+- As guías de actualización, fondos e personalización aliñadas co
+  comportamento real da configuración e dos scripts.
+
+Revisa estas catro partes no mesmo cambio sempre que se modifiquen os
+encabezados do README, a selección de aplicacións, a API pública, os comandos
+opcionais ou os fluxos de uso documentados.
 
 ### Operacións interactivas e destrutivas
 
@@ -178,6 +236,11 @@ A interface interactiva está centralizada en `modules/ui.sh` e usa `gum`. Empre
   forma parte da interface e Gum elimínao ao pechala, mentres que un `echo`
   deixa liñas baleiras permanentes. Non engadas un `echo` antes destes helpers
   só para crear espazo.
+- Define as cores de Gum mediante roles semánticos xenéricos compartidos por
+  todos os wrappers, non con variables específicas para cada subcomando. Se
+  engades un rol novo en `ui.sh`, expórtao tamén en
+  `noctalia/ui-colors.sh.template` e reutilízao en todos os controis
+  equivalentes.
 
 Escribe en galego as mensaxes novas e revisa a ortografía antes de rematar. Conserva a orde de idiomas do sistema:
 
@@ -204,6 +267,7 @@ Non hai unha suite automatizada de probas. Fai comprobacións estáticas proporc
 bash -n install.sh updates/*.sh \
   .local/share/gallaecia-dots/scripts/*.sh \
   .local/share/gallaecia-dots/scripts/modules/*.sh \
+  .local/share/gallaecia-dots/scripts/internal/*.sh \
   .bashrc .config/bashrc/* \
   optional/.local/share/gallaecia-dots/bashrc/*
 ```

@@ -3,9 +3,26 @@
 set -u
 set -o pipefail
 
+###############################################################################
+# BOOTSTRAP E SELECTOR DO MODO DE INSTALACIÓN
+#
+# Este é o único script que pode comezar sen que ~/.dotfiles exista. Por iso a
+# primeira parte non usa módulos: instala Gum/Git e clona o repo. Unha vez
+# dispoñible o repo, carga todas as librarías e escolle un destes fluxos:
+#
+#   install    -> updates/base.sh e marca todas as migracións actuais.
+#   update     -> só updates/X_Y_Z.sh aínda non rexistrados.
+#   reinstall  -> limpa o estado de versións e volve executar a base.
+#
+# SKIP_CLONE e INSTALL_MODE son a interface usada por `gallaecia` e
+# system-update.sh para evitar descargar o repo dúas veces ou volver preguntar
+# polo modo.
+###############################################################################
+
 # Rutas do repo.
 DOTFILES_DIR="$HOME/.dotfiles"
 MODULES_DIR="$DOTFILES_DIR/.local/share/gallaecia-dots/scripts/modules"
+INTERNAL_DIR="$DOTFILES_DIR/.local/share/gallaecia-dots/scripts/internal"
 UPDATES_DIR="$DOTFILES_DIR/updates"
 BASE_INSTALLER="$UPDATES_DIR/base.sh"
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
@@ -16,9 +33,9 @@ INSTALLED_VERSIONS_FILE="$STATE_DIR/versions-instaladas"
 CURRENT_VERSION_FILE="$STATE_DIR/version"
 INSTALLED_MARK_FILE="$STATE_DIR/instalado"
 
-# Repo remoto.
+# Repo remoto. As instalacións usan sempre a versión publicada en `release`;
+# non se admite seleccionar outra rama desde variables nin argumentos.
 REPO_URL="https://github.com/XurxoMF/gallaecia-dots.git"
-REPO_BRANCH="${REPO_BRANCH:-release}"
 
 # Opcións do bootstrap.
 SKIP_CLONE="${SKIP_CLONE:-0}"
@@ -38,6 +55,7 @@ install_prerequisites() {
 # Descarga o repo completo en ~/.dotfiles.
 # Se o script xa se está executando desde ~/.dotfiles, non borra nin clona nada:
 # isto permite probar o instalador desde unha copia local sen destruíla.
+# Os fluxos que xa sincronizaron o repo pasan SKIP_CLONE=1.
 download_dotfiles() {
   if [ "$SKIP_CLONE" = "1" ]; then
     return 0
@@ -48,10 +66,11 @@ download_dotfiles() {
   fi
 
   rm -rf "$DOTFILES_DIR" &&
-  git clone --branch "$REPO_BRANCH" "$REPO_URL" "$DOTFILES_DIR"
+  git clone -b release "$REPO_URL" "$DOTFILES_DIR"
 }
 
-# Executa os updates versionados dispoñibles, se existen.
+# Busca updates X_Y_Z.sh, convérteos a X.Y.Z e execútaos por orde.
+# Consulta versions-instaladas antes de cada un e só o marca tras un código 0.
 run_versioned_updates() {
   local update_script
   local version_name
@@ -89,7 +108,8 @@ run_versioned_updates() {
   done
 }
 
-# Executa a instalación base.
+# Executa updates/base.sh e, só se remata correctamente, marca `base` e todas as
+# migracións actuais. Unha instalación nova non reproduce updates históricos.
 run_base_install() {
   if [ ! -f "$BASE_INSTALLER" ]; then
     echo "Non se atopou o instalador base en $BASE_INSTALLER."
@@ -104,7 +124,8 @@ run_base_install() {
   mark_base_as_installed
 }
 
-# Marca a versión correspondente a un ficheiro de update e actualiza o estado.
+# Recibe a ruta dun updater xa executado correctamente, extrae do nome
+# `X_Y_Z.sh` a versión `X.Y.Z` e actualiza os dous rexistros internos.
 mark_version_from_script() {
   local script_path="$1"
   local version_name
@@ -117,14 +138,16 @@ mark_version_from_script() {
   set_gallaecia_current_version "$version_name"
 }
 
-# Marca a base como completamente aplicada.
+# Rexistra todas as migracións dispoñibles e fixa a máis recente como versión
+# actual, evitando que unha instalación nova reproduza actualizacións históricas.
 mark_base_as_installed() {
   mark_all_available_versions &&
   set_gallaecia_current_version "$(latest_available_version)"
 }
 
-# Decide o modo efectivo de instalación.
-# En modo auto, se xa existe unha instalación previa pregúntase ao usuario.
+# Decide o modo efectivo. Un INSTALL_MODE explícito úsase sen preguntar.
+# En `auto`, o estado local decide entre instalación nova ou un menú
+# update/reinstall para unha instalación existente.
 resolve_install_mode() {
   case "$INSTALL_MODE" in
     install|update|reinstall)
@@ -155,7 +178,8 @@ resolve_install_mode() {
   return 1
 }
 
-# Aplica o fluxo escollido polo usuario ou polo entorno.
+# Recibe o modo xa resolto e chama exactamente un fluxo. Reinstall borra só os
+# ficheiros de estado de versións; a base decide que configuración substituír.
 run_install_flow() {
   local effective_mode="$1"
 
@@ -180,7 +204,9 @@ run_install_flow() {
 # Fluxo bootstrap completo:
 # 1. instalar gum/git,
 # 2. clonar repo,
-# 3. delegar a instalación real aos scripts do repo clonado.
+# 3. cargar as sete librarías estándar desde o repo,
+# 4. resolver o modo,
+# 5. delegar a instalación real á base ou ás migracións.
 main() {
   install_prerequisites || exit 1
 
@@ -189,10 +215,31 @@ main() {
     exit 1
   fi
 
+  if [ ! -r "$MODULES_DIR/apps.sh" ] ||
+    [ ! -r "$MODULES_DIR/commands.sh" ] ||
+    [ ! -r "$MODULES_DIR/files.sh" ] ||
+    [ ! -r "$MODULES_DIR/gallaecia.sh" ] ||
+    [ ! -r "$MODULES_DIR/ui.sh" ] ||
+    [ ! -r "$INTERNAL_DIR/apps.sh" ] ||
+    [ ! -r "$INTERNAL_DIR/versions.sh" ]; then
+    echo "Non se atoparon as librarías de Gallaecia Dots en $DOTFILES_DIR." >&2
+    exit 1
+  fi
+
   # shellcheck source=/dev/null
-  source "$MODULES_DIR/versions.sh"
+  source "$MODULES_DIR/apps.sh"
+  # shellcheck source=/dev/null
+  source "$MODULES_DIR/commands.sh"
+  # shellcheck source=/dev/null
+  source "$MODULES_DIR/files.sh"
+  # shellcheck source=/dev/null
+  source "$MODULES_DIR/gallaecia.sh"
   # shellcheck source=/dev/null
   source "$MODULES_DIR/ui.sh"
+  # shellcheck source=/dev/null
+  source "$INTERNAL_DIR/apps.sh"
+  # shellcheck source=/dev/null
+  source "$INTERNAL_DIR/versions.sh"
 
   local effective_mode
 

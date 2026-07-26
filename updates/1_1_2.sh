@@ -6,30 +6,40 @@ set -o pipefail
 VERSION="1.1.2"
 DOTFILES_DIR="$HOME/.dotfiles"
 MODULES_DIR="$DOTFILES_DIR/.local/share/gallaecia-dots/scripts/modules"
+INTERNAL_DIR="$DOTFILES_DIR/.local/share/gallaecia-dots/scripts/internal"
 
-if [ ! -r "$MODULES_DIR/ui.sh" ] ||
+if [ ! -r "$MODULES_DIR/apps.sh" ] ||
   [ ! -r "$MODULES_DIR/commands.sh" ] ||
-  [ ! -r "$MODULES_DIR/files.sh" ]; then
-  echo "Non se atoparon os módulos de Gallaecia Dots en $MODULES_DIR." >&2
+  [ ! -r "$MODULES_DIR/files.sh" ] ||
+  [ ! -r "$MODULES_DIR/gallaecia.sh" ] ||
+  [ ! -r "$MODULES_DIR/ui.sh" ] ||
+  [ ! -r "$INTERNAL_DIR/apps.sh" ] ||
+  [ ! -r "$INTERNAL_DIR/versions.sh" ]; then
+  echo "Non se atoparon os módulos ou librarías internas en $DOTFILES_DIR." >&2
   exit 1
 fi
 
 # shellcheck source=/dev/null
-source "$MODULES_DIR/ui.sh"
+source "$MODULES_DIR/apps.sh"
 # shellcheck source=/dev/null
 source "$MODULES_DIR/commands.sh"
 # shellcheck source=/dev/null
 source "$MODULES_DIR/files.sh"
 # shellcheck source=/dev/null
-source "$MODULES_DIR/versions.sh"
+source "$MODULES_DIR/gallaecia.sh"
 # shellcheck source=/dev/null
-source "$MODULES_DIR/apps.sh"
+source "$MODULES_DIR/ui.sh"
+# shellcheck source=/dev/null
+source "$INTERNAL_DIR/apps.sh"
+# shellcheck source=/dev/null
+source "$INTERNAL_DIR/versions.sh"
 
-# Actualiza os módulos compartidos co novo formato de axuda e interface.
+# Substitúe comandos, ficheiros e UI como unha unidade para manter compatible a
+# súa nova convención de axuda, passthrough e espazado.
 update_shared_modules() {
   local module
 
-  for module in apps commands files ui versions; do
+  for module in commands files ui; do
     if ! replace_file \
       "$DOTFILES_DIR/.local/share/gallaecia-dots/scripts/modules/$module.sh" \
       "$HOME/.local/share/gallaecia-dots/scripts/modules/$module.sh"; then
@@ -38,14 +48,16 @@ update_shared_modules() {
   done
 }
 
-# Actualiza o fluxo do sistema para aproveitar o novo espazado común.
+# Substitúe o actualizador que deixa a separación visual nos wrappers de UI.
+# Non executa tarefas de mantemento durante a migración.
 update_system_update() {
   replace_file \
     "$DOTFILES_DIR/.local/share/gallaecia-dots/scripts/system-update.sh" \
     "$HOME/.local/share/gallaecia-dots/scripts/system-update.sh"
 }
 
-# Actualiza os Bashrc opcionais nos que se retiraron saltos redundantes.
+# Actualiza cada módulo opcional só cando o seu executable está dispoñible.
+# Mantén así as eleccións do usuario e evita instalar integracións non solicitadas.
 update_optional_bash_modules() {
   if ! mkdir -p "$HOME/.local/share/gallaecia-dots/bashrc"; then
     return 1
@@ -84,7 +96,8 @@ update_optional_bash_modules() {
   fi
 }
 
-# Mostra o resumo visible dos cambios incluídos na migración.
+# Explica a unificación de interface, axudas e formato dos scripts.
+# Non modifica ficheiros ata recibir confirmación.
 show_changelog() {
   title "Update $VERSION"
   info "Cambios que se van aplicar:"
@@ -95,7 +108,8 @@ show_changelog() {
   info "· Estandarizado o formato de todas as migracións."
 }
 
-# Executa cada cambio da migración e detense no primeiro erro.
+# Actualiza en orde API pública, consumidor do sistema e módulos opcionais.
+# Calquera erro detén a cadea e deixa a versión pendente.
 apply_update() {
   if ! update_shared_modules; then
     return 1
@@ -108,7 +122,8 @@ apply_update() {
   fi
 }
 
-# Confirma e executa a migración, propagando calquera erro ao instalador.
+# Presenta, confirma e aplica a migración completa.
+# A cancelación e os fallos devólvense ao instalador como erro.
 main() {
   show_changelog
 

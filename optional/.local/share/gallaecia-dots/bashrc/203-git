@@ -3,7 +3,9 @@
 # Funcións interactivas opcionais para Git.
 # Toda a lóxica específica queda neste ficheiro para non cargala se Git non foi escollido.
 
-# Mostra a mini guía correspondente a cada comando interactivo de Git.
+# Recibe o nome dun comando deste módulo e imprime a súa axuda específica.
+# Centraliza usos, opcións, resultado e passthrough sen consultar nin modificar
+# o repositorio; cada comando público chámaa ao atopar `-h|--help`.
 _git_help() {
   case "$1" in
     git-credenciales)
@@ -394,7 +396,9 @@ EOF
   esac
 }
 
-# Comproba que o directorio actual pertence a un repositorio Git.
+# Comproba que Git pode resolver a raíz do repositorio desde o directorio actual.
+# Non cambia de directorio nin imprime a raíz; devolve 1 cun aviso comprensible
+# cando o comando se executa fóra dun worktree.
 _git_require_repo() {
   if ! git rev-parse --git-dir &> /dev/null; then
     warning "O directorio actual non pertence a un repositorio Git."
@@ -402,7 +406,9 @@ _git_require_repo() {
   fi
 }
 
-# Permite seleccionar un commit e devolve unicamente o seu hash curto.
+# Obtén un historial compacto, móstrao en `gum_choose` e imprime só o hash curto
+# da liña seleccionada. Non altera HEAD; a saída está deseñada para capturarse
+# desde comandos como `git-diff` e `git-commit-show`.
 _git_select_commit() {
   local selection
 
@@ -417,7 +423,9 @@ _git_select_commit() {
   printf '%s\n' "${selection%%$'\t'*}"
 }
 
-# Configura o nome e o correo de autoría local ou global.
+# Recibe opcionalmente nome, correo e alcance; solicita con Gum os datos ausentes.
+# Escribe `user.name` e `user.email` na configuración local ou global de Git e
+# valida que o modo local se execute dentro dun repositorio.
 git-credenciales() {
   local scope scope_flag current_name current_email name email
 
@@ -473,7 +481,9 @@ git-credenciales() {
     success "Credenciais de autoría configuradas correctamente."
 }
 
-# Inicia sesión en GitHub mediante GitHub CLI e o navegador.
+# Recolle o servidor opcional e reenvía argumentos a `gh auth login`.
+# Comproba a dependencia, configura o protocolo Git HTTPS e inicia a autenticación
+# web; modifica as credenciais que GitHub CLI garda para o usuario.
 github-login() {
   local original_args=()
 
@@ -504,7 +514,9 @@ github-login() {
   gh auth login --web "${original_args[@]}"
 }
 
-# Prepara todos os cambios, parches ou ficheiros seleccionados.
+# Permite escoller entre engadir todo, seleccionar ficheiros ou usar o modo patch.
+# Constrúe a chamada correspondente a `git add`, reenvía os argumentos posteriores
+# a `--` e modifica exclusivamente o índice do repositorio actual.
 git-add() {
   local original_args=()
   local mode selection
@@ -572,7 +584,9 @@ git-add() {
   esac
 }
 
-# Crea un commit pedindo un título e un corpo opcional.
+# Recibe ou solicita o título e o corpo dun commit, valida que haxa cambios no
+# índice e executa `git commit`. Os argumentos posteriores a `--` pasan a Git e
+# o resultado conserva o código do comando orixinal.
 git-commit() {
   local original_args=()
   local title body
@@ -612,7 +626,9 @@ git-commit() {
   fi
 }
 
-# Prepara cambios interactivamente e crea o commit nun único fluxo.
+# Encadea `git-add` e `git-commit` no repositorio actual.
+# Só chega ao commit se a preparación remata correctamente; non oculta os erros
+# nin duplica a lóxica interactiva dos dous comandos especializados.
 git-save() {
   local commit_args=()
 
@@ -646,7 +662,9 @@ git-save() {
   git-commit -- "${commit_args[@]}"
 }
 
-# Mostra cambios sen preparar, preparados ou pertencentes a un commit.
+# Permite seleccionar o ámbito da comparación e constrúe a variante adecuada de
+# `git diff` ou `git show`. Só le o repositorio, reenvía opcións de Git e imprime
+# o diff resultante sen modificar índice, worktree nin historial.
 git-diff() {
   local original_args=()
   local mode commit parent
@@ -690,7 +708,9 @@ git-diff() {
   esac
 }
 
-# Descarga cambios permitindo unicamente avances rápidos.
+# Executa `git pull --ff-only` para a rama actual e reenvía argumentos adicionais.
+# A restrición evita merges implícitos durante o wrapper; modifica o worktree só
+# cando a actualización remota pode aplicarse como avance rápido.
 git-pull() {
   local original_args=()
 
@@ -717,7 +737,9 @@ git-pull() {
   git pull --ff-only "${original_args[@]}"
 }
 
-# Publica a rama actual e configura o upstream cando aínda non existe.
+# Detecta a rama actual e se xa ten upstream antes de publicar.
+# Usa `git push` cando está configurado ou `git push -u origin RAMA` no primeiro
+# envío, conservando os argumentos e o código de Git.
 git-push() {
   local original_args=()
   local branch remote selection
@@ -774,7 +796,9 @@ git-push() {
   git push -u "$remote" "$branch"
 }
 
-# Selecciona unha rama local e cambia a ela.
+# Lista ramas locais, permite escoller unha con Gum e executa `git switch`.
+# Non ofrece a rama actual como cambio útil e reenvía a Git os argumentos
+# posteriores a `--`; modifica HEAD e o worktree.
 git-branch-switch() {
   local original_args=()
   local selection
@@ -813,7 +837,9 @@ git-branch-switch() {
   git switch "${original_args[@]}" "$selection"
 }
 
-# Crea unha rama local nova e cambia a ela.
+# Recibe ou solicita un nome, valida que non exista e executa `git switch -c`.
+# Crea a referencia desde o punto actual e actualiza HEAD/worktree; os argumentos
+# adicionais pásanse ao comando Git.
 git-branch-new() {
   local original_args=()
   local branch
@@ -844,7 +870,9 @@ git-branch-new() {
   git switch "${original_args[@]}" -c "$branch"
 }
 
-# Borra unha ou varias ramas locais tras confirmar a selección.
+# Mostra ramas locais distintas da actual, admite selección múltiple e pide unha
+# confirmación antes de borrar. O modo forzado require unha confirmación adicional
+# porque pode eliminar traballo non integrado; finalmente chama `git branch -d/-D`.
 git-branch-delete() {
   local force=false
   local original_args=()
@@ -905,7 +933,9 @@ git-branch-delete() {
   fi
 }
 
-# Integra na rama actual outra rama local seleccionada.
+# Permite seleccionar unha rama local distinta da actual e executa `git merge`.
+# Mostra claramente orixe e destino antes de confirmar, reenvía opcións de Git
+# e pode modificar historial e worktree segundo o resultado da integración.
 git-branch-merge() {
   local original_args=()
   local current selection branch
@@ -952,7 +982,9 @@ git-branch-merge() {
   git merge "${original_args[@]}" "$selection"
 }
 
-# Mostra un historial compacto de todas as ramas cun gráfico textual.
+# Executa unha vista predefinida de `git log` con gráfico, decoración e todas as
+# ramas. É unha consulta de só lectura e admite argumentos adicionais para que o
+# usuario limite ou amplíe o historial mostrado.
 git-log() {
   local original_args=()
 
@@ -979,7 +1011,9 @@ git-log() {
   git log --graph --decorate --oneline --all "${original_args[@]}"
 }
 
-# Selecciona un commit e mostra os seus metadatos e cambios.
+# Reutiliza o selector de commits e pasa o hash escollido a `git show`.
+# Só le obxectos do repositorio, imprime os metadatos e o parche e conserva as
+# opcións adicionais indicadas despois de `--`.
 git-commit-show() {
   local original_args=()
   local commit
@@ -1008,7 +1042,9 @@ git-commit-show() {
   git show "${original_args[@]}" "$commit"
 }
 
-# Garda temporalmente os cambios cunha descrición opcional.
+# Recibe ou solicita unha descrición e executa `git stash push`, incluíndo
+# opcionalmente ficheiros non rastrexados. Retira cambios do worktree para
+# gardalos no stash e reenvía as opcións adicionais a Git.
 git-stash-save() {
   local include_untracked=false
   local original_args=()
@@ -1046,7 +1082,9 @@ git-stash-save() {
   fi
 }
 
-# Selecciona un stash, aplícao e retírao da listaxe.
+# Lista os stashes, permite escoller un e executa `git stash pop`.
+# A operación aplica os cambios ao worktree e só elimina a entrada se Git pode
+# integrala correctamente; conserva os argumentos e o código do comando real.
 git-stash-pop() {
   local original_args=()
   local selection stash

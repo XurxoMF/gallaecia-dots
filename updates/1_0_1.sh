@@ -6,26 +6,36 @@ set -o pipefail
 VERSION="1.0.1"
 DOTFILES_DIR="$HOME/.dotfiles"
 MODULES_DIR="$DOTFILES_DIR/.local/share/gallaecia-dots/scripts/modules"
+INTERNAL_DIR="$DOTFILES_DIR/.local/share/gallaecia-dots/scripts/internal"
 
-if [ ! -r "$MODULES_DIR/ui.sh" ] ||
+if [ ! -r "$MODULES_DIR/apps.sh" ] ||
+  [ ! -r "$MODULES_DIR/commands.sh" ] ||
   [ ! -r "$MODULES_DIR/files.sh" ] ||
-  [ ! -r "$MODULES_DIR/apps.sh" ]; then
-  echo "Non se atoparon os módulos de Gallaecia Dots en $MODULES_DIR." >&2
+  [ ! -r "$MODULES_DIR/gallaecia.sh" ] ||
+  [ ! -r "$MODULES_DIR/ui.sh" ] ||
+  [ ! -r "$INTERNAL_DIR/apps.sh" ] ||
+  [ ! -r "$INTERNAL_DIR/versions.sh" ]; then
+  echo "Non se atoparon os módulos ou librarías internas en $DOTFILES_DIR." >&2
   exit 1
 fi
 
 # shellcheck source=/dev/null
-source "$MODULES_DIR/ui.sh"
+source "$MODULES_DIR/apps.sh"
 # shellcheck source=/dev/null
 source "$MODULES_DIR/commands.sh"
 # shellcheck source=/dev/null
 source "$MODULES_DIR/files.sh"
 # shellcheck source=/dev/null
-source "$MODULES_DIR/versions.sh"
+source "$MODULES_DIR/gallaecia.sh"
 # shellcheck source=/dev/null
-source "$MODULES_DIR/apps.sh"
+source "$MODULES_DIR/ui.sh"
+# shellcheck source=/dev/null
+source "$INTERNAL_DIR/apps.sh"
+# shellcheck source=/dev/null
+source "$INTERNAL_DIR/versions.sh"
 
-# Move o Bashrc antigo de yt-dlp á localización controlada por Gallaecia.
+# Se yt-dlp e o módulo antigo existen, retírao de `~/.config/bashrc` e instala a
+# versión nova na área opcional controlada por Gallaecia; noutro caso non actúa.
 migrate_yt_dlp_bash_module() {
   if ! is_pkg_installed yt-dlp ||
     ! file_exists "$HOME/.config/bashrc/201-yt-dlp"; then
@@ -45,9 +55,12 @@ migrate_yt_dlp_bash_module() {
   fi
 }
 
-# Actualiza os helpers compartidos de ficheiros e aplicacións.
+# Crea as dúas áreas de scripts e substitúe o módulo público de ficheiros e o
+# catálogo interno necesarios para que os seguintes fluxos compartan helpers.
 update_helpers_modules() {
-  if ! mkdir -p "$HOME/.local/share/gallaecia-dots/scripts/modules"; then
+  if ! mkdir -p \
+    "$HOME/.local/share/gallaecia-dots/scripts/modules" \
+    "$HOME/.local/share/gallaecia-dots/scripts/internal"; then
     return 1
   fi
   if ! replace_file \
@@ -56,25 +69,28 @@ update_helpers_modules() {
     return 1
   fi
   if ! replace_file \
-    "$DOTFILES_DIR/.local/share/gallaecia-dots/scripts/modules/apps.sh" \
-    "$HOME/.local/share/gallaecia-dots/scripts/modules/apps.sh"; then
+    "$DOTFILES_DIR/.local/share/gallaecia-dots/scripts/internal/apps.sh" \
+    "$HOME/.local/share/gallaecia-dots/scripts/internal/apps.sh"; then
     return 1
   fi
 }
 
-# Actualiza o Bashrc principal controlado polo proxecto.
+# Substitúe o `.bashrc` principal pola versión que carga a nova área opcional.
+# Non modifica os módulos personalizados dentro de `~/.config/bashrc`.
 update_main_bashrc() {
   replace_file "$DOTFILES_DIR/.bashrc" "$HOME/.bashrc"
 }
 
-# Mostra o resumo visible dos cambios incluídos na migración.
+# Imprime a versión e o resumo que o usuario revisa antes de confirmar.
+# Non modifica ficheiros nin marca a migración como instalada.
 show_changelog() {
   title "Update $VERSION"
   info "Cambios que se van aplicar:"
   info "· Mellorados os comandos de yt-dlp."
 }
 
-# Executa cada cambio da migración e detense no primeiro erro.
+# Executa os tres pasos en orde e devolve 1 no primeiro fallo.
+# O instalador só rexistrará a versión cando este orquestrador devolva 0.
 apply_update() {
   if ! migrate_yt_dlp_bash_module; then
     return 1
@@ -87,7 +103,8 @@ apply_update() {
   fi
 }
 
-# Confirma e executa a migración, propagando calquera erro ao instalador.
+# Mostra o changelog, pide confirmación e comunica o resultado final.
+# Cancelar ou fallar termina con erro para impedir que se marque a versión.
 main() {
   show_changelog
 

@@ -10,36 +10,45 @@ set -o pipefail
 VERSION="0.0.0"
 DOTFILES_DIR="$HOME/.dotfiles"
 MODULES_DIR="$DOTFILES_DIR/.local/share/gallaecia-dots/scripts/modules"
+INTERNAL_DIR="$DOTFILES_DIR/.local/share/gallaecia-dots/scripts/internal"
 
-# Ao copiar a plantilla, conserva só os módulos que empregue a migración.
-if [ ! -r "$MODULES_DIR/ui.sh" ] ||
+# Todos os updates cargan sempre a API pública e as librarías internas completas.
+if [ ! -r "$MODULES_DIR/apps.sh" ] ||
   [ ! -r "$MODULES_DIR/commands.sh" ] ||
   [ ! -r "$MODULES_DIR/files.sh" ] ||
-  [ ! -r "$MODULES_DIR/versions.sh" ] ||
-  [ ! -r "$MODULES_DIR/apps.sh" ]; then
-  echo "Non se atoparon os módulos de Gallaecia Dots en $MODULES_DIR." >&2
+  [ ! -r "$MODULES_DIR/gallaecia.sh" ] ||
+  [ ! -r "$MODULES_DIR/ui.sh" ] ||
+  [ ! -r "$INTERNAL_DIR/apps.sh" ] ||
+  [ ! -r "$INTERNAL_DIR/versions.sh" ]; then
+  echo "Non se atoparon os módulos ou librarías internas en $DOTFILES_DIR." >&2
   exit 1
 fi
 
 # shellcheck source=/dev/null
-source "$MODULES_DIR/ui.sh"
+source "$MODULES_DIR/apps.sh"
 # shellcheck source=/dev/null
 source "$MODULES_DIR/commands.sh"
 # shellcheck source=/dev/null
 source "$MODULES_DIR/files.sh"
 # shellcheck source=/dev/null
-source "$MODULES_DIR/versions.sh"
+source "$MODULES_DIR/gallaecia.sh"
 # shellcheck source=/dev/null
-source "$MODULES_DIR/apps.sh"
+source "$MODULES_DIR/ui.sh"
+# shellcheck source=/dev/null
+source "$INTERNAL_DIR/apps.sh"
+# shellcheck source=/dev/null
+source "$INTERNAL_DIR/versions.sh"
 
-# Separa cada cambio real nunha función cunha única responsabilidade.
+# Modelo dun paso illado da migración: debe modificar unha soa responsabilidade
+# e devolver un código que `apply_update` poida comprobar de forma explícita.
 apply_example_change() {
   # Substitúe este exemplo pola operación necesaria.
   # replace_file "$DOTFILES_DIR/.bashrc" "$HOME/.bashrc"
   true
 }
 
-# Mostra o resumo visible dos cambios incluídos na migración.
+# Mostra só información visible e suficiente para decidir a confirmación.
+# Non debe executar instalacións, copias nin cambios de estado.
 show_changelog() {
   title "Update $VERSION"
   info "Cambios que se van aplicar:"
@@ -47,14 +56,16 @@ show_changelog() {
   info "· Describe aquí o segundo cambio."
 }
 
-# Executa cada cambio da migración e detense no primeiro erro.
+# Orquestra todos os pasos con bloques `if ! funcion`; engade aquí cada función
+# nova na orde necesaria e devolve 1 inmediatamente se unha queda incompleta.
 apply_update() {
   if ! apply_example_change; then
     return 1
   fi
 }
 
-# Confirma e executa a migración, propagando calquera erro ao instalador.
+# Presenta o changelog, confirma e executa o orquestrador.
+# Só un éxito completo permite ao instalador marcar a versión como aplicada.
 main() {
   show_changelog
 

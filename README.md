@@ -2,108 +2,154 @@
 
 ### Arch + Hyprland. En galego. Instalación mínima. Base actualizable.
 
-Gallaecia Dots é un conxunto de dotfiles e un instalador interactivo para montar rapidamente un escritorio baseado en **Arch Linux + Hyprland**, cunha identidade galega e unha base moi concreta: **o mínimo imprescindible para arrancar ben, con Noctalia e os paquetes esenciais xa listos**.
+Gallaecia Dots é un conxunto de dotfiles e un instalador interactivo para
+montar rapidamente un escritorio baseado en **Arch Linux + Hyprland**, cunha
+identidade galega e unha base concreta: **o mínimo imprescindible para arrancar
+ben, con Noctalia e os paquetes esenciais xa preparados**.
 
-Non pretende ser unha distribución nin unha capa pesada sobre o sistema. O obxectivo é ofrecer un punto de partida pequeno, actualizable e fácil de manter.
+Non pretende ser unha distribución nin unha capa pesada sobre o sistema. O
+obxectivo é ofrecer un punto de partida pequeno, actualizable e fácil de manter.
 
-## 🐚 Que é Gallaecia Dots?
+## Índice
+
+- [Que é Gallaecia Dots?](#que-é-gallaecia-dots)
+- [Enfoque minimalista e _opinionated_](#enfoque-minimalista-e-opinionated)
+- [Feito en galego](#feito-en-galego)
+- [Que instala?](#que-instala)
+  - [Núcleo obrigatorio](#núcleo-obrigatorio)
+  - [Categorías e aplicacións](#categorías-e-aplicacións)
+- [Referencia de comandos, funcións e alias](#referencia-de-comandos-funcións-e-alias)
+  - [Dispoñibilidade e axuda](#dispoñibilidade-e-axuda)
+  - [Aplicacións e paquetes](#aplicacións-e-paquetes)
+  - [Comandos do sistema](#comandos-do-sistema)
+  - [Comando Gallaecia](#comando-gallaecia)
+  - [Ficheiros e directorios](#ficheiros-e-directorios)
+  - [Interface con Gum](#interface-con-gum)
+  - [Alias e configuración da shell](#alias-e-configuración-da-shell)
+  - [Descargas con yt-dlp e SpotDL](#descargas-con-yt-dlp-e-spotdl)
+  - [Git e GitHub](#git-e-github)
+  - [Docker, Compose e Buildx](#docker-compose-e-buildx)
+- [Guía de uso diario](#guía-de-uso-diario)
+  - [Actualizar o sistema](#actualizar-o-sistema)
+  - [Instalar máis aplicacións](#instalar-máis-aplicacións)
+  - [Engadir e cambiar fondos](#engadir-e-cambiar-fondos)
+  - [Atallos útiles](#atallos-útiles)
+  - [Personalizar sen perder cambios](#personalizar-sen-perder-cambios)
+- [Instalación](#instalación)
+- [Instalación con archinstall](#instalación-con-archinstall)
+- [Actualizacións e mantemento](#actualizacións-e-mantemento)
+- [Estado do proxecto](#estado-do-proxecto)
+- [Contribucións](#contribucións)
+- [Licenza](#licenza)
+
+## Que é Gallaecia Dots?
 
 **Gallaecia Dots** combina:
 
-- Un instalador que prepara o sistema paso a paso
-- Configuración base para Hyprland, Noctalia, greetd, GTK, Qt e portais XDG entre outros
-- Unha selección mínima de paquetes fundamentais
-- Opcións para escoller só as aplicacións que de verdade queres instalar
+- Un instalador que prepara o sistema paso a paso.
+- Configuración base para Hyprland, Noctalia, greetd, GTK, Qt e portais XDG,
+  entre outros.
+- Unha selección mínima de paquetes fundamentais.
+- Opcións para escoller só as aplicacións que de verdade queres instalar.
 
 A idea é sinxela:
 
 **Instalación curta, base sólida e liberdade para personalizar despois.**
 
-## 🧱 Enfoque minimalista e opinionated
+## Enfoque minimalista e _opinionated_
 
-Este proxecto xa non está pensado como un “pack completo” de aplicacións para todo o mundo.
+Este proxecto non está pensado como un paquete completo de aplicacións para
+todo o mundo. A visión é máis pequena e clara:
 
-A visión actual é máis pequena e máis clara:
+- Instalar só o esencial para que o escritorio funcione.
+- Incluír **Noctalia** como peza central da experiencia.
+- Manter configuracións que teñen sentido como base común.
+- Deixar o resto como elección do usuario.
 
-- Instalar só o esencial para que o escritorio funcione
-- Incluír **Noctalia** como peza central da experiencia
-- Manter configuracións que teñen sentido como base común
-- Deixar o resto como elección do usuario
+Primeiro instálase o núcleo e despois escóllense as ferramentas que interesan
+en cada categoría.
 
-Por defecto, o instalador non che enche o sistema de apps por categorías enormes. Primeiro instala o núcleo, e despois pregúntache polas ferramentas que queres realmente.
+## Feito en galego
 
-## 🌿 Feito en galego
-
-Gallaecia Dots está pensado arredor do galego.
-
-O instalador, as configuracións propias e o escritorio utilizan o galego como idioma principal.
-
-Durante a instalación, o sistema configúrase co seguinte orde de idiomas:
+O instalador, as configuracións propias e o escritorio utilizan o galego como
+idioma principal. Durante a instalación, o sistema configura esta orde:
 
 ```text
 Galego → Español → Inglés
 ```
 
-Deste xeito, cando unha aplicación non dispoña de tradución ao galego, o sistema tentará usar primeiro o español e despois o inglés.
+Cando unha aplicación non dispoña de tradución ao galego, o sistema tentará
+usar primeiro o español e despois o inglés. Tamén se inclúen fondos inspirados
+en Galicia e na súa identidade.
 
-Tamén inclúe fondos de pantalla inspirados en Galicia e na súa identidade.
+## Que instala?
 
-## 📦 Que instala?
-
-A instalación divídese en dúas partes:
+A instalación divídese entre un núcleo común e as aplicacións que escolle cada
+usuario.
 
 ### Núcleo obrigatorio
 
-Isto é o que o proxecto considera imprescindible para a base:
+- Hyprland.
+- Noctalia e Noctalia Greeter.
+- Tradutor integrado no launcher de Noctalia.
+- Fondos animados con MPV e mpvpaper.
+- greetd.
+- XDG Desktop Portals.
+- PipeWire.
+- Kitty.
+- Flatpak e Flathub.
+- Yay para paquetes oficiais de Arch e AUR.
+- Pipx para aplicacións Python illadas.
+- Gum para os menús e formularios interactivos.
+- Configuración GTK, Qt e XDG User Directories.
+- Tipografías, iconas e dependencias comúns do escritorio.
 
-- Hyprland
-- Noctalia
-- Noctalia Greeter
-- Tradutor integrado no launcher de Noctalia
-- Fondos animados con MPV e mpvpaper
-- greetd
-- XDG Desktop Portals
-- PipeWire
-- Kitty
-- Flatpak
-- yay
-- Configuración GTK e Qt
-- XDG User Directories
-- Tipografías e iconas básicas
-- Dependencias comúns do escritorio
+### Categorías e aplicacións
 
-### Aplicacións opcionais
+As cinco primeiras categorías son obrigatorias e requiren polo menos unha
+selección. As demais son opcionais e poden quedar baleiras. Algunhas categorías
+permiten escoller varias aplicacións e definir unha predeterminada.
 
-Despois da base, o instalador pregúntache por categorías de aplicacións para que só instales o que che interesa.
+**Orixes empregadas:**
 
-As categorías actuais son:
+- **Yay/Pacman:** paquete oficial de Arch ou de AUR instalado mediante Yay.
+- **Flatpak:** aplicación instalada desde Flathub.
+- **Pipx:** aplicación Python instalada nun contorno illado.
 
-- Terminal
-- Editor de terminal
-- IDE ou editor gráfico
-- Navegador
-- Explorador de arquivos
-- Audio
-- Vídeo
-- PDF
-- Imaxes
-- Correo
-- Chat
-- Creatividade
-- Oficina e notas
-- Xogos e tendas
-- Utilidades
-- Desenvolvemento, incluídos Docker + Compose e Git
-- Rede e privacidade
-- Descargas e personalización
+| Categoría                                | Aplicacións dispoñibles                                                                                                                                                                                                                                                                              |
+| ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Terminal** · obrigatoria               | Kitty — Yay/Pacman (`kitty`)<br>Alacritty — Yay/Pacman (`alacritty`)<br>Foot — Yay/Pacman (`foot`)<br>Ghostty — Yay/Pacman (`ghostty`)<br>WezTerm — Yay/Pacman (`wezterm`)                                                                                                                           |
+| **Editor de terminal** · obrigatoria     | Neovim — Yay/Pacman (`neovim`)<br>Helix — Yay/Pacman (`helix`)<br>Vim — Yay/Pacman (`vim`)<br>Nano — Yay/Pacman (`nano`)<br>Micro — Yay/Pacman (`micro`)                                                                                                                                             |
+| **IDE ou editor gráfico** · obrigatoria  | Visual Studio Code — Yay/Pacman (`visual-studio-code-bin`)<br>Zed — Yay/Pacman (`zed`)<br>Obsidian — Yay/Pacman (`obsidian`)<br>Geany — Yay/Pacman (`geany`)                                                                                                                                         |
+| **Navegador** · obrigatoria              | Firefox — Yay/Pacman (`firefox`)<br>LibreWolf — Yay/Pacman (`librewolf-bin`)<br>Zen Browser — Yay/Pacman (`zen-browser`)<br>Tor Browser — Yay/Pacman (`tor-browser-bin`)                                                                                                                             |
+| **Explorador de arquivos** · obrigatoria | Dolphin — Yay/Pacman (`dolphin`, `ark`)<br>Nautilus — Yay/Pacman (`nautilus`)<br>Nemo — Yay/Pacman (`nemo`)<br>Yazi — Yay/Pacman (`yazi`)                                                                                                                                                            |
+| **Audio**                                | Amberol — Yay/Pacman (`amberol`)<br>Tauon — Yay/Pacman (`tauon-music-box`)<br>VLC — Yay/Pacman (`vlc`, `vlc-plugins-all`)<br>MPV — Yay/Pacman (`mpv`)                                                                                                                                                |
+| **Vídeo**                                | VLC — Yay/Pacman (`vlc`, `vlc-plugins-all`)<br>MPV — Yay/Pacman (`mpv`)<br>Clapper — Yay/Pacman (`clapper`)                                                                                                                                                                                          |
+| **PDF**                                  | Okular — Yay/Pacman (`okular`)<br>Zathura — Yay/Pacman (`zathura`, `zathura-pdf-mupdf`)<br>Evince — Yay/Pacman (`evince`)                                                                                                                                                                            |
+| **Imaxes**                               | Loupe — Yay/Pacman (`loupe`)<br>GIMP — Yay/Pacman (`gimp`)<br>Krita — Yay/Pacman (`krita`)                                                                                                                                                                                                           |
+| **Correo**                               | Thunderbird — Yay/Pacman (`thunderbird`)                                                                                                                                                                                                                                                             |
+| **Chat**                                 | Discord — Yay/Pacman (`discord`)<br>Vesktop — Yay/Pacman (`vesktop`)<br>Telegram — Yay/Pacman (`telegram-desktop`)<br>Element — Yay/Pacman (`element-desktop`)                                                                                                                                       |
+| **Creatividade**                         | OBS Studio — Yay/Pacman (`obs-studio`)<br>Krita — Yay/Pacman (`krita`)<br>GIMP — Yay/Pacman (`gimp`)<br>Inkscape — Yay/Pacman (`inkscape`)<br>Blender — Yay/Pacman (`blender`)<br>Kdenlive — Yay/Pacman (`kdenlive`)<br>Puddletag — Yay/Pacman (`puddletag`)<br>HandBrake — Yay/Pacman (`handbrake`) |
+| **Oficina e notas**                      | LibreOffice — Yay/Pacman (`libreoffice-still`, `libreoffice-still-gl`, `libreoffice-still-es`)<br>Obsidian — Yay/Pacman (`obsidian`)                                                                                                                                                                 |
+| **Xogos e tendas**                       | Steam — Yay/Pacman (`steam`)<br>Prism Launcher — Yay/Pacman (`prismlauncher`)<br>Lutris — Yay/Pacman (`lutris`)<br>Bottles — Flatpak (`com.usebottles.bottles`)                                                                                                                                      |
+| **Utilidades**                           | KeePassXC — Yay/Pacman (`keepassxc`)<br>qBittorrent — Yay/Pacman (`qbittorrent`)                                                                                                                                                                                                                     |
+| **Desenvolvemento**                      | Git + GitHub CLI — Yay/Pacman (`git`, `github-cli`)<br>Docker + Compose — Yay/Pacman (`docker`, `docker-compose`, `docker-buildx`)<br>Bruno — Flatpak (`com.usebruno.Bruno`)<br>FileZilla — Yay/Pacman (`filezilla`)                                                                                 |
+| **Rede e privacidade**                   | Proton VPN — Flatpak (`com.protonvpn.www`)                                                                                                                                                                                                                                                           |
+| **Descargas e personalización**          | yt-dlp — Yay/Pacman (`yt-dlp`)<br>SpotDL — Pipx (`spotdl`)                                                                                                                                                                                                                                           |
 
-Moitas categorías permiten escoller varias opcións, e nalgúns casos tamén definir unha app por defecto.
+Os paquetes compartidos por varias categorías só se instalan unha vez.
 
-## 🐚 Helpers interactivos
+## Referencia de comandos, funcións e alias
 
-As aplicacións opcionais poden instalar funcións Bash guiadas con `gum` para
-as tarefas máis habituais. Cada comando dispón de axuda propia con `--help` e
-permite reenviar opcións ao programa orixinal despois de `--`:
+### Dispoñibilidade e axuda
+
+Os módulos públicos de aplicacións, comandos, ficheiros e interface cárganse
+en cada shell desde
+`~/.local/share/gallaecia-dots/scripts/modules/`. Pódense usar nun terminal,
+nun script persoal ou nun ficheiro `~/.config/bashrc/NNN-nome`.
+
+Todos os comandos públicos admiten `-h` ou `--help`. Cando un wrapper permite
+pasar argumentos ao programa orixinal, `--` separa as súas opcións:
 
 ```bash
 docker-logs --follow -- --timestamps
@@ -111,70 +157,315 @@ git-log -- --since="1 week ago"
 yt-dlp-video -- --cookies-from-browser firefox
 ```
 
-Os prompts, menús, filtros e inputs sepáranse sempre do texto ou da saída
-anterior cunha liña baleira, sen modificar os valores devoltos polos comandos.
+Os nomes que comezan por `_` son helpers internos e non forman parte da API
+pública. As librarías de `scripts/internal/` pertencen ao instalador e tampouco
+se deben usar como API persoal.
+
+### Aplicacións e paquetes
+
+Estes helpers do módulo público `apps.sh` están sempre dispoñibles:
+
+| Comando ou función | Descrición                                                                                                                                      |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `has_package`      | Comproba se un paquete está instalado con Yay/Pacman, Flatpak ou Pipx; permite limitar a comprobación cun xestor.                               |
+| `yay-install`      | Explora e filtra o catálogo local de paquetes oficiais e AUR, mostra información e instala a selección; `--refresh` actualiza antes o catálogo. |
+| `flatpak-install`  | Explora o catálogo Flatpak configurado, filtra aplicacións e instala a selección confirmada.                                                    |
+| `pipx-install`     | Valida en PyPI o nome indicado e instala a aplicación Python de maneira illada.                                                                 |
+
+### Comandos do sistema
+
+Estes helpers do módulo público `commands.sh` están sempre dispoñibles:
+
+| Comando ou función     | Descrición                                                                     |
+| ---------------------- | ------------------------------------------------------------------------------ |
+| `has_command`          | Indica se un comando existe no `PATH`.                                         |
+| `require_command`      | Esixe un comando e mostra un erro claro cando non está dispoñible.             |
+| `require_commands`     | Esixe varios comandos e informa de todos os que faltan.                        |
+| `command_path`         | Devolve a ruta executable que resolvería a shell.                              |
+| `package_owns_command` | Indica que paquete Yay/Pacman instalado proporciona un executable.             |
+| `retry_command`        | Repite un comando un número configurable de veces e cunha espera configurable. |
+
+### Comando Gallaecia
+
+O módulo público `gallaecia.sh` ofrece unha única función, `gallaecia`, para
+as operacións propias do proxecto:
+
+| Comando                         | Descrición                                                                    |
+| ------------------------------- | ----------------------------------------------------------------------------- |
+| `gallaecia --help`              | Mostra a referencia xeral e os subcomandos dispoñibles.                       |
+| `gallaecia --version`           | Mostra a versión aplicada que ten rexistrada a instalación.                   |
+| `gallaecia commands`            | Lista os subcomandos públicos cunha descrición breve.                         |
+| `gallaecia update`              | Abre o actualizador completo do sistema e dos dotfiles.                       |
+| `gallaecia reinstall`           | Sincroniza o repositorio e volve executar a instalación base tras confirmar.  |
+| `gallaecia install-category`    | Permite instalar máis aplicacións dunha categoría sen eliminar as existentes. |
+| `gallaecia wallpaper-add`       | Copia un ou varios fondos estáticos a `~/.wallpapers/` sen sobrescribir.      |
+| `gallaecia wallpaper-video-add` | Copia un ou varios fondos animados a `~/.wallpaper-videos/` sen sobrescribir. |
+
+Cada subcomando dispón da súa propia axuda, por exemplo
+`gallaecia install-category --help`. As operacións internas de instalación
+cárganse nun subshell e desaparecen da terminal ao finalizar.
+
+### Ficheiros e directorios
+
+Estes helpers do módulo público `files.sh` están sempre dispoñibles:
+
+| Comando ou función | Descrición                                                               |
+| ------------------ | ------------------------------------------------------------------------ |
+| `replace_path`     | Elimina o destino e substitúeo por unha copia completa da orixe.         |
+| `merge_path`       | Copia unha árbore sobre outra sen eliminar contido adicional do destino. |
+| `replace_file`     | Substitúe un ficheiro concreto por outro.                                |
+| `file_exists`      | Comproba que existe un ficheiro normal.                                  |
+| `path_exists`      | Comproba que existe unha ruta de calquera tipo.                          |
+| `directory_exists` | Comproba que existe un directorio.                                       |
+| `symlink_exists`   | Comproba que existe unha ligazón simbólica.                              |
+| `copy_file`        | Copia un ficheiro sen sobrescribir por defecto.                          |
+| `copy_path`        | Copia un ficheiro ou unha árbore sen sobrescribir por defecto.           |
+| `ensure_directory` | Crea un directorio, incluídos os seus pais, se aínda non existe.         |
+| `backup_path`      | Crea unha copia de seguridade cunha marca temporal.                      |
+| `ensure_symlink`   | Crea ou actualiza unha ligazón simbólica de forma controlada.            |
+| `trash_path`       | Envía unha ruta ao lixo para que a eliminación sexa recuperable.         |
+| `files_equal`      | Compara dous ficheiros e indica se teñen o mesmo contido.                |
+
+As operacións que modificarían ficheiros ofrecen `--dry-run` cando corresponde
+para revisar previamente o resultado.
+
+### Interface con Gum
+
+Estes wrappers do módulo público `ui.sh` están sempre dispoñibles e conservan
+as cores xeradas por Noctalia:
+
+| Comando ou función | Descrición                                                     |
+| ------------------ | -------------------------------------------------------------- |
+| `gum_style`        | Aplica o estilo visual común a un texto.                       |
+| `info`             | Mostra unha mensaxe informativa.                               |
+| `title`            | Mostra un título de sección co espazado común.                 |
+| `warning`          | Mostra unha advertencia.                                       |
+| `error`            | Mostra un erro sen finalizar automaticamente o proceso.        |
+| `success`          | Mostra unha mensaxe de éxito.                                  |
+| `fail`             | Mostra un erro e finaliza o proceso con código `1`.            |
+| `gum_confirm`      | Pide unha confirmación Si/Non.                                 |
+| `gum_choose`       | Permite escoller unha ou varias opcións dunha lista.           |
+| `gum_input`        | Solicita unha liña de texto.                                   |
+| `gum_filter`       | Filtra e selecciona elementos dunha lista a pantalla completa. |
+| `gum_write`        | Abre un editor de texto multilínea.                            |
+| `gum_file`         | Permite seleccionar un ficheiro ou directorio.                 |
+| `gum_spin`         | Mostra un indicador de progreso mentres se executa un comando. |
+| `gum_pager`        | Presenta texto nun visor desprazable.                          |
+| `gum_table`        | Formata datos como unha táboa interactiva.                     |
+| `gum_format`       | Renderiza texto cun formato compatible con Gum.                |
+| `gum_join`         | Combina bloques de texto en horizontal ou vertical.            |
+| `gum_log`          | Mostra unha mensaxe de rexistro cun nivel determinado.         |
+
+Todos estes wrappers comparten unha paleta por roles visuais: texto principal
+e secundario, bordo, acento, estados, prompt, cursor, cabeceira, elemento e
+selección. As variables correspondentes expórtanse desde o template de
+Noctalia, polo que un cambio de tema mantén unha aparencia coherente en todos
+os comandos sen configurar cada un por separado.
+
+Os roles exportados son `FOREGROUND`, `BACKGROUND`, `MUTED_FOREGROUND`,
+`MUTED_BACKGROUND`, `BORDER_FOREGROUND`, `BORDER_BACKGROUND`,
+`ACCENT_FOREGROUND`, `SUCCESS_FOREGROUND`, `ERROR_FOREGROUND`,
+`WARNING_FOREGROUND` e as parellas `PROMPT_*`, `CURSOR_*`, `HEADER_*`,
+`ITEM_*`, `SELECTED_*` e `UNSELECTED_*`.
+
+### Alias e configuración da shell
+
+Estes alias e axustes cárganse sempre:
+
+| Alias ou axuste              | Descrición                                                                   |
+| ---------------------------- | ---------------------------------------------------------------------------- |
+| `ls` → `ls --color=auto`     | Colorea os tipos de ficheiro nas listaxes.                                   |
+| `grep` → `grep --color=auto` | Colorea as coincidencias das buscas.                                         |
+| Autocompletado de `sudo`     | Permite completar tamén o comando situado despois de `sudo`.                 |
+| Autocompletado de Pipx       | Activa o completado de comandos e opcións de Pipx.                           |
+| `~/.local/bin` no `PATH`     | Fai accesibles os executables locais, incluídos os instalados mediante Pipx. |
+
+### Descargas con yt-dlp e SpotDL
+
+Estes comandos só existen se instalas a aplicación correspondente na categoría
+**Descargas e personalización**:
+
+| Aplicación necesaria | Comando         | Descrición                                                      |
+| -------------------- | --------------- | --------------------------------------------------------------- |
+| yt-dlp               | `yt-dlp-video`  | Descarga vídeos coa configuración de YouTube de Gallaecia.      |
+| yt-dlp               | `yt-dlp-musica` | Descarga audio coa configuración de YouTube Music de Gallaecia. |
+| SpotDL               | `spotdl-musica` | Busca e descarga música mediante SpotDL.                        |
+
+Os tres admiten URL, modo dunha soa descarga e argumentos adicionais para o
+programa orixinal. Consulta `COMANDO --help` para ver todas as opcións.
 
 ### Git e GitHub
 
-Os helpers de Git permiten:
+Estes comandos só existen se instalas **Git + GitHub CLI** na categoría
+**Desenvolvemento**:
 
-- Configurar a autoría con `git-credenciales` e iniciar sesión con
-  `github-login`.
-- Preparar e gardar cambios con `git-add`, `git-commit` e `git-save`.
-- Consultar cambios e historial con `git-diff`, `git-log` e
-  `git-commit-show`.
-- Descargar e publicar cambios con `git-pull` e `git-push`.
-- Cambiar, crear, borrar e integrar ramas con `git-branch-switch`,
-  `git-branch-new`, `git-branch-delete` e `git-branch-merge`.
-- Gardar e recuperar traballo temporal con `git-stash-save` e
-  `git-stash-pop`.
+| Comando             | Descrición                                                                    |
+| ------------------- | ----------------------------------------------------------------------------- |
+| `git-credenciales`  | Configura o nome e o correo da autoría de Git, no repositorio ou globalmente. |
+| `github-login`      | Inicia sesión en GitHub mediante GitHub CLI.                                  |
+| `git-add`           | Prepara cambios completos, interactivos ou ficheiros seleccionados.           |
+| `git-commit`        | Crea un commit solicitando título e corpo.                                    |
+| `git-save`          | Prepara os cambios e crea un commit nun único fluxo guiado.                   |
+| `git-diff`          | Mostra os cambios do repositorio nun visor cómodo.                            |
+| `git-pull`          | Descarga e integra os cambios remotos.                                        |
+| `git-push`          | Publica a rama e configura o seu upstream cando é necesario.                  |
+| `git-branch-switch` | Selecciona e cambia a outra rama.                                             |
+| `git-branch-new`    | Crea unha rama e cambia a ela.                                                |
+| `git-branch-delete` | Selecciona e elimina unha rama tras pedir confirmación.                       |
+| `git-branch-merge`  | Selecciona e integra unha rama na actual tras pedir confirmación.             |
+| `git-log`           | Mostra o historial compacto e gráfico do repositorio.                         |
+| `git-commit-show`   | Selecciona un commit e mostra os seus detalles.                               |
+| `git-stash-save`    | Garda temporalmente os cambios, opcionalmente tamén os non rastrexados.       |
+| `git-stash-pop`     | Selecciona e recupera unha entrada do _stash_.                                |
 
 ### Docker, Compose e Buildx
 
-Os helpers de Docker cobren:
+Estes comandos só existen se instalas **Docker + Compose** na categoría
+**Desenvolvemento**:
 
-- Listaxe, shell, consola e logs con `docker-ps`, `docker-shell`,
-  `docker-attach` e `docker-logs`.
-- Inicio, parada, reinicio e borrado con `docker-container-start`,
-  `docker-container-stop`, `docker-container-restart` e
-  `docker-container-delete`.
-- Listaxe, etiquetado e borrado de imaxes con `docker-images`,
-  `docker-tag` e `docker-image-delete`.
-- Listaxe e borrado de redes e volumes con `docker-networks`,
-  `docker-network-delete`, `docker-volumes` e `docker-volume-delete`.
-- Estado, inicio, parada, logs, reconstrución e actualización de Compose con
-  `compose-ps`, `compose-up`, `compose-down`, `compose-logs`,
-  `compose-rebuild` e `compose-update`.
-- Builds locais e limpeza guiada con `docker-build` e `docker-clean`.
-- Acceso a Docker Hub ou outros rexistros con `docker-login`,
-  `docker-logout`, `docker-search`, `docker-pull` e `docker-push`.
+| Comando                    | Descrición                                                     |
+| -------------------------- | -------------------------------------------------------------- |
+| `docker-ps`                | Lista os contedores nunha táboa.                               |
+| `docker-shell`             | Abre unha shell dentro dun contedor en execución seleccionado. |
+| `docker-attach`            | Conecta a terminal ao proceso principal dun contedor.          |
+| `docker-logs`              | Mostra ou segue os rexistros dun contedor seleccionado.        |
+| `docker-container-start`   | Inicia un ou varios contedores seleccionados.                  |
+| `docker-container-stop`    | Detén un ou varios contedores seleccionados.                   |
+| `docker-container-restart` | Reinicia un ou varios contedores seleccionados.                |
+| `docker-container-delete`  | Elimina contedores seleccionados tras confirmar.               |
+| `docker-images`            | Lista as imaxes locais.                                        |
+| `docker-image-delete`      | Elimina imaxes seleccionadas tras confirmar.                   |
+| `docker-tag`               | Crea unha nova etiqueta para unha imaxe.                       |
+| `docker-networks`          | Lista as redes de Docker.                                      |
+| `docker-network-delete`    | Elimina redes seleccionadas tras confirmar.                    |
+| `docker-volumes`           | Lista os volumes de Docker.                                    |
+| `docker-volume-delete`     | Elimina volumes seleccionados con confirmación reforzada.      |
+| `compose-ps`               | Mostra os servizos do proxecto Compose actual.                 |
+| `compose-up`               | Inicia os servizos de Compose.                                 |
+| `compose-down`             | Detén e retira os servizos de Compose.                         |
+| `compose-logs`             | Mostra ou segue os rexistros de Compose.                       |
+| `compose-rebuild`          | Reconstrúe e inicia os servizos de Compose.                    |
+| `compose-update`           | Descarga imaxes novas e actualiza os servizos de Compose.      |
+| `docker-build`             | Constrúe unha imaxe local mediante Buildx.                     |
+| `docker-clean`             | Limpa recursos Docker non utilizados mediante un fluxo guiado. |
+| `docker-login`             | Inicia sesión nun rexistro de contedores.                      |
+| `docker-logout`            | Pecha a sesión nun rexistro de contedores.                     |
+| `docker-search`            | Busca imaxes nun rexistro.                                     |
+| `docker-pull`              | Descarga unha imaxe.                                           |
+| `docker-push`              | Publica unha imaxe nun rexistro.                               |
 
-As operacións de borrado sempre piden confirmación. As accións forzadas ou que
-poden eliminar datos importantes, como volumes, requiren unha segunda
-confirmación.
+As operacións de borrado piden confirmación. As accións forzadas ou que poden
+eliminar datos importantes requiren unha segunda confirmación. Ao instalar
+Docker tamén se activa `docker.service` e engádese o usuario ao grupo
+`docker`; o acceso sen `sudo` queda dispoñible despois de reiniciar.
 
-Ao instalar Docker tamén se activa `docker.service` e engádese o usuario ao
-grupo `docker`. O acceso sen `sudo` queda dispoñible despois de reiniciar.
+## Guía de uso diario
 
-### Descargas e helpers reutilizables
+### Actualizar o sistema
 
-`yt-dlp-video`, `yt-dlp-musica` e `spotdl-musica` admiten `--once`, `--url` e
-opcións adicionais para o programa orixinal despois de `--`.
+Na barra de Noctalia hai un botón de actualización co símbolo de descarga.
+Preme nel e abrirase nun terminal o actualizador interactivo. O fluxo permite:
 
-Os helpers públicos de interface, comandos e ficheiros tamén ofrecen
-`--help`. As operacións de ficheiros permiten revisar o resultado con
-`--dry-run`.
+1. Actualizar Rust e as súas ferramentas, se están instaladas.
+2. Actualizar paquetes oficiais de Arch e AUR con Yay.
+3. Actualizar aplicacións Flatpak.
+4. Actualizar os plugins de Yazi, se Yazi está instalado.
+5. Descargar os últimos cambios de Gallaecia Dots e aplicar só as migracións
+   pendentes.
+6. Reiniciar o equipo ao final, se o confirmas.
 
-Os comandos propios do usuario poden gardarse en
-`~/.config/bashrc/NNN-nome`. Estes ficheiros están pensados para
-personalización e non deben ser substituídos polas actualizacións habituais.
+Cada bloque pide confirmación, polo que podes omitir o que non queiras executar.
+Tamén podes abrir o mesmo fluxo manualmente:
 
-## 🚀 Instalación
+```bash
+gallaecia update
+```
+
+### Instalar máis aplicacións
+
+Para volver abrir as categorías da instalación:
+
+```bash
+gallaecia install-category
+```
+
+Primeiro escolles unha categoría e despois as aplicacións que queres engadir.
+O comando non desinstala nin deixa de seleccionar as aplicacións anteriores.
+Instala os paquetes e configuracións que correspondan e, cando a categoría
+teña unha aplicación predeterminada, pregunta se queres actualizala. Nas
+categorías IDE, Navegador e Explorador de arquivos a mesma elección aplícase
+tanto aos MIME types como aos atallos de teclado de Hyprland. Terminal e Editor de
+terminal actualizan só os atallos de teclado de Hyprland porque non teñen regras MIME
+equivalentes.
+
+As asignacións de Hyprland actualízanse aínda que o placeholder da instalación
+inicial xa teña un valor. As regras MIME existentes substitúense e as que
+falten créanse.
+
+Tamén podes indicar directamente o identificador dunha categoría:
+
+```bash
+gallaecia install-category development
+```
+
+### Engadir e cambiar fondos
+
+Gallaecia separa os fondos estáticos dos animados:
+
+| Tipo             | Directorio persoal     |
+| ---------------- | ---------------------- |
+| Imaxes estáticas | `~/.wallpapers/`       |
+| Vídeos animados  | `~/.wallpaper-videos/` |
+
+> [!NOTE]
+> O nome correcto do directorio de vídeos é `.wallpaper-videos`, en singular.
+
+Para engadir un ou varios fondos podes usar:
+
+```bash
+gallaecia wallpaper-add ~/Imaxes/fondo.jpg
+gallaecia wallpaper-video-add ~/Vídeos/fondo.mp4
+```
+
+Despois abre o selector de fondos desde a barra de Noctalia e escolle o novo
+ficheiro. Ao cambiar un fondo estático, Noctalia rexenera tamén a paleta
+dinámica empregada polo escritorio e polos menús de Gum. Os fondos animados
+utilizan MPV e mpvpaper, instalados obrigatoriamente polo núcleo.
+
+### Atallos útiles
+
+| Atallo             | Acción                                         |
+| ------------------ | ---------------------------------------------- |
+| `Super` + `Espazo` | Abrir o launcher de Noctalia.                  |
+| `Super` + `V`      | Abrir o historial do portapapeis.              |
+| `Super` + `T`      | Abrir a terminal predeterminada.               |
+| `Super` + `B`      | Abrir o navegador predeterminado.              |
+| `Super` + `E`      | Abrir o explorador de arquivos predeterminado. |
+| `Super` + `C`      | Abrir o IDE ou editor gráfico predeterminado.  |
+| `Print`            | Capturar unha rexión da pantalla.              |
+| `Shift` + `Print`  | Capturar todos os monitores.                   |
+| `Alt` + `Print`    | Capturar o monitor actual.                     |
+
+O launcher de Noctalia inclúe tamén o tradutor engadido por Gallaecia.
+
+### Personalizar sen perder cambios
+
+- Engade funcións, alias ou variables propios en
+  `~/.config/bashrc/NNN-nome`; non edites o `.bashrc` principal.
+- Personaliza Noctalia en `~/.config/noctalia/custom.toml`. A base actualizable
+  vive en `gallaecia.toml`.
+- Mantén os cambios persoais de Hyprland en
+  `~/.config/hypr/hyprland.lua`; a base compartida vive en
+  `~/.local/share/gallaecia-dots/hypr/gallaecia.lua`.
+- Consulta `COMANDO --help` antes de automatizar un helper público: a axuda
+  documenta parámetros, códigos de saída e passthrough.
+
+## Instalación
 
 > [!WARNING]
-> O instalador modifica e substitúe diferentes ficheiros de configuración do sistema e do usuario.
->
-> Recoméndase utilizar Gallaecia Dots sobre unha instalación limpa de Arch Linux, sen entorno gráfico previo.
+> O instalador modifica e substitúe diferentes ficheiros de configuración do
+> sistema e do usuario. Recoméndase utilizalo sobre unha instalación limpa de
+> Arch Linux, sen contorno gráfico previo.
 
 Executa:
 
@@ -185,67 +476,70 @@ bash <(curl -fsSL https://raw.githubusercontent.com/XurxoMF/gallaecia-dots/relea
 O instalador guiarate paso a paso cunha interface interactiva.
 
 > [!IMPORTANT]
-> Se tras reiniciar o sistema ao rematar a instalación che aparece un erro de Hyprland ou algunha app non funciona correctamente reinicia de novo ou cambia o fondo de pantalla seleccionando o mesmo ou un novo para que Noctalia xere as paletas de cores correctamente.
+> Se tras reiniciar ao rematar a instalación aparece un erro de Hyprland ou
+> algunha aplicación non funciona correctamente, reinicia de novo ou volve
+> seleccionar un wallpaper para que Noctalia rexenere as paletas de cores.
 
-## 🧰 Instalación con archinstall
+## Instalación con archinstall
 
-Se prefires facer a instalación base con `archinstall`, primeiro inicia o sistema co USB de Arch Linux e abre unha consola. Desde aí baixa o perfil JSON do proxecto:
+Se prefires preparar a instalación base con `archinstall`, inicia o equipo co
+USB de Arch Linux, abre unha consola e descarga o perfil do proxecto:
 
 ```bash
 curl -fsSL -o user_configuration.json https://raw.githubusercontent.com/XurxoMF/gallaecia-dots/release/archinstall/user_configuration.json
 ```
 
-Despois lanza `archinstall` cargando ese ficheiro:
+Despois lanza:
 
 ```bash
 archinstall --config user_configuration.json
 ```
 
-Se a túa versión de `archinstall` emprega outro modo para cargar perfís, escolle a opción de importar configuración e usa ese mesmo ficheiro `user_configuration.json`.
-
-Durante o asistente, só tes que completar o que queda pendente:
+Se a túa versión de `archinstall` emprega outro modo para cargar perfís,
+selecciona a opción de importar configuración e usa o mesmo ficheiro. Durante o
+asistente só queda:
 
 1. Crear o usuario normal.
 2. Poñer o contrasinal de `root`.
 3. Escoller o particionamento dos discos.
 
-O resto da configuración xa vén preparada no JSON.
+Cando remate a instalación base, reinicia, entra co teu usuario e executa o
+instalador de Gallaecia Dots para deixar o escritorio preparado.
 
-Cando remate a instalación base, reinicia, entra no sistema co teu usuario e xa poderás seguir coa parte de Gallaecia Dots se a precisas para deixar o escritorio listo.
+## Actualizacións e mantemento
 
-## 🔄 Actualizacións e mantemento
+A base común de Gallaecia Dots é actualizable. As instalacións novas reciben
+directamente o estado máis recente e as existentes aplican, por orde, só as
+migracións que aínda non teñen rexistradas.
 
-Unha parte importante desta visión é que os dotfiles base son **actualizables**.
+O actualizador conserva a separación entre:
 
-Isto significa:
+- Ficheiros controlados polo proxecto, que poden recibir melloras.
+- Configuración persoal, que debe vivir nas rutas indicadas na
+  [guía de personalización](#personalizar-sen-perder-cambios).
 
-- A base común pode evolucionar con novas versións
-- Os ficheiros controlados polo proxecto poden recibir melloras
-- As instalacións novas e as existentes poden seguir a evolución do proxecto
+Podes editar a túa configuración, borrar o que non uses e engadir as túas
+propias pezas. O proxecto non pretende ocultar como está montado Arch.
 
-Ao mesmo tempo, Gallaecia Dots segue sendo unha base pequena e clara:
+## Estado do proxecto
 
-- Podes editar libremente a túa configuración
-- Podes borrar o que non uses
-- Podes engadir as túas propias pezas
-- O proxecto non pretende ocultarche como está montado o sistema
-
-## ⚠️ Estado do proxecto
-
-Gallaecia Dots é un proxecto persoal en desenvolvemento.
-
-Pode haber cambios importantes entre versións e algunhas actualizacións de Arch Linux, Hyprland ou outros compoñentes poden requirir axustes manuais na configuración.
+Gallaecia Dots é un proxecto persoal en desenvolvemento. Pode haber cambios
+importantes entre versións e algunhas actualizacións de Arch Linux, Hyprland ou
+outros compoñentes poden requirir axustes manuais.
 
 Se algo rompe:
 
 **Benvido a Arch.** 🫡
 
-## 🤝 Contribucións
+## Contribucións
 
-As propostas, correccións e melloras son benvidas.
+As propostas, correccións e melloras son benvidas. Podes abrir unha _issue_ ou
+enviar unha _pull request_ a través de GitHub.
 
-Podes abrir unha issue ou enviar unha pull request a través de GitHub.
+Ao engadir ou retirar aplicacións, comandos, funcións, alias ou apartados,
+actualiza tamén os catálogos e o índice deste README no mesmo cambio.
 
-## 📜 Licenza
+## Licenza
 
-Baixo a licenza MIT calquera poderá facer o que queira con este contido. Agradeceríalle que, se fas un fork ou algo similar, menciones a autoría orixinal.
+Baixo a licenza MIT podes facer o que queiras con este contido. Agradeceríase
+que, se fas un _fork_ ou algo similar, menciones a autoría orixinal.

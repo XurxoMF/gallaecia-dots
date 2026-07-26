@@ -1,6 +1,8 @@
 # shellcheck shell=bash
 
-# Mostra a mini guía do wrapper de vídeo ou música solicitado.
+# Recibe o nome do wrapper de vídeo ou música e imprime a súa axuda específica.
+# Centraliza as diferenzas de configuración e exemplos sen executar yt-dlp nin
+# iniciar o bucle interactivo; só a chaman os comandos públicos con `--help`.
 _yt_dlp_help() {
   case "$1" in
     yt-dlp-video)
@@ -80,7 +82,10 @@ EOF
   esac
 }
 
-# Descarga un vídeo de YouTube usando yt-dlp.
+# Recibe unha URL opcional, o modo dunha soa descarga e argumentos para yt-dlp.
+# Usa sempre a configuración de vídeo de Gallaecia; sen URL abre repetidamente
+# `gum_input` ata cancelar. Executa os argumentos reenviados sen reinterpretalos
+# e devolve o estado da descarga cando se usa `--once` ou `--url`.
 yt-dlp-video() {
   local once=false
   local url=""
@@ -149,7 +154,10 @@ yt-dlp-video() {
   done
 }
 
-# Descarga unha canción de YouTube ou YouTube Music usando yt-dlp.
+# Recibe unha URL opcional, o modo dunha soa descarga e argumentos para yt-dlp.
+# Usa a configuración musical de Gallaecia, que decide formato e destino; sen
+# URL mantén un bucle de `gum_input` ata cancelar. A axuda/versión do programa
+# real evita o prompt e o modo dunha soa execución conserva o seu código de saída.
 yt-dlp-musica() {
   local once=false
   local url=""

@@ -7,28 +7,83 @@ VERSION="base"
 
 DOTFILES_DIR="$HOME/.dotfiles"
 MODULES_DIR="$DOTFILES_DIR/.local/share/gallaecia-dots/scripts/modules"
+INTERNAL_DIR="$DOTFILES_DIR/.local/share/gallaecia-dots/scripts/internal"
 
-if [ ! -r "$MODULES_DIR/ui.sh" ] ||
+if [ ! -r "$MODULES_DIR/apps.sh" ] ||
   [ ! -r "$MODULES_DIR/commands.sh" ] ||
   [ ! -r "$MODULES_DIR/files.sh" ] ||
-  [ ! -r "$MODULES_DIR/versions.sh" ] ||
-  [ ! -r "$MODULES_DIR/apps.sh" ]; then
-  echo "Non se atoparon os módulos de Gallaecia Dots en $MODULES_DIR." >&2
+  [ ! -r "$MODULES_DIR/gallaecia.sh" ] ||
+  [ ! -r "$MODULES_DIR/ui.sh" ] ||
+  [ ! -r "$INTERNAL_DIR/apps.sh" ] ||
+  [ ! -r "$INTERNAL_DIR/versions.sh" ]; then
+  echo "Non se atoparon os módulos ou librarías internas de Gallaecia Dots." >&2
   echo "Clona o repo en $DOTFILES_DIR e executa $DOTFILES_DIR/install.sh." >&2
   exit 1
 fi
 
 # shellcheck source=/dev/null
-source "$MODULES_DIR/ui.sh"
+source "$MODULES_DIR/apps.sh"
 # shellcheck source=/dev/null
 source "$MODULES_DIR/commands.sh"
 # shellcheck source=/dev/null
 source "$MODULES_DIR/files.sh"
 # shellcheck source=/dev/null
-source "$MODULES_DIR/versions.sh"
+source "$MODULES_DIR/gallaecia.sh"
 # shellcheck source=/dev/null
-source "$MODULES_DIR/apps.sh"
+source "$MODULES_DIR/ui.sh"
+# shellcheck source=/dev/null
+source "$INTERNAL_DIR/apps.sh"
+# shellcheck source=/dev/null
+source "$INTERNAL_DIR/versions.sh"
 
+###############################################################################
+# MAPA DA INSTALACIÓN BASE
+#
+# Este script instala directamente o estado final do proxecto. Non executa as
+# migracións históricas. O fluxo principal, definido ao final, segue estas
+# fases:
+#
+#   prerequisitos mínimos
+#          │
+#          ▼
+#   estado de versións e confirmación
+#          │
+#          ▼
+#   idioma, Yay, Rust e paquetes obrigatorios
+#          │
+#          ▼
+#   ficheiros base, servizos e configuración do escritorio
+#          │
+#          ▼
+#   categorías principais
+#   (terminal/editor/IDE/navegador/explorador)
+#          │
+#          ▼
+#   categorías opcionais
+#          │
+#          ▼
+#   instalación das colas Yay/Flatpak/Pipx
+#          │
+#          ▼
+#   rexistro de `base` e reinicio opcional
+#
+# As categorías non se definen neste ficheiro: veñen do catálogo único de
+# `scripts/internal/apps.sh`. As funcións choose_* dese módulo van acumulando
+# paquetes nas tres colas globais e esta base chama `install_selected_apps` unha
+# soa vez despois de rematar todas as preguntas.
+#
+# PARA MODIFICAR A BASE
+#
+# - Paquete imprescindible para todos: REQUIRED_PACKAGES.
+# - Directorio persoal: PERSONAL_DIRS.
+# - Aplicación dunha categoría: internal/apps.sh, non a dupliques aquí.
+# - Configuración controlada polo proxecto: función install_* correspondente.
+# - Configuración opcional dunha app: mantén tamén configure_installed_app_entry
+#   en internal/apps.sh sincronizada para `gallaecia install-category`.
+###############################################################################
+
+# Paquetes que sempre forman parte do escritorio, independentemente das
+# aplicacións que o usuario escolla despois nas categorías.
 REQUIRED_PACKAGES=(
   noto-fonts-cjk noto-fonts-emoji noto-fonts ttf-noto-nerd
   papirus-icon-theme breeze breeze-icons
@@ -42,6 +97,7 @@ REQUIRED_PACKAGES=(
   adw-gtk-theme
 )
 
+# Directorios persoais que se crean antes de instalar user-dirs.dirs.
 PERSONAL_DIRS=(
   "$HOME/Aplicacións"
   "$HOME/Desarrollo"
@@ -56,13 +112,17 @@ PERSONAL_DIRS=(
   "$HOME/Xogos"
 )
 
+# Comandos predeterminados escollidos nas cinco categorías principais.
+# Gárdanse porque se reutilizan ao configurar Hyprland e, no caso do terminal,
+# para construír o comando `TERMINAL -e yazi`.
 terminal_command=""
 editor_command=""
 ide_command=""
 browser_command=""
 file_explorer_command=""
 
-# Logo ASCII que se mostra ao comezo da instalación base.
+# Imprime o logo ASCII ao comezo da instalación base.
+# Non consulta nin modifica o sistema; serve só como cabeceira visual.
 banner() {
   echo '  _____       _ _                 _       '
   echo ' / ____|     | | |               (_)      '
@@ -73,18 +133,29 @@ banner() {
   echo '                                          '
 }
 
-# Mantense aquí por se a base se executa directamente desde o repo.
-# O bootstrap xa instala gum/git, pero esta función fai a base máis autónoma.
+# Asegura que a base pode usar Gum e Git mesmo se se executa directamente.
+# Neste punto Yay aínda non está garantido, polo que se usa Pacman.
 install_prerequisites() {
-  if ! command -v gum &> /dev/null || ! command -v git &> /dev/null; then
-    echo ":: Instalando programas requeridos para executar este script (gum e git)..."
-    echo
-    ensure_command gum gum &&
-    ensure_command git git
+  local missing_packages=()
+
+  if ! has_command gum; then
+    missing_packages+=(gum)
   fi
+
+  if ! has_command git; then
+    missing_packages+=(git)
+  fi
+
+  if [ ${#missing_packages[@]} -eq 0 ]; then
+    return 0
+  fi
+
+  echo ":: Instalando programas requiridos para executar este script: ${missing_packages[*]}..."
+  sudo pacman -S --needed -- "${missing_packages[@]}"
 }
 
-# Habilita locales galego, español e inglés e deixa galego como principal.
+# Habilita en `/etc/locale.gen` galego, español e inglés, rexenera os locales e
+# escribe a orde galego → español → inglés na configuración global do sistema.
 configure_locale() {
   sudo sed -i \
 	-e 's/^#es_ES.UTF-8 UTF-8/es_ES.UTF-8 UTF-8/' \
@@ -128,7 +199,8 @@ install_yay() {
   yay -Y --color always --save
 }
 
-# Instala rustup e deixa a toolchain stable como default.
+# Instala Rustup desde os repositorios e configura a toolchain estable para o
+# usuario actual. Modifica paquetes do sistema e o estado persoal de Rustup.
 install_rust() {
   sudo pacman -Syu --needed rustup &&
   rustup default stable
@@ -141,20 +213,23 @@ install_required_packages() {
   flatpak install -y flathub org.gtk.Gtk3theme.adw-gtk3-dark org.gtk.Gtk3theme.adw-gtk3
 }
 
-# Activa servizos de usuario necesarios para o escritorio.
+# Habilita e inicia o daemon de chaveiros na sesión do usuario.
+# Ambos pasos deben completarse para que as aplicacións poidan gardar segredos.
 configure_required_services() {
   systemctl --user enable gnome-keyring-daemon.service &&
   systemctl --user start gnome-keyring-daemon.service
 }
 
-# Crea as carpetas persoais esperadas e instala user-dirs.
+# Crea todos os directorios XDG persoais e instala os dous ficheiros que fixan
+# os seus nomes galegos. Os ficheiros son controlados pola base e substitúense.
 create_personal_dirs() {
   mkdir -p "${PERSONAL_DIRS[@]}" "$HOME/.config" &&
   replace_file "$DOTFILES_DIR/.config/user-dirs.dirs" "$HOME/.config/user-dirs.dirs" &&
   replace_file "$DOTFILES_DIR/.config/user-dirs.conf" "$HOME/.config/user-dirs.conf"
 }
 
-# Instala greetd e a configuración do greeter.
+# Substitúe a configuración global de greetd e os datos de Noctalia Greeter,
+# garante o usuario de sistema `greeter` e habilita o servizo para o arranque.
 install_greetd_config() {
   sudo rm -rf "/etc/greetd" "/var/lib/noctalia-greeter" &&
   sudo cp -r "$DOTFILES_DIR/others/greetd" "/etc/greetd" &&
@@ -166,6 +241,7 @@ install_greetd_config() {
 # Instala os ficheiros controlados por Gallaecia en ~/.local/share.
 # Estes son actualizables porque non son configs directas do usuario.
 install_gallaecia_config() {
+  rm -f "$HOME/.local/share/gallaecia-dots/scripts/modules/versions.sh" &&
   merge_path "$DOTFILES_DIR/.local/share/gallaecia-dots" "$HOME/.local/share/gallaecia-dots" &&
   replace_file "$DOTFILES_DIR/.config/mimeapps.list" "$HOME/.config/mimeapps.list" &&
   sudo chmod +x -R "$HOME/.local/share/gallaecia-dots/scripts" &&
@@ -173,20 +249,24 @@ install_gallaecia_config() {
   cp -rf "$DOTFILES_DIR/.wallpapers/." "$HOME/.wallpapers/"
 }
 
-# Instala o .bashrc principal e os módulos de bashrc.
+# Substitúe o `.bashrc` principal e a árbore inicial de módulos públicos.
+# Esta función pertence á instalación base; as migracións posteriores preservan
+# personalizacións xa existentes en `~/.config/bashrc`.
 install_bashrc() {
   replace_file "$DOTFILES_DIR/.bashrc" "$HOME/.bashrc" &&
   replace_path "$DOTFILES_DIR/.config/bashrc" "$HOME/.config/bashrc"
 }
 
-# Instala configuración GTK base.
+# Substitúe as configuracións GTK 3 e GTK 4 completas polas distribuídas.
+# Ambas rutas son propiedade da base durante esta instalación inicial.
 install_gtk_config() {
   rm -rf "$HOME/.config/gtk-3.0" "$HOME/.config/gtk-4.0" &&
   cp -r "$DOTFILES_DIR/.config/gtk-3.0" "$HOME/.config/gtk-3.0" &&
   cp -r "$DOTFILES_DIR/.config/gtk-4.0" "$HOME/.config/gtk-4.0"
 }
 
-# Instala configuración Qt/KDE base.
+# Substitúe as configuracións Qt5/Qt6 e `kdeglobals` para unificar tema e estilo.
+# Elimina primeiro os destinos porque estes ficheiros pertencen á base inicial.
 install_qt_config() {
   rm -rf "$HOME/.config/qt6ct" "$HOME/.config/qt5ct" "$HOME/.config/kdeglobals" &&
   cp -r "$DOTFILES_DIR/.config/qt6ct" "$HOME/.config/qt6ct" &&
@@ -194,42 +274,50 @@ install_qt_config() {
   cp "$DOTFILES_DIR/.config/kdeglobals" "$HOME/.config/kdeglobals"
 }
 
-# Instala configuración dos portais XDG.
+# Substitúe a árbore de portais XDG que decide o backend usado baixo Hyprland.
+# O destino é unha configuración base controlada por Gallaecia.
 install_xdg_portals() {
   replace_path "$DOTFILES_DIR/.config/xdg-desktop-portal" "$HOME/.config/xdg-desktop-portal"
 }
 
-# Instala configuración de xsettingsd.
+# Substitúe a configuración de xsettingsd que exporta o tema ás aplicacións X11.
+# Non inicia o daemon; Hyprland encárgase de lanzalo coa configuración instalada.
 install_xsettingsd() {
   replace_path "$DOTFILES_DIR/.config/xsettingsd" "$HOME/.config/xsettingsd"
 }
 
-# Config opcional de Kitty. Só se aplica se o usuario escolle Kitty.
+# Substitúe a configuración opcional de Kitty pola plantilla distribuída.
+# Só a chama o fluxo de categorías cando Kitty foi unha selección do usuario.
 install_kitty_config() {
   replace_path "$DOTFILES_DIR/optional/.config/kitty" "$HOME/.config/kitty"
 }
 
-# Config opcional de Alacritty. Iguala a fonte e o tamaño base de Kitty.
+# Substitúe a configuración opcional de Alacritty, aliñada co aspecto base.
+# Só se executa cando Alacritty aparece entre as seleccións instaladas.
 install_alacritty_config() {
   replace_path "$DOTFILES_DIR/optional/.config/alacritty" "$HOME/.config/alacritty"
 }
 
-# Config opcional de Foot. Iguala a fonte e o tamaño base de Kitty.
+# Substitúe a configuración opcional de Foot coa fonte e tamaño comúns.
+# Non se aplica a instalacións que non escolleron este terminal.
 install_foot_config() {
   replace_path "$DOTFILES_DIR/optional/.config/foot" "$HOME/.config/foot"
 }
 
-# Config opcional de Ghostty. Iguala a fonte e o tamaño base de Kitty.
+# Substitúe a configuración opcional de Ghostty co aspecto común do proxecto.
+# O dispatcher de aplicacións só a chama cando Ghostty foi seleccionado.
 install_ghostty_config() {
   replace_path "$DOTFILES_DIR/optional/.config/ghostty" "$HOME/.config/ghostty"
 }
 
-# Config opcional de WezTerm. Iguala a fonte e o tamaño base de Kitty.
+# Substitúe a configuración opcional de WezTerm coa fonte e tamaño da base.
+# Só modifica o destino cando o usuario escolle esta aplicación.
 install_wezterm_config() {
   replace_path "$DOTFILES_DIR/optional/.config/wezterm" "$HOME/.config/wezterm"
 }
 
-# Config opcional de Dolphin. Só se aplica se o usuario escolle Dolphin.
+# Instala o único ficheiro opcional de Dolphin controlado por Gallaecia.
+# Só se chama tras seleccionar Dolphin como explorador de ficheiros.
 install_dolphin_config() {
   replace_file "$DOTFILES_DIR/optional/.config/dolphinrc" "$HOME/.config/dolphinrc"
 }
@@ -245,7 +333,8 @@ install_yazi_config() {
   ya pkg add boydaihungst/mediainfo
 }
 
-# Config opcional de VS Code. Só se aplica se o usuario escolle VS Code.
+# Instala os flags opcionais de VS Code usados para a sesión Wayland.
+# Só se chama cando a entrada de VS Code foi seleccionada na categoría IDE.
 install_vscode_config() {
   replace_file "$DOTFILES_DIR/optional/.config/code-flags.conf" "$HOME/.config/code-flags.conf"
 }
@@ -267,7 +356,8 @@ install_noctalia() {
   fi
 }
 
-# Deixa Docker preparado para arrancar e para usalo sen sudo tras reiniciar.
+# Habilita o daemon de Docker e engade o usuario actual ao grupo `docker`.
+# O novo grupo adoita facerse efectivo no seguinte inicio de sesión.
 install_docker() {
   sudo systemctl enable docker.service &&
   sudo usermod -aG docker "$USER"
@@ -331,89 +421,58 @@ install_dotfiles() {
   fi
 }
 
-# Config opcional para yt-dlp e funcións de bash asociadas.
+# Substitúe a configuración de yt-dlp e instala o seu módulo Bash opcional.
+# Ambas pezas se manteñen xuntas porque os wrappers dependen deses perfís.
 configure_yt_dlp() {
   mkdir -p "$HOME/.local/share/gallaecia-dots/bashrc" &&
   replace_path "$DOTFILES_DIR/optional/.config/yt-dlp" "$HOME/.config/yt-dlp" &&
   replace_file "$DOTFILES_DIR/optional/.local/share/gallaecia-dots/bashrc/201-yt-dlp" "$HOME/.local/share/gallaecia-dots/bashrc/201-yt-dlp"
 }
 
-# Config opcional para SpotDL.
+# Substitúe a configuración de SpotDL e instala o wrapper Bash correspondente.
+# Só se chama cando SpotDL foi seleccionado e instalado mediante Pipx.
 configure_spotdl() {
   mkdir -p "$HOME/.local/share/gallaecia-dots/bashrc" &&
   replace_path "$DOTFILES_DIR/optional/.config/spotdl" "$HOME/.config/spotdl" &&
   replace_file "$DOTFILES_DIR/optional/.local/share/gallaecia-dots/bashrc/202-spotdl" "$HOME/.local/share/gallaecia-dots/bashrc/202-spotdl"
 }
 
-# Instala os helpers e aliases opcionais de Git.
+# Copia o módulo de comandos interactivos de Git á área cargada polo Bashrc.
+# A función non configura credenciais nin modifica ningún repositorio.
 configure_git() {
   mkdir -p "$HOME/.local/share/gallaecia-dots/bashrc" &&
   replace_file "$DOTFILES_DIR/optional/.local/share/gallaecia-dots/bashrc/203-git" "$HOME/.local/share/gallaecia-dots/bashrc/203-git"
 }
 
-# Instala os helpers e aliases opcionais de Docker.
+# Copia o módulo de Docker/Compose á área opcional cargada polo Bashrc.
+# Non inicia contedores; `install_docker` xestiona por separado servizo e grupo.
 configure_docker() {
   mkdir -p "$HOME/.local/share/gallaecia-dots/bashrc" &&
   replace_file "$DOTFILES_DIR/optional/.local/share/gallaecia-dots/bashrc/204-docker" "$HOME/.local/share/gallaecia-dots/bashrc/204-docker"
 }
 
-# Escribe ou substitúe unha asociación MIME en ~/.config/mimeapps.list.
-set_default_app() {
-  local mime_type="$1"
-  local desktop_file="$2"
-  local mimeapps="$HOME/.config/mimeapps.list"
-
-  mkdir -p "$HOME/.config"
-  touch "$mimeapps"
-
-  if ! grep -qxF "[Default Applications]" "$mimeapps"; then
-    printf '\n[Default Applications]\n' >> "$mimeapps"
-  fi
-
-  if grep -q "^${mime_type}=" "$mimeapps"; then
-    sed -i "s#^${mime_type}=.*#${mime_type}=${desktop_file}#" "$mimeapps"
-  else
-    sed -i "/^\\[Default Applications\\]/a ${mime_type}=${desktop_file}" "$mimeapps"
-  fi
-}
-
-# Aplica o mesmo .desktop a varios tipos MIME.
-set_default_apps() {
-  local desktop_file="$1"
-  shift
-
-  for mime_type in "$@"; do
-    set_default_app "$mime_type" "$desktop_file"
-  done
-}
-
-# Substitúe un placeholder {{nome}} no hyprland.lua do usuario.
-# Escapamos & porque sed o interpreta como "texto atopado".
-replace_hypr_placeholder() {
-  local placeholder="$1"
-  local value="$2"
-  local hypr_config="$HOME/.config/hypr/hyprland.lua"
-
-  value="${value//&/\\&}"
-  sed -i "s#{{$placeholder}}#$value#g" "$hypr_config"
-}
-
 # Escolla das cinco categorías obrigatorias.
 # Primeiro se escolle terminal porque Yazi usa "$terminal_command -e yazi"
 # cando se configura como explorador de arquivos.
+#
+# Cada bloque repite o mesmo patrón de forma explícita:
+#   1. load_app_category enche APP_CATEGORY_ENTRIES.
+#   2. choose_required_category enche SELECTED_ENTRIES e as colas.
+#   3. choose_default_entry devolve unha entrada completa.
+#   4. app_command extrae o comando e set_hypr_app_command escríbeo.
+#   5. Se corresponde, aplícanse MIME e configuracións opcionais.
+#
+# SELECTED_ENTRIES e DEFAULT_ENTRY reutilízanse entre categorías: ao comezar a
+# seguinte selección substitúen o valor da anterior. As colas de paquetes, en
+# cambio, acumúlanse ata install_selected_apps.
 configure_required_apps() {
   # Cada entrada segue: "tipo|Nome|paquetes|comando|desktop".
   # A orde tamén importa: a primeira opción adoita ser a recomendada.
 
   # Seleccionar terminal
 
-  local terminal_entries=(
-    "pkg|Kitty|kitty|kitty|kitty.desktop"
-    "pkg|Alacritty|alacritty|alacritty|Alacritty.desktop"
-    "pkg|Foot|foot|foot|foot.desktop"
-    "pkg|Ghostty|ghostty|ghostty|com.mitchellh.ghostty.desktop"
-    "pkg|WezTerm|wezterm|wezterm|org.wezfurlong.wezterm.desktop"
-  )
+  load_app_category terminal
+  local terminal_entries=("${APP_CATEGORY_ENTRIES[@]}")
 
   choose_required_category \
     "Selecciona terminal ou terminais:" \
@@ -422,7 +481,7 @@ configure_required_apps() {
   DEFAULT_ENTRY=$(choose_default_entry "Escolle terminal por defecto:" "${SELECTED_ENTRIES[@]}") || return 1
   terminal_command="$(app_command "$DEFAULT_ENTRY")"
 
-  replace_hypr_placeholder "terminal" "$terminal_command"
+  set_hypr_app_command terminal "$terminal_command"
 
   if has_selected_app kitty; then
     install_kitty_config || return 1
@@ -446,13 +505,8 @@ configure_required_apps() {
 
   # Seleccionar editor
 
-  local editor_entries=(
-    "pkg|Neovim|neovim|nvim|nvim.desktop"
-    "pkg|Helix|helix|hx|"
-    "pkg|Vim|vim|vim|vim.desktop"
-    "pkg|Nano|nano|nano|"
-    "pkg|Micro|micro|micro|"
-  )
+  load_app_category editor
+  local editor_entries=("${APP_CATEGORY_ENTRIES[@]}")
 
   choose_required_category \
     "Selecciona editor ou editores de terminal:" \
@@ -461,16 +515,12 @@ configure_required_apps() {
   DEFAULT_ENTRY=$(choose_default_entry "Escolle editor de terminal por defecto:" "${SELECTED_ENTRIES[@]}") || return 1
   editor_command="$(app_command "$DEFAULT_ENTRY")"
 
-  replace_hypr_placeholder "editor" "$editor_command"
+  set_hypr_app_command editor "$editor_command"
 
   # Seleccionar IDE
 
-  local ide_entries=(
-    "pkg|Visual Studio Code|visual-studio-code-bin|code|visual-studio-code.desktop"
-    "pkg|Zed|zed|zed|dev.zed.Zed.desktop"
-    "pkg|Obsidian|obsidian|obsidian|obsidian.desktop"
-    "pkg|Geany|geany|geany|geany.desktop"
-  )
+  load_app_category ide
+  local ide_entries=("${APP_CATEGORY_ENTRIES[@]}")
 
   choose_required_category \
     "Selecciona IDE ou editores con interface gráfica:" \
@@ -479,11 +529,9 @@ configure_required_apps() {
   DEFAULT_ENTRY=$(choose_default_entry "Escolle IDE por defecto:" "${SELECTED_ENTRIES[@]}") || return 1
   ide_command="$(app_command "$DEFAULT_ENTRY")"
 
-  replace_hypr_placeholder "ide" "$ide_command"
+  set_hypr_app_command ide "$ide_command"
 
-  if [ -n "$(app_desktop "$DEFAULT_ENTRY")" ]; then
-    set_default_apps "$(app_desktop "$DEFAULT_ENTRY")" text/plain
-  fi
+  apply_app_category_default ide "$DEFAULT_ENTRY"
 
   if has_selected_app visual-studio-code-bin; then
     install_vscode_config || return 1
@@ -491,12 +539,8 @@ configure_required_apps() {
 
   # Seleccionar buscador
 
-  local browser_entries=(
-    "pkg|Firefox|firefox|firefox|firefox.desktop"
-    "pkg|LibreWolf|librewolf-bin|librewolf|librewolf.desktop"
-    "pkg|Zen Browser|zen-browser|zen-browser|zen.desktop"
-    "pkg|Tor Browser|tor-browser-bin|tor-browser|torbrowser.desktop"
-  )
+  load_app_category browser
+  local browser_entries=("${APP_CATEGORY_ENTRIES[@]}")
 
   choose_required_category \
     "Selecciona navegador ou navegadores:" \
@@ -505,19 +549,14 @@ configure_required_apps() {
   DEFAULT_ENTRY=$(choose_default_entry "Escolle navegador por defecto:" "${SELECTED_ENTRIES[@]}") || return 1
   browser_command="$(app_command "$DEFAULT_ENTRY")"
 
-  replace_hypr_placeholder "navegador" "$browser_command"
+  set_hypr_app_command browser "$browser_command"
 
-  set_default_apps "$(app_desktop "$DEFAULT_ENTRY")" \
-    text/html application/xhtml+xml x-scheme-handler/http x-scheme-handler/https
+  apply_app_category_default browser "$DEFAULT_ENTRY"
 
   # Seleccionar explorador de arquivos
 
-  local file_explorer_entries=(
-    "pkg|Dolphin|dolphin ark|dolphin|org.kde.dolphin.desktop"
-    "pkg|Nautilus|nautilus|nautilus|org.gnome.Nautilus.desktop"
-    "pkg|Nemo|nemo|nemo|nemo.desktop"
-    "pkg|Yazi|yazi|$terminal_command -e yazi|"
-  )
+  load_app_category file-explorer "$terminal_command"
+  local file_explorer_entries=("${APP_CATEGORY_ENTRIES[@]}")
 
   choose_required_category \
     "Selecciona explorador ou exploradores de arquivos:" \
@@ -526,7 +565,8 @@ configure_required_apps() {
   DEFAULT_ENTRY=$(choose_default_entry "Escolle explorador de arquivos por defecto:" "${SELECTED_ENTRIES[@]}") || return 1
   file_explorer_command="$(app_command "$DEFAULT_ENTRY")"
 
-  replace_hypr_placeholder "explorador_de_arquivos" "$file_explorer_command"
+  set_hypr_app_command file-explorer "$file_explorer_command"
+  apply_app_category_default file-explorer "$DEFAULT_ENTRY"
 
   if has_selected_app dolphin; then
     install_dolphin_config || return 1
@@ -537,221 +577,129 @@ configure_required_apps() {
   fi
 }
 
-# Escolla das categorías opcionais e asociacións MIME relacionadas.
+# Percorre as categorías opcionais. `choose_optional_category` permite unha
+# selección baleira, pero as eleccións non baleiras seguen acumulando paquetes
+# nas colas globais.
+#
+# As categorías cunha app xenérica predeterminada chaman
+# apply_app_category_default. As que teñen regras por aplicación chaman
+# apply_selected_app_mime_rules. Desenvolvemento e descargas tamén instalan os
+# seus Bashrc/configuracións opcionais cando a app foi seleccionada.
 configure_optional_apps() {
-  local audio_desktop
-  local video_desktop
-  local pdf_desktop
-  local image_desktop
-  local mail_desktop
-
   # Nestas categorías o usuario pode non escoller nada.
   # Se escolle varias apps nunha categoría con MIME, pedimos cal queda por defecto.
 
   # Escoller resproductores de audio
 
-  local audio_entries=(
-    "pkg|Amberol|amberol|amberol|io.bassi.Amberol.desktop"
-    "pkg|Tauon|tauon-music-box|tauon|com.github.taiko2k.tauonmb.desktop"
-    "pkg|VLC|vlc vlc-plugins-all|vlc|vlc.desktop"
-    "pkg|MPV|mpv|mpv|mpv.desktop"
-  )
+  load_app_category audio
+  local audio_entries=("${APP_CATEGORY_ENTRIES[@]}")
 
   choose_optional_category "Selecciona reprodutor ou reprodutores de audio:" "${audio_entries[@]}"
 
   if [ ${#SELECTED_ENTRIES[@]} -gt 0 ]; then
     DEFAULT_ENTRY=$(choose_default_entry "Escolle reprodutor de audio por defecto:" "${SELECTED_ENTRIES[@]}") || return 1
-    audio_desktop="$(app_desktop "$DEFAULT_ENTRY")"
-  fi
-
-  if [ -n "$audio_desktop" ]; then
-    set_default_apps "$audio_desktop" \
-      audio/aac audio/flac audio/mpeg audio/ogg audio/opus audio/wav audio/x-wav audio/x-ms-wma
+    apply_app_category_default audio "$DEFAULT_ENTRY"
   fi
 
   # Escoller resproductores de vídeo
 
-  local video_entries=(
-    "pkg|VLC|vlc vlc-plugins-all|vlc|vlc.desktop"
-    "pkg|MPV|mpv|mpv|mpv.desktop"
-    "pkg|Clapper|clapper|clapper|com.github.rafostar.Clapper.desktop"
-  )
+  load_app_category video
+  local video_entries=("${APP_CATEGORY_ENTRIES[@]}")
 
   choose_optional_category "Selecciona reprodutor ou reprodutores de vídeo:" "${video_entries[@]}"
 
   if [ ${#SELECTED_ENTRIES[@]} -gt 0 ]; then
     DEFAULT_ENTRY=$(choose_default_entry "Escolle reprodutor de vídeo por defecto:" "${SELECTED_ENTRIES[@]}") || return 1
-    video_desktop="$(app_desktop "$DEFAULT_ENTRY")"
-  fi
-
-  if [ -n "$video_desktop" ]; then
-    set_default_apps "$video_desktop" \
-      video/mp2t video/mp4 video/mpeg video/ogg video/quicktime video/webm video/x-matroska video/x-msvideo video/x-ms-wmv
+    apply_app_category_default video "$DEFAULT_ENTRY"
   fi
 
   # Escoller visores de PDF
 
-  local pdf_entries=(
-    "pkg|Okular|okular|okular|org.kde.okular.desktop"
-    "pkg|Zathura|zathura zathura-pdf-mupdf|zathura|org.pwmt.zathura.desktop"
-    "pkg|Evince|evince|evince|org.gnome.Evince.desktop"
-  )
+  load_app_category pdf
+  local pdf_entries=("${APP_CATEGORY_ENTRIES[@]}")
 
   choose_optional_category "Selecciona visor ou visores de PDF:" "${pdf_entries[@]}"
 
   if [ ${#SELECTED_ENTRIES[@]} -gt 0 ]; then
     DEFAULT_ENTRY=$(choose_default_entry "Escolle visor de PDF por defecto:" "${SELECTED_ENTRIES[@]}") || return 1
-    pdf_desktop="$(app_desktop "$DEFAULT_ENTRY")"
-  fi
-
-  if [ -n "$pdf_desktop" ]; then
-    set_default_apps "$pdf_desktop" \
-      application/pdf application/epub+zip application/vnd.comicbook+zip application/vnd.djvu image/vnd.djvu application/oxps application/vnd.ms-xpsdocument
+    apply_app_category_default pdf "$DEFAULT_ENTRY"
   fi
 
   # Escoller visores de imaxes
 
-  local image_entries=(
-    "pkg|Loupe|loupe|loupe|org.gnome.Loupe.desktop"
-    "pkg|GIMP|gimp|gimp|org.gimp.GIMP.desktop"
-    "pkg|Krita|krita|krita|org.kde.krita.desktop"
-  )
+  load_app_category images
+  local image_entries=("${APP_CATEGORY_ENTRIES[@]}")
 
   choose_optional_category "Selecciona visor ou visores de imaxes:" "${image_entries[@]}"
 
   if [ ${#SELECTED_ENTRIES[@]} -gt 0 ]; then
     DEFAULT_ENTRY=$(choose_default_entry "Escolle visor de imaxes por defecto:" "${SELECTED_ENTRIES[@]}") || return 1
-    image_desktop="$(app_desktop "$DEFAULT_ENTRY")"
-  fi
-
-  if [ -n "$image_desktop" ]; then
-    set_default_apps "$image_desktop" \
-      image/avif image/bmp image/gif image/heif image/jpeg image/jxl image/png image/tiff image/webp image/x-xcf image/vnd.adobe.photoshop
+    apply_app_category_default images "$DEFAULT_ENTRY"
   fi
 
   # Escoller clientes de correo
 
-  local mail_entries=(
-    "pkg|Thunderbird|thunderbird|thunderbird|thunderbird.desktop"
-  )
+  load_app_category mail
+  local mail_entries=("${APP_CATEGORY_ENTRIES[@]}")
 
   choose_optional_category "Selecciona cliente ou clientes de correo:" "${mail_entries[@]}"
 
   if [ ${#SELECTED_ENTRIES[@]} -gt 0 ]; then
     DEFAULT_ENTRY=$(choose_default_entry "Escolle cliente de correo por defecto:" "${SELECTED_ENTRIES[@]}") || return 1
-    mail_desktop="$(app_desktop "$DEFAULT_ENTRY")"
-  fi
-
-  if [ -n "$mail_desktop" ]; then
-    set_default_apps "$mail_desktop" message/rfc822 x-scheme-handler/mailto x-scheme-handler/mid
+    apply_app_category_default mail "$DEFAULT_ENTRY"
   fi
 
   # Escoller apps de chat
 
-  local chat_entries=(
-    "pkg|Discord|discord|discord|discord.desktop"
-    "pkg|Vesktop|vesktop|vesktop|vesktop.desktop"
-    "pkg|Telegram|telegram-desktop|telegram-desktop|org.telegram.desktop.desktop"
-    "pkg|Element|element-desktop|element-desktop|"
-  )
+  load_app_category chat
+  local chat_entries=("${APP_CATEGORY_ENTRIES[@]}")
 
   choose_optional_category "Selecciona apps de chat:" "${chat_entries[@]}"
 
   if has_selected_app vesktop; then
-    set_default_apps vesktop.desktop x-scheme-handler/discord
+    apply_app_category_default chat \
+      "$(find_app_by_label Vesktop "${SELECTED_ENTRIES[@]}")"
   elif has_selected_app discord; then
-    set_default_apps discord.desktop x-scheme-handler/discord
+    apply_app_category_default chat \
+      "$(find_app_by_label Discord "${SELECTED_ENTRIES[@]}")"
   fi
 
   # Escoller apps creativas
 
-  local creative_entries=(
-    "pkg|OBS Studio|obs-studio|obs|com.obsproject.Studio.desktop"
-    "pkg|Krita|krita|krita|org.kde.krita.desktop"
-    "pkg|GIMP|gimp|gimp|org.gimp.GIMP.desktop"
-    "pkg|Inkscape|inkscape|inkscape|org.inkscape.Inkscape.desktop"
-    "pkg|Blender|blender|blender|blender.desktop"
-    "pkg|Kdenlive|kdenlive|kdenlive|org.kde.kdenlive.desktop"
-    "pkg|Puddletag|puddletag|puddletag|"
-    "pkg|HandBrake|handbrake|handbrake|"
-  )
+  load_app_category creativity
+  local creative_entries=("${APP_CATEGORY_ENTRIES[@]}")
 
   choose_optional_category "Selecciona apps creativas:" "${creative_entries[@]}"
-
-  if has_selected_app krita; then
-    set_default_apps org.kde.krita.desktop application/x-krita image/openraster
-  fi
-
-  if has_selected_app inkscape; then
-    set_default_apps org.inkscape.Inkscape.desktop image/svg+xml image/svg+xml-compressed application/postscript application/illustrator application/eps
-  fi
-
-  if has_selected_app blender; then
-    set_default_apps blender.desktop application/x-blender
-  fi
-
-  if has_selected_app kdenlive; then
-    set_default_apps org.kde.kdenlive.desktop application/x-kdenlive application/x-kdenlivetitle
-  fi
+  apply_selected_app_mime_rules creativity
 
   # Escoller apps de ofimática
 
-  local office_entries=(
-    "pkg|LibreOffice|libreoffice-still libreoffice-still-gl libreoffice-still-es|libreoffice|libreoffice-writer.desktop"
-    "pkg|Obsidian|obsidian|obsidian|obsidian.desktop"
-  )
+  load_app_category office
+  local office_entries=("${APP_CATEGORY_ENTRIES[@]}")
 
   choose_optional_category "Selecciona apps de oficina e notas:" "${office_entries[@]}"
-
-  if has_selected_app libreoffice-still; then
-    set_default_apps libreoffice-writer.desktop \
-      application/msword application/rtf application/vnd.oasis.opendocument.text \
-      application/vnd.openxmlformats-officedocument.wordprocessingml.document text/rtf
-    set_default_apps libreoffice-calc.desktop \
-      application/vnd.ms-excel application/vnd.oasis.opendocument.spreadsheet \
-      application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
-    set_default_apps libreoffice-impress.desktop \
-      application/vnd.ms-powerpoint application/vnd.oasis.opendocument.presentation \
-      application/vnd.openxmlformats-officedocument.presentationml.presentation
-    set_default_apps libreoffice-draw.desktop application/vnd.oasis.opendocument.graphics
-  fi
+  apply_selected_app_mime_rules office
 
   # Escoller apps de xogos
 
-  local gaming_entries=(
-    "pkg|Steam|steam|steam|steam.desktop"
-    "pkg|Prism Launcher|prismlauncher|prismlauncher|org.prismlauncher.PrismLauncher.desktop"
-    "pkg|Lutris|lutris|lutris|"
-    "flatpak|Bottles|com.usebottles.bottles|flatpak run com.usebottles.bottles|com.usebottles.bottles.desktop"
-  )
+  load_app_category games
+  local gaming_entries=("${APP_CATEGORY_ENTRIES[@]}")
 
   choose_optional_category "Selecciona xogos e tendas:" "${gaming_entries[@]}"
-
-  if has_selected_app steam; then
-    set_default_apps steam.desktop x-scheme-handler/steam x-scheme-handler/steamlink
-  fi
+  apply_selected_app_mime_rules games
 
   # Escoller apps de utilidades
 
-  local utilities_entries=(
-    "pkg|KeePassXC|keepassxc|keepassxc|org.keepassxc.KeePassXC.desktop"
-    "pkg|qBittorrent|qbittorrent|qbittorrent|org.qbittorrent.qBittorrent.desktop"
-  )
+  load_app_category utilities
+  local utilities_entries=("${APP_CATEGORY_ENTRIES[@]}")
 
   choose_optional_category "Selecciona utilidades:" "${utilities_entries[@]}"
-
-  if has_selected_app qbittorrent; then
-    set_default_apps org.qbittorrent.qBittorrent.desktop application/x-bittorrent x-scheme-handler/magnet
-  fi
+  apply_selected_app_mime_rules utilities
 
   # Escoller apps de desenvolvemento
 
-  local development_entries=(
-    "pkg|Git + GitHub CLI|git github-cli|git|"
-    "pkg|Docker + Compose|docker docker-compose docker-buildx|docker|"
-    "flatpak|Bruno|com.usebruno.Bruno|bruno|"
-    "pkg|FileZilla|filezilla|filezilla|"
-  )
+  load_app_category development
+  local development_entries=("${APP_CATEGORY_ENTRIES[@]}")
 
   choose_optional_category "Selecciona apps de desenvolvemento:" "${development_entries[@]}"
 
@@ -765,18 +713,15 @@ configure_optional_apps() {
 
   # Escoller apps de rede e privacidade
 
-  local network_entries=(
-    "flatpak|Proton VPN|com.protonvpn.www|protonvpn|"
-  )
+  load_app_category network
+  local network_entries=("${APP_CATEGORY_ENTRIES[@]}")
 
   choose_optional_category "Selecciona apps de rede e privacidade:" "${network_entries[@]}"
 
   # Escoller scripts
 
-  local script_entries=(
-    "pkg|yt-dlp|yt-dlp|yt-dlp|"
-    "pipx|SpotDL|spotdl|spotdl|"
-  )
+  load_app_category downloads
+  local script_entries=("${APP_CATEGORY_ENTRIES[@]}")
 
   choose_optional_category "Selecciona ferramentas de descarga e personalización:" "${script_entries[@]}"
 
@@ -789,8 +734,11 @@ configure_optional_apps() {
   fi
 }
 
-# Instalación base completa.
+# Executa as fases visuais e técnicas da instalación base na orde necesaria.
 # Se "base" xa aparece en versions-instaladas, non repite o proceso.
+#
+# É importante que `install_selected_apps` se execute despois das dúas funcións
+# de selección: ata ese momento os helpers só estiveron enchendo colas.
 install_base_version() {
   if is_version_installed "$VERSION"; then
     info "Gallaecia Dots $VERSION xa está instalado. Saltando instalación base..."
@@ -926,8 +874,15 @@ install_base_version() {
   fi
 }
 
-# Fluxo principal da base: prepara estado, mostra benvida e instala a base.
+# Punto de entrada: garante Gum/Git, prepara o directorio de estado, pide
+# confirmación, executa install_base_version e ofrece reiniciar. Calquera fallo
+# anterior ao rexistro final impide que a base quede marcada como instalada.
 main() {
+  if ! install_prerequisites; then
+    echo "Non se puideron instalar os prerequisitos da base. Abortando instalación..." >&2
+    exit 1
+  fi
+
   clear
   if ! ensure_gallaecia_state_dir; then
     fail "Non se puido preparar o estado de versións de Gallaecia Dots! Abortando instalación..."

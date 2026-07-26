@@ -6,26 +6,36 @@ set -o pipefail
 VERSION="1.0.2"
 DOTFILES_DIR="$HOME/.dotfiles"
 MODULES_DIR="$DOTFILES_DIR/.local/share/gallaecia-dots/scripts/modules"
+INTERNAL_DIR="$DOTFILES_DIR/.local/share/gallaecia-dots/scripts/internal"
 
-if [ ! -r "$MODULES_DIR/ui.sh" ] ||
+if [ ! -r "$MODULES_DIR/apps.sh" ] ||
+  [ ! -r "$MODULES_DIR/commands.sh" ] ||
   [ ! -r "$MODULES_DIR/files.sh" ] ||
-  [ ! -r "$MODULES_DIR/apps.sh" ]; then
-  echo "Non se atoparon os módulos de Gallaecia Dots en $MODULES_DIR." >&2
+  [ ! -r "$MODULES_DIR/gallaecia.sh" ] ||
+  [ ! -r "$MODULES_DIR/ui.sh" ] ||
+  [ ! -r "$INTERNAL_DIR/apps.sh" ] ||
+  [ ! -r "$INTERNAL_DIR/versions.sh" ]; then
+  echo "Non se atoparon os módulos ou librarías internas en $DOTFILES_DIR." >&2
   exit 1
 fi
 
 # shellcheck source=/dev/null
-source "$MODULES_DIR/ui.sh"
+source "$MODULES_DIR/apps.sh"
 # shellcheck source=/dev/null
 source "$MODULES_DIR/commands.sh"
 # shellcheck source=/dev/null
 source "$MODULES_DIR/files.sh"
 # shellcheck source=/dev/null
-source "$MODULES_DIR/versions.sh"
+source "$MODULES_DIR/gallaecia.sh"
 # shellcheck source=/dev/null
-source "$MODULES_DIR/apps.sh"
+source "$MODULES_DIR/ui.sh"
+# shellcheck source=/dev/null
+source "$INTERNAL_DIR/apps.sh"
+# shellcheck source=/dev/null
+source "$INTERNAL_DIR/versions.sh"
 
-# Actualiza o wrapper visual compartido.
+# Garante a área de módulos e substitúe `ui.sh` pola versión corrixida.
+# O ficheiro é controlado polo proxecto e pode actualizarse con seguridade.
 update_ui_module() {
   if ! mkdir -p "$HOME/.local/share/gallaecia-dots/scripts/modules"; then
     return 1
@@ -37,7 +47,8 @@ update_ui_module() {
   fi
 }
 
-# Actualiza o template que Noctalia usa para xerar as cores da interface.
+# Garante a área de Noctalia e substitúe o template que produce as variables de
+# cor consumidas polo módulo UI; non modifica a paleta persoal directamente.
 update_ui_colors_template() {
   if ! mkdir -p "$HOME/.local/share/gallaecia-dots/noctalia"; then
     return 1
@@ -49,7 +60,8 @@ update_ui_colors_template() {
   fi
 }
 
-# Actualiza o Bashrc de yt-dlp se xa estaba instalado por Gallaecia.
+# Só cando yt-dlp e o módulo opcional existen, substitúe ese módulo pola versión
+# compatible coa nova interface. Non instala yt-dlp nin activa unha app non elixida.
 update_yt_dlp_bash_module() {
   if ! is_pkg_installed yt-dlp ||
     ! file_exists "$HOME/.local/share/gallaecia-dots/bashrc/201-yt-dlp"; then
@@ -66,7 +78,8 @@ update_yt_dlp_bash_module() {
   fi
 }
 
-# Mostra o resumo visible dos cambios incluídos na migración.
+# Imprime a versión e os cambios de UI/yt-dlp antes de pedir confirmación.
+# É unha operación unicamente informativa.
 show_changelog() {
   title "Update $VERSION"
   info "Cambios que se van aplicar:"
@@ -75,7 +88,8 @@ show_changelog() {
   info "· Actualizados os comandos interactivos de yt-dlp."
 }
 
-# Executa cada cambio da migración e detense no primeiro erro.
+# Actualiza módulo, template e integración opcional en orde.
+# Calquera fallo devolve 1 e evita rexistrar unha actualización incompleta.
 apply_update() {
   if ! update_ui_module; then
     return 1
@@ -88,7 +102,8 @@ apply_update() {
   fi
 }
 
-# Confirma e executa a migración, propagando calquera erro ao instalador.
+# Presenta o changelog, require confirmación e executa o orquestrador.
+# A cancelación e os erros rematan o script sen marcar a versión.
 main() {
   show_changelog
 

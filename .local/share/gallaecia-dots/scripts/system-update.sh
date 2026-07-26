@@ -3,16 +3,30 @@
 set -u
 set -o pipefail
 
+###############################################################################
+# ACTUALIZADOR INTERACTIVO DO SISTEMA
+#
+# É o fluxo que abren o botón de Noctalia e `gallaecia update`. Cada bloque pide
+# confirmación por separado:
+#
+#   Rust -> Yay/Pacman -> Flatpak -> plugins Yazi -> dotfiles -> reinicio
+#
+# A parte de dotfiles reutiliza `gallaecia _sync-repo`. Despois executa
+# install.sh en modo update para aplicar só as migracións pendentes.
+###############################################################################
+
 # shellcheck source=/dev/null
 source "$HOME/.local/share/gallaecia-dots/scripts/modules/ui.sh"
 # shellcheck source=/dev/null
 source "$HOME/.local/share/gallaecia-dots/scripts/modules/commands.sh"
+# shellcheck source=/dev/null
+source "$HOME/.local/share/gallaecia-dots/scripts/modules/gallaecia.sh"
 
 DOTFILES_DIR="${DOTFILES_DIR:-$HOME/.dotfiles}"
 INSTALLER="$DOTFILES_DIR/install.sh"
-REPO_BRANCH="${1:-${REPO_BRANCH:-release}}"
 
-# Mostra o logo se o script visual existe e é executable.
+# Comproba se o helper visual instalado existe e, nese caso, execútao.
+# A ausencia do logo non bloquea a actualización nin produce un erro.
 show_logo() {
   local logo_script="$HOME/.local/share/gallaecia-dots/scripts/gallaecia.sh"
 
@@ -21,108 +35,35 @@ show_logo() {
   fi
 }
 
-# Comproba se o repo local existe e é un clon git válido.
-has_dotfiles_repo() {
-  git -C "$DOTFILES_DIR" rev-parse --is-inside-work-tree &> /dev/null &&
-    [ -r "$INSTALLER" ]
-}
+# Clona ou actualiza o repo e comproba sempre as migracións pendentes.
+# O código 2 de `_sync-repo` significa cancelación do usuario: non é un erro e
+# tampouco se lanza o instalador. Outros erros deteñen este bloque.
+update_dotfiles() {
+  local sync_status
 
-dotfiles_repo_problem() {
-  if [ ! -d "$DOTFILES_DIR" ]; then
-    printf 'Non existe %s.' "$DOTFILES_DIR"
-    return
+  title "Actualizar dotfiles"
+
+  gallaecia _sync-repo --confirm
+  sync_status=$?
+
+  if [ "$sync_status" -eq 2 ]; then
+    return 0
   fi
-
-  if ! git -C "$DOTFILES_DIR" rev-parse --is-inside-work-tree &> /dev/null; then
-    printf '%s existe, pero Git non o recoñece como repo.' "$DOTFILES_DIR"
-    return
+  if [ "$sync_status" -ne 0 ]; then
+    warning "Non se puideron sincronizar os dotfiles."
+    return 1
   fi
 
   if [ ! -r "$INSTALLER" ]; then
-    printf 'O repo existe, pero non se pode ler %s.' "$INSTALLER"
-    return
-  fi
-
-  printf 'Non se puido validar %s.' "$DOTFILES_DIR"
-}
-
-# Trae a info remota antes de comprobar se hai actualizacións.
-fetch_dotfiles_updates() {
-  git -C "$DOTFILES_DIR" fetch --quiet origin "$REPO_BRANCH"
-}
-
-# Asegura que a actualización se aplica sobre a rama esperada.
-checkout_dotfiles_branch() {
-  if git -C "$DOTFILES_DIR" show-ref --verify --quiet "refs/heads/$REPO_BRANCH"; then
-    git -C "$DOTFILES_DIR" switch "$REPO_BRANCH"
-    return
-  fi
-
-  git -C "$DOTFILES_DIR" switch --track -c "$REPO_BRANCH" "origin/$REPO_BRANCH"
-}
-
-# Devolve éxito se o repo local está por detrás da rama remota.
-dotfiles_need_update() {
-  local local_head remote_head
-
-  local_head="$(git -C "$DOTFILES_DIR" rev-parse HEAD)"
-  remote_head="$(git -C "$DOTFILES_DIR" rev-parse "origin/$REPO_BRANCH")"
-
-  [ "$local_head" != "$remote_head" ]
-}
-
-# Avisa se hai cambios locais que Git gardará temporalmente durante o pull.
-warn_dirty_repo() {
-  if [ -n "$(git -C "$DOTFILES_DIR" status --porcelain)" ]; then
-    warning "Hai cambios locais en $DOTFILES_DIR. Git tentará conservalos mediante autostash."
-    return 0
-  fi
-
-  return 1
-}
-
-# Actualiza o repo cando fai falta e comproba sempre as migracións pendentes.
-update_dotfiles() {
-  title "Actualizar dotfiles"
-
-  if ! has_dotfiles_repo; then
-    local repo_problem
-
-    repo_problem="$(dotfiles_repo_problem)"
-    warning "$repo_problem Saltando actualización dos dotfiles."
-    return 0
-  fi
-
-  if ! fetch_dotfiles_updates; then
-    fail "Non se puido comprobar se hai updates nos dotfiles."
+    warning "Non se atopou o instalador en $INSTALLER."
     return 1
-  fi
-
-  if dotfiles_need_update; then
-    warn_dirty_repo
-
-    if ! gum_confirm "Hai updates novos nos dotfiles. Queres actualizalos e relanzar o instalador?"; then
-      info "Actualización dos dotfiles cancelada."
-      return 0
-    fi
-
-    title "Actualizando repo de dotfiles"
-
-    if ! checkout_dotfiles_branch ||
-      ! git -C "$DOTFILES_DIR" pull --ff-only --autostash origin "$REPO_BRANCH"; then
-      fail "Non se puido actualizar o repo de dotfiles."
-      return 1
-    fi
-  else
-    info "Os dotfiles xa están actualizados."
   fi
 
   info "Comprobando actualizacións pendentes..."
-  if ! SKIP_CLONE=1 REPO_BRANCH="$REPO_BRANCH" INSTALL_MODE="update" bash "$INSTALLER"; then
+  if ! SKIP_CLONE=1 INSTALL_MODE="update" bash "$INSTALLER"; then
     warning "Non se completaron todas as actualizacións dos dotfiles."
     return 1
   fi
-
 }
 
 # Actualiza Rust só se rustup está instalado.
@@ -136,7 +77,8 @@ update_rust() {
   fi
 }
 
-# Actualiza paquetes de pacman e AUR mediante yay.
+# Se Yay existe, actualiza nunha soa operación paquetes oficiais, AUR e paquetes
+# de desenvolvemento. Se falta, informa e devolve éxito para continuar co resto.
 update_arch() {
   if has_command yay; then
     title "Actualizando pacman e AUR..."
@@ -146,7 +88,8 @@ update_arch() {
   fi
 }
 
-# Actualiza Flatpaks instalados.
+# Se Flatpak está dispoñible, solicita ao xestor actualizar todas as instalacións.
+# A ausencia de Flatpak só mostra un aviso porque este ecosistema é opcional.
 update_flatpak() {
   if has_command flatpak; then
     title "Actualizando Flatpak..."
@@ -156,7 +99,8 @@ update_flatpak() {
   fi
 }
 
-# Actualiza plugins de Yazi só se existen yazi e o comando ya.
+# Require o executable de Yazi e o seu xestor `ya` antes de actualizar plugins.
+# Se falta algún, omite todo o bloque para non deixar unha actualización parcial.
 update_yazi_plugins() {
   if has_command yazi && has_command ya; then
     title "Actualizando plugins de Yazi..."
@@ -166,7 +110,9 @@ update_yazi_plugins() {
   fi
 }
 
-# Pregunta por cada bloque de actualización e aborta se falla un bloque aceptado.
+# Pregunta por cada bloque na orde visible. Rexeitalo continúa co seguinte;
+# aceptalo e obter un erro detén o fluxo para non ocultar unha actualización
+# incompleta.
 main() {
   show_logo
 

@@ -1,6 +1,8 @@
 # shellcheck shell=bash
 
-# Mostra a mini guía do wrapper interactivo de SpotDL.
+# Recibe o nome do wrapper de SpotDL e imprime a súa axuda específica.
+# Non inicia interacción nin descarga contido; separa a documentación extensa
+# do parser do comando público e permite ampliala se aparecen máis wrappers.
 _spotdl_help() {
   case "$1" in
     spotdl-musica)
@@ -45,7 +47,10 @@ EOF
   esac
 }
 
-# Descarga unha canción de Spotify ou YouTube Music usando SpotDL.
+# Recibe unha URL opcional, un modo dunha soa execución e argumentos adicionais
+# para `spotdl download`. Sen URL abre un prompt en bucle ata cancelar; con
+# `--url` descarga directamente. A axuda e versión de SpotDL evitan o prompt e
+# cada descarga conserva o código do comando orixinal cando o fluxo debe rematar.
 spotdl-musica() {
   local once=false
   local url=""

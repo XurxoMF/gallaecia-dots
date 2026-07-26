@@ -2,7 +2,9 @@
 
 # Funcións interactivas opcionais para Docker, Compose e Buildx.
 
-# Mostra a mini guía correspondente a cada comando interactivo de Docker.
+# Recibe o nome dun comando deste módulo e imprime a súa axuda específica.
+# Centraliza usos, opcións, controis, efectos e passthrough sen contactar co
+# daemon; cada función pública chámaa ao procesar `-h|--help`.
 _docker_help() {
   case "$1" in
     docker-ps)
@@ -556,7 +558,9 @@ EOF
   esac
 }
 
-# Comproba que o cliente de Docker está dispoñible no PATH.
+# Comproba que o cliente `docker` pode resolverse no PATH antes de calquera fluxo.
+# Non contacta aínda co daemon; devolve 1 cun aviso claro se falta o executable
+# para evitar erros menos comprensibles no medio dunha selección interactiva.
 _docker_require() {
   if ! has_command docker; then
     warning "Docker non está instalado."
@@ -564,7 +568,9 @@ _docker_require() {
   fi
 }
 
-# Imprime os IDs seleccionados, un por liña.
+# Recibe un filtro de estado e se a selección pode ser múltiple.
+# Consulta os contedores, formatea ID/nome/imaxe/estado para Gum e imprime só os
+# IDs elixidos, un por liña. Non modifica contedores e cancelar produce saída baleira.
 _docker_select_containers() {
   local scope="$1"
   local multiple="$2"
@@ -602,7 +608,9 @@ _docker_select_containers() {
   done <<< "$selection"
 }
 
-# Imprime as referencias das imaxes seleccionadas ou o ID se non teñen etiqueta.
+# Recibe se a selección de imaxes é múltiple, lista as imaxes locais con contexto
+# humano e pásaas a Gum. Imprime `repositorio:tag` ou, para imaxes sen etiqueta,
+# o ID, que os comandos consumidores poden entregar directamente a Docker.
 _docker_select_images() {
   local multiple="$1"
   local header="$2"
@@ -632,7 +640,9 @@ _docker_select_images() {
   done <<< "$selection"
 }
 
-# Comproba Docker e valida o proxecto Compose do directorio actual.
+# Valida primeiro o cliente Docker e despois executa `docker compose config`.
+# Devolve 0 só cando o directorio actual contén un proxecto Compose válido; non
+# inicia servizos nin modifica os ficheiros do proxecto.
 _docker_require_compose_project() {
   _docker_require || return 1
   if ! docker compose config --quiet 2> /dev/null; then
@@ -641,7 +651,9 @@ _docker_require_compose_project() {
   fi
 }
 
-# Lista contedores permitindo escoller as columnas e incluír os detidos.
+# Analiza opcións para incluír contedores detidos e personalizar o formato.
+# Executa unha consulta de só lectura con `docker ps`, reenvía os argumentos
+# orixinais e imprime a táboa sen iniciar, deter nin borrar recursos.
 docker-ps() {
   local columns=()
   local all=false
@@ -695,7 +707,9 @@ docker-ps() {
   fi
 }
 
-# Selecciona un contedor activo e abre bash ou sh no seu interior.
+# Selecciona un contedor en execución, detecta ou recibe a shell desexada e chama
+# `docker exec -it`. Abre unha sesión interactiva dentro do contedor e conserva
+# o código de saída; os argumentos posteriores a `--` pasan a `docker exec`.
 docker-shell() {
   local shell_command=""
   local original_args=()
@@ -745,7 +759,9 @@ docker-shell() {
   docker exec -it "${original_args[@]}" "$container" "$shell_command"
 }
 
-# Conecta a terminal ao proceso principal dun contedor activo.
+# Selecciona un contedor activo e executa `docker attach` sobre o seu proceso
+# principal. A chamada toma temporalmente o control da terminal; non crea outro
+# proceso dentro do contedor e reenvía as opcións indicadas polo usuario.
 docker-attach() {
   local original_args=()
   local container
@@ -777,7 +793,9 @@ docker-attach() {
   docker attach "${original_args[@]}" "$container"
 }
 
-# Mostra os logs dun contedor, opcionalmente en seguimento continuo.
+# Selecciona un contedor e constrúe `docker logs`, con seguimento e número de
+# liñas configurables. É unha lectura do rexistro salvo polo tempo que permanece
+# conectada; imprime a saída e conserva o código do cliente Docker.
 docker-logs() {
   local follow=false
   local tail_lines=100
@@ -829,7 +847,9 @@ docker-logs() {
   docker "${args[@]}" "${original_args[@]}" "$container"
 }
 
-# Reutiliza o selector múltiple para iniciar, deter ou reiniciar contedores.
+# Recibe unha acción Docker, o estado dos candidatos e os argumentos adicionais.
+# Reutiliza o selector múltiple, captura os IDs e executa unha única operación
+# sobre todos eles. É interna para manter idéntico o fluxo start/stop/restart.
 _docker_container_action() {
   local action="$1"
   local scope="$2"
@@ -845,7 +865,9 @@ _docker_container_action() {
   docker container "$action" "$@" "${containers[@]}"
 }
 
-# Selecciona un ou varios contedores detidos e iníciaos.
+# Analiza as opcións propias, selecciona un ou varios contedores detidos e delega
+# en `_docker_container_action`. Modifica o estado dos contedores mediante
+# `docker container start` e conserva o código devolto polo daemon.
 docker-container-start() {
   local original_args=()
 
@@ -871,7 +893,9 @@ docker-container-start() {
   _docker_container_action start stopped "${original_args[@]}"
 }
 
-# Selecciona un ou varios contedores activos e detenos.
+# Analiza as opcións, selecciona contedores en execución e delega a parada no
+# helper común. Envía a operación a todos os IDs escollidos e reenvía opcións
+# como o tempo de espera ao comando Docker orixinal.
 docker-container-stop() {
   local original_args=()
 
@@ -897,7 +921,9 @@ docker-container-stop() {
   _docker_container_action stop running "${original_args[@]}"
 }
 
-# Selecciona un ou varios contedores activos e reiníciaos.
+# Selecciona contedores en execución e chama a acción común `restart`.
+# Pode interromper temporalmente os servizos escollidos, reenvía argumentos de
+# Docker e non actúa se o usuario cancela a selección.
 docker-container-restart() {
   local original_args=()
 
@@ -923,7 +949,9 @@ docker-container-restart() {
   _docker_container_action restart running "${original_args[@]}"
 }
 
-# Borra contedores seleccionados, cunha confirmación adicional se se forza.
+# Selecciona un ou varios contedores e pide confirmación antes de eliminalos.
+# O modo `--force` admite contedores activos e engade unha segunda confirmación
+# polo risco de perda de estado; só despois chama `docker container rm`.
 docker-container-delete() {
   local force=false
   local original_args=()
@@ -969,7 +997,9 @@ docker-container-delete() {
   fi
 }
 
-# Lista as imaxes locais nunha táboa compacta.
+# Constrúe unha consulta de só lectura das imaxes locais, incluíndo opcionalmente
+# as intermedias. Reenvía filtros e formato adicionais a `docker image ls` e
+# imprime a táboa sen cambiar etiquetas nin capas.
 docker-images() {
   local all=false
   local original_args=()
@@ -1000,7 +1030,9 @@ docker-images() {
   docker "${args[@]}" "${original_args[@]}"
 }
 
-# Borra as imaxes seleccionadas, cunha confirmación adicional se se forza.
+# Permite seleccionar unha ou varias imaxes locais e confirma a eliminación.
+# O modo forzado require unha segunda confirmación porque pode retirar imaxes
+# referenciadas; finalmente executa unha única chamada a `docker image rm`.
 docker-image-delete() {
   local force=false
   local original_args=()
@@ -1042,7 +1074,9 @@ docker-image-delete() {
   fi
 }
 
-# Crea unha etiqueta nova a partir dunha imaxe local seleccionada.
+# Selecciona unha imaxe local, recibe ou solicita a referencia de destino e chama
+# `docker image tag`. Crea unha etiqueta adicional sen duplicar as capas nin
+# publicar a imaxe; conserva as opcións e o código do cliente.
 docker-tag() {
   local original_args=()
   local image destination
@@ -1077,7 +1111,9 @@ docker-tag() {
   docker image tag "${original_args[@]}" "$image" "$destination"
 }
 
-# Lista as redes dispoñibles en Docker.
+# Executa `docker network ls` cos argumentos reenviados e imprime as redes do
+# daemon. É unha operación de só lectura que serve tamén como base visual para
+# decidir que recursos se poden limpar.
 docker-networks() {
   local original_args=()
 
@@ -1103,7 +1139,9 @@ docker-networks() {
   docker network ls "${original_args[@]}"
 }
 
-# Borra redes personalizadas seleccionadas tras pedir confirmación.
+# Lista só redes eliminables, permite selección múltiple e confirma o conxunto
+# exacto antes de chamar `docker network rm`. Non presenta as redes internas que
+# Docker protexe e non actúa ao cancelar.
 docker-network-delete() {
   local original_args=()
   local selection line
@@ -1152,7 +1190,8 @@ docker-network-delete() {
   docker network rm "${original_args[@]}" "${selected_networks[@]}"
 }
 
-# Lista os volumes dispoñibles en Docker.
+# Executa `docker volume ls` con filtros ou formato adicionais e imprime a súa
+# saída. Non inspecciona nin modifica os datos gardados nos volumes.
 docker-volumes() {
   local original_args=()
 
@@ -1178,7 +1217,9 @@ docker-volumes() {
   docker volume ls "${original_args[@]}"
 }
 
-# Borra volumes seleccionados cunha dobre confirmación para protexer os datos.
+# Selecciona un ou varios volumes e mostra unha advertencia explícita de perda de
+# datos. Require dúas confirmacións antes de `docker volume rm`, incluso cando
+# non se usa forza, e cancelar calquera delas deixa todos os volumes intactos.
 docker-volume-delete() {
   local original_args=()
   local selection line
@@ -1224,7 +1265,9 @@ docker-volume-delete() {
   docker volume rm "${original_args[@]}" "${selected_volumes[@]}"
 }
 
-# Mostra o estado dos servizos do proxecto Compose actual.
+# Valida o proxecto Compose do directorio actual e executa `docker compose ps`.
+# É unha consulta de só lectura e reenvía opcións como filtros ou formato ao
+# comando Compose orixinal.
 compose-ps() {
   local original_args=()
 
@@ -1250,7 +1293,9 @@ compose-ps() {
   docker compose ps "${original_args[@]}"
 }
 
-# Inicia en segundo plano o proxecto Compose actual.
+# Valida o proxecto actual e chama `docker compose up -d`.
+# Pode crear redes, volumes, imaxes e contedores definidos no Compose; reenvía
+# argumentos adicionais e conserva o código global da operación.
 compose-up() {
   local original_args=()
 
@@ -1276,7 +1321,9 @@ compose-up() {
   docker compose up -d "${original_args[@]}"
 }
 
-# Detén e retira o proxecto Compose actual tras pedir confirmación.
+# Valida o proxecto e confirma antes de executar `docker compose down`.
+# Retira contedores e redes do proxecto segundo as opcións reenviadas; non actúa
+# cando a confirmación se cancela.
 compose-down() {
   local original_args=()
 
@@ -1303,7 +1350,9 @@ compose-down() {
   docker compose down "${original_args[@]}"
 }
 
-# Mostra os logs dos servizos de Compose seleccionados.
+# Obtén os servizos do proxecto, permite escoller un ou varios e constrúe
+# `docker compose logs`, opcionalmente en seguimento. Só le os rexistros e
+# conserva a selección e opcións como argumentos separados.
 compose-logs() {
   local follow=false
   local tail_lines=100
@@ -1369,7 +1418,9 @@ compose-logs() {
   docker "${args[@]}" "${original_args[@]}" "${selected_services[@]}"
 }
 
-# Reconstrúe as imaxes e inicia o proxecto Compose en segundo plano.
+# Valida o proxecto e executa `docker compose up -d --build`.
+# Reconstrúe as imaxes que correspondan e recrea/inicia os servizos afectados,
+# reenvía argumentos adicionais e detense se Compose devolve un erro.
 compose-rebuild() {
   local original_args=()
 
@@ -1395,7 +1446,9 @@ compose-rebuild() {
   docker compose up -d --build "${original_args[@]}"
 }
 
-# Descarga as imaxes novas e volve iniciar o proxecto Compose.
+# Executa en orde `docker compose pull` e `docker compose up -d`.
+# A segunda fase só se realiza se a descarga remata correctamente; actualiza os
+# contedores do proxecto coas imaxes obtidas sen ocultar fallos intermedios.
 compose-update() {
   local original_args=()
 
@@ -1422,7 +1475,9 @@ compose-update() {
     docker compose up -d "${original_args[@]}"
 }
 
-# Constrúe con Buildx unha imaxe e cárgaa no almacén local de Docker.
+# Recibe ou solicita unha etiqueta e un contexto de construción, valida Buildx
+# e executa `docker buildx build --load`. A imaxe resultante queda dispoñible no
+# almacén local; os argumentos posteriores a `--` permiten engadir build args.
 docker-build() {
   local tag=""
   local context=""
@@ -1473,7 +1528,9 @@ docker-build() {
   docker buildx build --load --tag "$tag" "${original_args[@]}" "$context"
 }
 
-# Permite escoller e confirmar unha operación segura de limpeza de Docker.
+# Mostra tipos de recursos que Docker pode podar e constrúe o comando escollido.
+# Explica o alcance e confirma antes de executar calquera `prune`; as variantes
+# que poden alcanzar máis datos engaden as opcións só tras a decisión do usuario.
 docker-clean() {
   local original_args=()
   local action
@@ -1524,7 +1581,9 @@ docker-clean() {
   esac
 }
 
-# Inicia sesión en Docker Hub ou nun rexistro alternativo.
+# Recibe opcionalmente un rexistro e argumentos de autenticación e executa
+# `docker login`. Pode solicitar credenciais de forma interactiva e modifica o
+# ficheiro de configuración de Docker onde se gardan os datos da sesión.
 docker-login() {
   local server=""
   local original_args=()
@@ -1564,7 +1623,9 @@ docker-login() {
   fi
 }
 
-# Pecha a sesión do rexistro indicado tras pedir confirmación.
+# Recibe ou solicita o rexistro, confirma a intención e executa `docker logout`.
+# Elimina do almacén de credenciais a autenticación correspondente, sen afectar
+# imaxes nin contedores locais.
 docker-logout() {
   local server=""
   local original_args=()
@@ -1605,7 +1666,9 @@ docker-logout() {
   fi
 }
 
-# Busca imaxes públicas en Docker Hub.
+# Recibe ou solicita un termo e executa `docker search` contra o rexistro
+# compatible. Só consulta resultados remotos, imprime a táboa e reenvía filtros
+# adicionais como límite ou estado oficial.
 docker-search() {
   local term=""
   local original_args=()
@@ -1643,7 +1706,9 @@ docker-search() {
   docker search "${original_args[@]}" "$term"
 }
 
-# Descarga unha imaxe indicada por opción ou mediante un input.
+# Recibe ou solicita unha referencia completa e chama `docker pull`.
+# Descarga e actualiza as capas locais da imaxe, reenvía opcións do cliente e
+# conserva o código do daemon para que o fallo sexa detectable.
 docker-pull() {
   local image=""
   local original_args=()
@@ -1681,7 +1746,9 @@ docker-pull() {
   docker pull "${original_args[@]}" "$image"
 }
 
-# Selecciona unha imaxe local etiquetada e súbea ao seu rexistro.
+# Selecciona unha imaxe local con referencia publicable e executa `docker push`.
+# Transfire as capas ao rexistro indicado pola propia etiqueta; non crea etiquetas
+# novas e reenvía opcións como a plataforma ao cliente Docker.
 docker-push() {
   local original_args=()
   local selection reference

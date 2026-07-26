@@ -6,27 +6,36 @@ set -o pipefail
 VERSION="1.1.0"
 DOTFILES_DIR="$HOME/.dotfiles"
 MODULES_DIR="$DOTFILES_DIR/.local/share/gallaecia-dots/scripts/modules"
+INTERNAL_DIR="$DOTFILES_DIR/.local/share/gallaecia-dots/scripts/internal"
 
-if [ ! -r "$MODULES_DIR/ui.sh" ] ||
+if [ ! -r "$MODULES_DIR/apps.sh" ] ||
   [ ! -r "$MODULES_DIR/commands.sh" ] ||
   [ ! -r "$MODULES_DIR/files.sh" ] ||
-  [ ! -r "$MODULES_DIR/apps.sh" ]; then
-  echo "Non se atoparon os módulos de Gallaecia Dots en $MODULES_DIR." >&2
+  [ ! -r "$MODULES_DIR/gallaecia.sh" ] ||
+  [ ! -r "$MODULES_DIR/ui.sh" ] ||
+  [ ! -r "$INTERNAL_DIR/apps.sh" ] ||
+  [ ! -r "$INTERNAL_DIR/versions.sh" ]; then
+  echo "Non se atoparon os módulos ou librarías internas en $DOTFILES_DIR." >&2
   exit 1
 fi
 
 # shellcheck source=/dev/null
-source "$MODULES_DIR/ui.sh"
+source "$MODULES_DIR/apps.sh"
 # shellcheck source=/dev/null
 source "$MODULES_DIR/commands.sh"
 # shellcheck source=/dev/null
 source "$MODULES_DIR/files.sh"
 # shellcheck source=/dev/null
-source "$MODULES_DIR/versions.sh"
+source "$MODULES_DIR/gallaecia.sh"
 # shellcheck source=/dev/null
-source "$MODULES_DIR/apps.sh"
+source "$MODULES_DIR/ui.sh"
+# shellcheck source=/dev/null
+source "$INTERNAL_DIR/apps.sh"
+# shellcheck source=/dev/null
+source "$INTERNAL_DIR/versions.sh"
 
-# Deixa Docker preparado para arrancar e para usalo sen sudo tras reiniciar.
+# Habilita o servizo global de Docker e engade o usuario actual ao grupo.
+# O acceso sen sudo faise efectivo normalmente no seguinte inicio de sesión.
 install_docker() {
   if ! sudo systemctl enable docker.service; then
     return 1
@@ -36,7 +45,8 @@ install_docker() {
   fi
 }
 
-# Instala os helpers interactivos de Git no directorio controlado por Gallaecia.
+# Garante a área Bash opcional e instala nela o módulo de comandos Git.
+# Non configura identidade, credenciais nin repositorios por si mesmo.
 configure_git() {
   if ! mkdir -p "$HOME/.local/share/gallaecia-dots/bashrc"; then
     return 1
@@ -48,7 +58,8 @@ configure_git() {
   fi
 }
 
-# Instala os helpers interactivos de Docker no directorio controlado por Gallaecia.
+# Garante a área Bash opcional e instala o módulo de Docker/Compose.
+# A preparación do daemon e do grupo realízase por separado en `install_docker`.
 configure_docker() {
   if ! mkdir -p "$HOME/.local/share/gallaecia-dots/bashrc"; then
     return 1
@@ -60,7 +71,8 @@ configure_docker() {
   fi
 }
 
-# Actualiza os módulos internos e reutilizables empregados polos scripts.
+# Percorre a lista pechada de módulos introducidos nesta versión e substitúe cada
+# ficheiro controlado. Detense se algunha copia falla para non mesturar APIs.
 update_helpers_modules() {
   local module_name
 
@@ -77,7 +89,8 @@ update_helpers_modules() {
   done
 }
 
-# Actualiza yt-dlp e SpotDL só cando o comando correspondente está instalado.
+# Garante a área opcional e actualiza cada wrapper só se a aplicación existe.
+# Así non activa comandos dunha app que o usuario non instalara previamente.
 update_bash_modules() {
   if ! mkdir -p "$HOME/.local/share/gallaecia-dots/bashrc"; then
     return 1
@@ -100,14 +113,16 @@ update_bash_modules() {
   fi
 }
 
-# Instala a versión máis recente do actualizador interactivo do sistema.
+# Substitúe o actualizador do sistema pola versión compatible cos novos módulos.
+# Non executa ningunha actualización durante esta copia.
 update_system_update() {
   replace_file \
     "$DOTFILES_DIR/.local/share/gallaecia-dots/scripts/system-update.sh" \
     "$HOME/.local/share/gallaecia-dots/scripts/system-update.sh"
 }
 
-# Instala Git e GitHub CLI, verifica os paquetes e engade os seus helpers.
+# Instala Git/GitHub CLI, comproba o estado local dos dous paquetes e só entón
+# engade o módulo Bash. Unha verificación fallida propágase como erro.
 install_git_tools() {
   if ! yay -Syu --needed git github-cli; then
     return 1
@@ -121,7 +136,8 @@ install_git_tools() {
   fi
 }
 
-# Instala Docker, verifica os paquetes e prepara o servizo e os helpers.
+# Instala Docker, Compose e Buildx; verifica cada paquete e configura servizo,
+# grupo e módulo Bash. Cada fase depende do éxito da anterior.
 install_docker_tools() {
   if ! yay -Syu --needed docker docker-compose docker-buildx; then
     return 1
@@ -140,7 +156,8 @@ install_docker_tools() {
   fi
 }
 
-# Mostra o resumo visible dos cambios incluídos na migración.
+# Presenta todas as capacidades novas antes da confirmación principal.
+# As preguntas opcionais de Git e Docker aparecen máis tarde en `apply_update`.
 show_changelog() {
   title "Update $VERSION"
   info "Cambios que se van aplicar:"
@@ -151,7 +168,8 @@ show_changelog() {
   info "· Arreglado un bug no script de actualización do sistema."
 }
 
-# Executa cada cambio da migración e detense no primeiro erro.
+# Actualiza primeiro a infraestrutura común e pregunta despois polas ferramentas
+# opcionais. Rexeitar Git ou Docker é válido; aceptar e fallar detén a migración.
 apply_update() {
   if ! update_helpers_modules; then
     return 1
@@ -176,7 +194,8 @@ apply_update() {
   fi
 }
 
-# Confirma e executa a migración, propagando calquera erro ao instalador.
+# Mostra o changelog, confirma o conxunto e executa o orquestrador.
+# Cancelar ou fallar evita que o instalador marque esta versión.
 main() {
   show_changelog
 

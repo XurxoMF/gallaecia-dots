@@ -3,7 +3,7 @@
 set -u
 set -o pipefail
 
-VERSION="1.0.4"
+VERSION="1.1.5"
 DOTFILES_DIR="$HOME/.dotfiles"
 MODULES_DIR="$DOTFILES_DIR/.local/share/gallaecia-dots/scripts/modules"
 INTERNAL_DIR="$DOTFILES_DIR/.local/share/gallaecia-dots/scripts/internal"
@@ -34,48 +34,52 @@ source "$INTERNAL_DIR/apps.sh"
 # shellcheck source=/dev/null
 source "$INTERNAL_DIR/versions.sh"
 
-# Comproba se Dolphin está instalado e, só nese caso, instala Ark mediante Yay.
-# A ausencia de Dolphin é un éxito porque a integración é opcional.
-install_ark_for_dolphin() {
-  if ! has_command dolphin; then
-    return 0
-  fi
-
-  if ! yay -Sy --needed ark; then
-    return 1
-  fi
+# Instala obrigatoriamente MPV e mpvpaper mediante Yay.
+# Ambos son necesarios para que o plugin de fondos animados poida reproducir vídeo.
+install_animated_wallpaper_dependencies() {
+  yay -S --needed mpv mpvpaper
 }
 
-# Substitúe a base Lua de Hyprland controlada por Gallaecia.
-# Non toca o wrapper persoal gardado en `~/.config/hypr`.
-update_hyprland_config() {
+# Substitúe `gallaecia.toml` para activar as correccións da barra, o tradutor e
+# o soporte de fondos animados, preservando `custom.toml`.
+update_noctalia_config() {
   replace_file \
-    "$DOTFILES_DIR/.local/share/gallaecia-dots/hypr/gallaecia.lua" \
-    "$HOME/.local/share/gallaecia-dots/hypr/gallaecia.lua"
+    "$DOTFILES_DIR/.config/noctalia/gallaecia.toml" \
+    "$HOME/.config/noctalia/gallaecia.toml"
 }
 
-# Informa da integración de Ark e da corrección de animacións.
-# Non realiza os cambios antes da confirmación do usuario.
+# Garante `~/.wallpaper-videos` sen borrar vídeos que xa existan.
+# O directorio queda como almacén persoal consumido por Noctalia.
+create_wallpaper_videos_dir() {
+  mkdir -p "$HOME/.wallpaper-videos"
+}
+
+# Presenta as tres capacidades visibles que engade esta versión.
+# Non instala paquetes nin copia configuración antes da confirmación.
 show_changelog() {
   title "Update $VERSION"
   info "Cambios que se van aplicar:"
-  info "· Engadido ark para engadir compresión de arquivos a dolphin (solo se tes dolphin)."
-  info "· Actualizadas animacións de Hyprland rotas dende a 0.56.0."
+  info "· Reparado o botón de actualización do sistema na barra."
+  info "· Engadido un tradutor ao launcher."
+  info "· Engadido un sistema de fondos animados."
 }
 
-# Instala primeiro a dependencia opcional e despois actualiza Hyprland.
-# Detense no primeiro erro para non ocultar unha migración parcial.
+# Instala dependencias, actualiza Noctalia e crea o directorio nesta orde.
+# Detense no primeiro erro para que a versión non quede marcada a medias.
 apply_update() {
-  if ! install_ark_for_dolphin; then
+  if ! install_animated_wallpaper_dependencies; then
     return 1
   fi
-  if ! update_hyprland_config; then
+  if ! update_noctalia_config; then
+    return 1
+  fi
+  if ! create_wallpaper_videos_dir; then
     return 1
   fi
 }
 
-# Presenta o resumo, pide confirmación e aplica todos os pasos.
-# Cancelar ou fallar impide que o instalador marque a versión.
+# Mostra o resumo, require confirmación e aplica os tres pasos.
+# Calquera cancelación ou fallo deixa a migración pendente para o futuro.
 main() {
   show_changelog
 

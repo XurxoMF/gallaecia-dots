@@ -1,6 +1,25 @@
 # shellcheck shell=bash
 
-# Mostra a axuda específica de cada helper público deste módulo.
+###############################################################################
+# MÓDULO PÚBLICO DE COMANDOS
+#
+# Estes helpers non instalan programas. Traballan co que xa existe:
+#
+#   has_command          -> proba se o PATH resolve un nome.
+#   require_command(s)   -> valida dependencias e explica o que falta.
+#   command_path         -> imprime o executable resolto.
+#   package_owns_command -> consulta que paquete fornece un executable.
+#   retry_command        -> repite un comando fallido cun límite.
+#
+# Usa has_command para ramas opcionais e require_command(s) cando continuar sen
+# a dependencia non teña sentido. A instalación debe facerse explicitamente no
+# script chamador co xestor apropiado.
+###############################################################################
+
+# Recibe como único argumento o nome dun helper público e imprime a súa axuda.
+# Centralizar aquí os textos mantén o formato común sen mesturar documentación
+# longa co fluxo de validación de cada comando. Non modifica estado e non se
+# considera unha API pública: chámaa cada helper ao procesar `-h|--help`.
 _commands_help() {
   case "$1" in
     has_command)
@@ -30,42 +49,161 @@ EXEMPLOS
   has_command -- -comando
 EOF
       ;;
-    ensure_command)
+    require_command)
       cat <<'EOF'
 USO
-  ensure_command [OPCIÓNS] COMANDO PAQUETE
+  require_command [OPCIÓNS] COMANDO
 
 DESCRICIÓN
-  Instala un paquete con Pacman só cando o comando asociado non está
-  dispoñible no PATH.
+  Comproba que un comando está dispoñible e mostra un erro claro se falta.
 
 PARÁMETROS
   COMANDO
-      Nome do executable que se comprobará.
-
-  PAQUETE
-      Nome do paquete que se instalará se falta o comando.
+      Nome do comando requirido.
 
 OPCIÓNS
   -h, --help
       Mostra esta axuda.
 
   --
-      Remata as opcións e permite valores que comecen por guión.
+      Remata as opcións e permite un nome que comece por guión.
 
 RESULTADO
-  Devolve 0 se o comando xa existía ou o paquete se instalou correctamente.
-  Devolve un código distinto de 0 se a validación ou Pacman fallan.
+  Devolve 0 se o comando existe e 1 se non está dispoñible.
 
 EXEMPLOS
-  ensure_command gum gum
-  ensure_command git git
+  require_command git
+  require_command -- -comando
+EOF
+      ;;
+    require_commands)
+      cat <<'EOF'
+USO
+  require_commands [OPCIÓNS] COMANDO...
+
+DESCRICIÓN
+  Comproba varios comandos e informa de todos os que faltan.
+
+PARÁMETROS
+  COMANDO...
+      Un ou máis nomes de comandos requiridos.
+
+OPCIÓNS
+  -h, --help
+      Mostra esta axuda.
+
+  --
+      Remata as opcións e permite nomes que comecen por guión.
+
+RESULTADO
+  Devolve 0 se todos os comandos existen e 1 se falta algún.
+
+EXEMPLOS
+  require_commands git gum
+  require_commands -- git -comando
+EOF
+      ;;
+    command_path)
+      cat <<'EOF'
+USO
+  command_path [OPCIÓNS] COMANDO
+
+DESCRICIÓN
+  Resolve un comando mediante `command -v`.
+
+PARÁMETROS
+  COMANDO
+      Nome do comando que se quere resolver.
+
+OPCIÓNS
+  -h, --help
+      Mostra esta axuda.
+
+  --
+      Remata as opcións e permite un nome que comece por guión.
+
+RESULTADO
+  Escribe a ruta ou descrición resolta en stdout.
+  Devolve un código distinto de 0 se o comando non existe.
+
+EXEMPLOS
+  command_path bash
+  command_path git
+EOF
+      ;;
+    package_owns_command)
+      cat <<'EOF'
+USO
+  package_owns_command [OPCIÓNS] COMANDO
+
+DESCRICIÓN
+  Resolve un executable e consulta con Yay que paquete instalado o proporciona.
+
+PARÁMETROS
+  COMANDO
+      Nome dun comando ou ruta dun executable.
+
+OPCIÓNS
+  -h, --help
+      Mostra esta axuda.
+
+  --
+      Remata as opcións e permite un valor que comece por guión.
+
+RESULTADO
+  Escribe a información do paquete propietario.
+  Devolve un código distinto de 0 se o comando ou o paquete non se atopan.
+
+EXEMPLOS
+  package_owns_command bash
+  package_owns_command /usr/bin/git
+EOF
+      ;;
+    retry_command)
+      cat <<'EOF'
+USO
+  retry_command [OPCIÓNS] -- COMANDO...
+
+DESCRICIÓN
+  Repite un comando cando falla, sen usar `eval` e conservando os argumentos.
+
+PARÁMETROS
+  COMANDO...
+      Comando e argumentos que se executarán.
+
+OPCIÓNS
+  --attempts VALOR
+      Número máximo de intentos. O valor predeterminado é 3.
+
+  --delay VALOR
+      Segundos de espera entre intentos. Admite decimais e o valor
+      predeterminado é 1.
+
+  -h, --help
+      Mostra esta axuda.
+
+  --
+      Remata as opcións do helper e introduce o comando.
+
+RESULTADO
+  Devolve 0 no primeiro intento correcto.
+  Se todos fallan, devolve o código de saída do último intento.
+
+EXEMPLOS
+  retry_command -- curl -fLO https://example.com/file
+  retry_command --attempts 5 --delay 2 -- git pull
+
+COMANDO ORIXINAL
+  Todo o situado despois de `--` execútase directamente como comando.
+  Usa `retry_command -- COMANDO --help` para consultar a axuda do programa real.
 EOF
       ;;
   esac
 }
 
-# Comproba se un comando está dispoñible no PATH.
+# Recibe exactamente un nome e comproba se Bash pode resolvelo no PATH.
+# Non imprime a ruta: comunica o resultado unicamente co código de saída de
+# `command -v`, polo que está pensado para usarse directamente nun `if`.
 has_command() {
   local values=()
   local command_name
@@ -102,26 +240,26 @@ has_command() {
   command -v "$command_name" &> /dev/null
 }
 
-# Instala un paquete de pacman só se o comando asociado aínda non existe.
-# Úsase para prerequisitos básicos como gum/git.
-ensure_command() {
+# Recibe exactamente un nome e reutiliza `has_command` para validalo.
+# Devolve 0 cando existe; se falta, devolve 1 e escribe en stderr unha mensaxe
+# apta para mostrar ao usuario, sen intentar instalar nada automaticamente.
+require_command() {
   local values=()
-  local command_name package_name
+  local command_name
 
   while (($#)); do
     case "$1" in
       -h|--help)
-        _commands_help ensure_command
+        _commands_help require_command
         return 0
         ;;
       --)
-        # Permite nomes de comando ou paquete que comecen por guión.
         shift
         values+=("$@")
         break
         ;;
       -*)
-        printf 'Opción descoñecida: %s. Usa ensure_command --help.\n' "$1" >&2
+        printf 'Opción descoñecida: %s. Usa require_command --help.\n' "$1" >&2
         return 1
         ;;
       *)
@@ -131,14 +269,238 @@ ensure_command() {
     shift
   done
 
-  if [ ${#values[@]} -ne 2 ]; then
-    printf 'ensure_command require COMANDO e PAQUETE. Usa ensure_command --help.\n' >&2
+  if [ ${#values[@]} -ne 1 ]; then
+    printf 'require_command require un COMANDO. Usa require_command --help.\n' >&2
     return 1
   fi
   command_name="${values[0]}"
-  package_name="${values[1]}"
 
   if ! has_command -- "$command_name"; then
-    sudo pacman -Sy --needed -- "$package_name"
+    printf 'Comando requirido non dispoñible: %s\n' "$command_name" >&2
+    return 1
   fi
+}
+
+# Recibe un ou máis nomes, comproba todos e informa de cada dependencia ausente.
+# Non se detén no primeiro fallo: remata o percorrido para ofrecer un diagnóstico
+# completo e só entón devolve 1 se faltaba polo menos un comando.
+require_commands() {
+  local command_names=()
+  local command_name
+  local missing=false
+
+  while (($#)); do
+    case "$1" in
+      -h|--help)
+        _commands_help require_commands
+        return 0
+        ;;
+      --)
+        shift
+        command_names+=("$@")
+        break
+        ;;
+      -*)
+        printf 'Opción descoñecida: %s. Usa require_commands --help.\n' "$1" >&2
+        return 1
+        ;;
+      *)
+        command_names+=("$1")
+        ;;
+    esac
+    shift
+  done
+
+  if [ ${#command_names[@]} -eq 0 ]; then
+    printf 'require_commands require COMANDO... Usa require_commands --help.\n' >&2
+    return 1
+  fi
+
+  for command_name in "${command_names[@]}"; do
+    if ! has_command -- "$command_name"; then
+      printf 'Comando requirido non dispoñible: %s\n' "$command_name" >&2
+      missing=true
+    fi
+  done
+
+  if $missing; then
+    return 1
+  fi
+}
+
+# Recibe exactamente un nome e imprime en stdout o resultado de `command -v`.
+# Conserva tanto a saída como o código do builtin, de modo que pode devolver
+# unha ruta, un alias ou unha función segundo o tipo de comando resolto.
+command_path() {
+  local values=()
+  local command_name
+
+  while (($#)); do
+    case "$1" in
+      -h|--help)
+        _commands_help command_path
+        return 0
+        ;;
+      --)
+        shift
+        values+=("$@")
+        break
+        ;;
+      -*)
+        printf 'Opción descoñecida: %s. Usa command_path --help.\n' "$1" >&2
+        return 1
+        ;;
+      *)
+        values+=("$1")
+        ;;
+    esac
+    shift
+  done
+
+  if [ ${#values[@]} -ne 1 ]; then
+    printf 'command_path require un COMANDO. Usa command_path --help.\n' >&2
+    return 1
+  fi
+  command_name="${values[0]}"
+
+  command -v "$command_name"
+}
+
+# Recibe un nome resoluble no PATH ou a ruta dun ficheiro executable.
+# Resolve o ficheiro real e pásao a `yay -Qo`, que consulta conxuntamente a base
+# de paquetes instalada por Pacman/Yay. Imprime a resposta de Yay en stdout e
+# falla de forma explícita se Yay, o comando ou un ficheiro consultable faltan.
+package_owns_command() {
+  local values=()
+  local command_name command_location
+
+  while (($#)); do
+    case "$1" in
+      -h|--help)
+        _commands_help package_owns_command
+        return 0
+        ;;
+      --)
+        shift
+        values+=("$@")
+        break
+        ;;
+      -*)
+        printf 'Opción descoñecida: %s. Usa package_owns_command --help.\n' "$1" >&2
+        return 1
+        ;;
+      *)
+        values+=("$1")
+        ;;
+    esac
+    shift
+  done
+
+  if [ ${#values[@]} -ne 1 ]; then
+    printf 'package_owns_command require un COMANDO. Usa package_owns_command --help.\n' >&2
+    return 1
+  fi
+  command_name="${values[0]}"
+
+  if ! has_command yay; then
+    printf 'Yay non está dispoñible para consultar paquetes.\n' >&2
+    return 1
+  fi
+
+  if [ -f "$command_name" ]; then
+    command_location="$command_name"
+  else
+    command_location="$(command -v "$command_name")" || {
+      printf 'Comando non dispoñible: %s\n' "$command_name" >&2
+      return 1
+    }
+  fi
+
+  if [ ! -f "$command_location" ]; then
+    printf 'O comando non resolve a un executable consultable: %s\n' "$command_name" >&2
+    return 1
+  fi
+
+  yay -Qo -- "$command_location"
+}
+
+# Recibe opcións de reintentos e, tras `--`, o comando completo nun array.
+# Execútao sen `eval`, espera só entre fallos e detense no primeiro éxito.
+# Se se esgotan os intentos devolve exactamente o código do último fallo, o que
+# permite ao chamador conservar a semántica do comando orixinal.
+retry_command() {
+  local attempts=3
+  local delay=1
+  local command_args=()
+  local attempt exit_code=1
+
+  while (($#)); do
+    case "$1" in
+      --attempts)
+        if [ $# -lt 2 ]; then
+          printf 'Falta VALOR para --attempts. Usa retry_command --help.\n' >&2
+          return 1
+        fi
+        attempts="$2"
+        shift
+        ;;
+      --delay)
+        if [ $# -lt 2 ]; then
+          printf 'Falta VALOR para --delay. Usa retry_command --help.\n' >&2
+          return 1
+        fi
+        delay="$2"
+        shift
+        ;;
+      -h|--help)
+        _commands_help retry_command
+        return 0
+        ;;
+      --)
+        shift
+        command_args=("$@")
+        break
+        ;;
+      -*)
+        printf 'Opción descoñecida: %s. Usa retry_command --help.\n' "$1" >&2
+        return 1
+        ;;
+      *)
+        printf 'O comando debe ir despois de --. Usa retry_command --help.\n' >&2
+        return 1
+        ;;
+    esac
+    shift
+  done
+
+  # Só admite enteiros positivos para evitar bucles baleiros ou infinitos.
+  if [[ ! "$attempts" =~ ^[1-9][0-9]*$ ]]; then
+    printf -- '--attempts debe ser un enteiro positivo.\n' >&2
+    return 1
+  fi
+  # `sleep` admite segundos enteiros ou cunha parte decimal.
+  if [[ ! "$delay" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
+    printf -- '--delay debe ser un número de segundos non negativo.\n' >&2
+    return 1
+  fi
+  if [ ${#command_args[@]} -eq 0 ]; then
+    printf 'retry_command require un COMANDO despois de --.\n' >&2
+    return 1
+  fi
+
+  for ((attempt = 1; attempt <= attempts; attempt++)); do
+    if "${command_args[@]}"; then
+      return 0
+    else
+      exit_code=$?
+    fi
+
+    if [ "$attempt" -lt "$attempts" ]; then
+      printf 'Intento %d/%d fallido; repetirase en %s segundos.\n' \
+        "$attempt" "$attempts" "$delay" >&2
+      sleep "$delay"
+    fi
+  done
+
+  return "$exit_code"
 }

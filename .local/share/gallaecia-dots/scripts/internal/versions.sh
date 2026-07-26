@@ -5,7 +5,34 @@
 #
 # Este módulo é API interna do sistema de migracións de Gallaecia Dots. Cambia
 # o rexistro de versións instaladas e pode alterar o fluxo de actualización.
-# Para scripts propios usa os módulos ui.sh, files.sh e commands.sh.
+# Para scripts propios usa os módulos públicos de `scripts/modules/`.
+###############################################################################
+
+###############################################################################
+# MAPA DO ESTADO DE VERSIÓNS
+#
+# O sistema mantén tres ficheiros en ~/.local/share/gallaecia-dots:
+#
+#   versions-instaladas -> historial, unha versión ou `base` por liña.
+#   version             -> última versión que se mostra ao usuario.
+#   instalado           -> data da última instalación/actualización completa.
+#
+# Fluxo dunha actualización:
+#
+#   list_available_versions
+#          │
+#          ▼
+#   install.sh filtra con is_version_installed
+#          │
+#          ▼
+#   executa updates/X_Y_Z.sh
+#          │
+#          ▼
+#   mark_version_installed + set_gallaecia_current_version
+#
+# Nunha instalación base, mark_all_available_versions evita reproducir
+# migracións históricas. Nun reinstall, clear_installed_versions borra só este
+# estado; non elimina directamente configuracións nin paquetes.
 ###############################################################################
 
 # Avisa de que estes helpers só deben empregarse no fluxo de actualización.
@@ -30,8 +57,7 @@ EXEMPLOS
   ${FUNCNAME[1]} --help
 
 ALTERNATIVAS
-  Para comandos personalizados usa os helpers documentados de ui.sh, files.sh
-  e commands.sh.
+  Para comandos personalizados usa os helpers documentados de scripts/modules/.
 EOF
 }
 
@@ -45,14 +71,15 @@ CURRENT_VERSION_FILE="$STATE_DIR/version"
 INSTALLED_VERSIONS_FILE="$STATE_DIR/versions-instaladas"
 INSTALLED_MARK_FILE="$STATE_DIR/instalado"
 
-# Garante que existe o directorio onde gardamos o estado da instalación.
+# Crea STATE_DIR e o historial se faltan. Non engade ningunha versión.
 # `versions-instaladas` é unha versión por liña: base, 3.0.1, 3.0.2...
 ensure_gallaecia_state_dir() {
   mkdir -p "$STATE_DIR" &&
   touch "$INSTALLED_VERSIONS_FILE"
 }
 
-# Devolve éxito se a versión recibida xa aparece en versions-instaladas.
+# Recibe unha versión exacta e busca unha liña completa igual no historial.
+# Só consulta estado; non crea o ficheiro nin modifica a versión actual.
 is_version_installed() {
   while (($#)); do
     case "$1" in
@@ -67,21 +94,23 @@ is_version_installed() {
   grep -qxF "$version" "$INSTALLED_VERSIONS_FILE"
 }
 
-# Devolve éxito se hai calquera versión rexistrada.
-# Úsase para saber se debemos preguntar entre actualizar ou reinstalar.
+# Non recibe argumentos. Devolve 0 cando o historial existe e non está baleiro.
+# install.sh úsao para distinguir unha instalación nova dunha xa existente.
 has_installed_versions() {
   [ -s "$INSTALLED_VERSIONS_FILE" ]
 }
 
-# Baleira o rexistro de versións para forzar unha reinstalación desde cero.
-# Non borra configs reais: só fai que os scripts pensen que nada foi aplicado.
+# Prepara o estado, baleira o historial e retira CURRENT_VERSION_FILE para que a
+# seguinte execución aplique a base. Non borra configuracións nin paquetes.
 clear_installed_versions() {
   ensure_gallaecia_state_dir &&
   : > "$INSTALLED_VERSIONS_FILE" &&
   rm -f "$CURRENT_VERSION_FILE"
 }
 
-# Marca unha versión como instalada sen duplicala se xa estaba rexistrada.
+# Recibe unha versión, garante o estado e engádea como nova liña só se non
+# figuraba. Non actualiza CURRENT_VERSION_FILE: o chamador faino cando remata o
+# fluxo completo que corresponda.
 mark_version_installed() {
   while (($#)); do
     case "$1" in
@@ -98,8 +127,9 @@ mark_version_installed() {
   fi
 }
 
-# Devolve todas as versións dispoñibles, comezando por `base`.
-# Os updates gardan un nome estilo 3_0_1.sh, que aquí se transforma a 3.0.1.
+# Imprime `base` e despois todas as migracións numéricas ordenadas con sort -V.
+# Os nomes 3_0_1.sh transfórmanse en 3.0.1. Ficheiros que non cumpren o patrón,
+# incluída a plantilla X_X_X.sh.example, ignóranse.
 list_available_versions() {
   local update_file
   local version_name
@@ -123,7 +153,9 @@ list_available_versions() {
   done < <(find "$UPDATES_DIR" -maxdepth 1 -type f -name '[0-9]*_[0-9]*_[0-9]*.sh' | sort -V)
 }
 
-# Marca de golpe todas as versións dispoñibles.
+# Percorre a saída de list_available_versions e marca cada elemento.
+# A base úsaa ao final dunha instalación nova para non executar despois
+# migracións cuxo resultado xa está integrado no estado actual.
 mark_all_available_versions() {
   local version
 
@@ -135,13 +167,14 @@ mark_all_available_versions() {
   done < <(list_available_versions)
 }
 
-# Devolve a última versión dispoñible segundo a listaxe ordenada.
-# Úsase para gardar a versión actual tras completar unha instalación base.
+# Imprime a última liña da listaxe ordenada. Se non hai migracións, será `base`.
+# Úsase como versión visible tras completar unha instalación base.
 latest_available_version() {
   list_available_versions | tail -n 1
 }
 
-# Garda a versión actual e a data da última instalación/update aplicado.
+# Recibe a versión visible final, sobrescribe CURRENT_VERSION_FILE e rexistra a
+# data actual en INSTALLED_MARK_FILE. Debe chamarse só tras completar o fluxo.
 set_gallaecia_current_version() {
   while (($#)); do
     case "$1" in
