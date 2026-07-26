@@ -20,6 +20,10 @@ source "$MODULES_DIR/ui.sh"
 source "$MODULES_DIR/commands.sh"
 # shellcheck source=/dev/null
 source "$MODULES_DIR/files.sh"
+# shellcheck source=/dev/null
+source "$MODULES_DIR/versions.sh"
+# shellcheck source=/dev/null
+source "$MODULES_DIR/apps.sh"
 
 # Actualiza os módulos compartidos co novo formato de axuda e interface.
 update_shared_modules() {

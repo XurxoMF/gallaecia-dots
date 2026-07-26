@@ -20,6 +20,10 @@ source "$MODULES_DIR/ui.sh"
 source "$MODULES_DIR/commands.sh"
 # shellcheck source=/dev/null
 source "$MODULES_DIR/files.sh"
+# shellcheck source=/dev/null
+source "$MODULES_DIR/versions.sh"
+# shellcheck source=/dev/null
+source "$MODULES_DIR/apps.sh"
 
 # Actualiza os wrappers de Gum co novo estilo e espazado interno.
 update_ui_module() {

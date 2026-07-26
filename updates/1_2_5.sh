@@ -3,12 +3,11 @@
 set -u
 set -o pipefail
 
-VERSION="1.0.3"
+VERSION="1.2.5"
 DOTFILES_DIR="$HOME/.dotfiles"
 MODULES_DIR="$DOTFILES_DIR/.local/share/gallaecia-dots/scripts/modules"
 
 if [ ! -r "$MODULES_DIR/ui.sh" ] ||
-  [ ! -r "$MODULES_DIR/commands.sh" ] ||
   [ ! -r "$MODULES_DIR/files.sh" ]; then
   echo "Non se atoparon os módulos de Gallaecia Dots en $MODULES_DIR." >&2
   exit 1
@@ -25,38 +24,41 @@ source "$MODULES_DIR/versions.sh"
 # shellcheck source=/dev/null
 source "$MODULES_DIR/apps.sh"
 
-# Instala o Bashrc e a configuración nova de SpotDL cando está dispoñible.
-update_spotdl_config() {
-  if ! has_command spotdl; then
-    return 0
-  fi
+# Instala os reprodutores requiridos polo plugin de fondos animados.
+install_animated_wallpaper_dependencies() {
+  yay -S --needed mpv mpvpaper
+}
 
-  if ! mkdir -p "$HOME/.local/share/gallaecia-dots/bashrc"; then
-    return 1
-  fi
-  if ! replace_file \
-    "$DOTFILES_DIR/optional/.local/share/gallaecia-dots/bashrc/202-spotdl" \
-    "$HOME/.local/share/gallaecia-dots/bashrc/202-spotdl"; then
-    return 1
-  fi
-  if ! replace_file \
-    "$DOTFILES_DIR/optional/.config/spotdl/config.json" \
-    "$HOME/.config/spotdl/config.json"; then
-    return 1
-  fi
+# Actualiza a configuración de Noctalia controlada polo proxecto.
+update_noctalia_config() {
+  replace_file \
+    "$DOTFILES_DIR/.config/noctalia/gallaecia.toml" \
+    "$HOME/.config/noctalia/gallaecia.toml"
+}
+
+# Crea o directorio persoal no que se gardan os fondos animados.
+create_wallpaper_videos_dir() {
+  mkdir -p "$HOME/.wallpaper-videos"
 }
 
 # Mostra o resumo visible dos cambios incluídos na migración.
 show_changelog() {
   title "Update $VERSION"
   info "Cambios que se van aplicar:"
-  info "· Engadido o comando interactivo spotdl-musica (se SpotDL está instalado)."
-  info "· Actualizada a config de SpotDL."
+  info "· Reparado o botón de actualización do sistema na barra."
+  info "· Engadido un tradutor ao launcher."
+  info "· Engadido un sistema de fondos animados."
 }
 
 # Executa cada cambio da migración e detense no primeiro erro.
 apply_update() {
-  if ! update_spotdl_config; then
+  if ! install_animated_wallpaper_dependencies; then
+    return 1
+  fi
+  if ! update_noctalia_config; then
+    return 1
+  fi
+  if ! create_wallpaper_videos_dir; then
     return 1
   fi
 }

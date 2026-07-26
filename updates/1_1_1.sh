@@ -16,7 +16,13 @@ fi
 # shellcheck source=/dev/null
 source "$MODULES_DIR/ui.sh"
 # shellcheck source=/dev/null
+source "$MODULES_DIR/commands.sh"
+# shellcheck source=/dev/null
 source "$MODULES_DIR/files.sh"
+# shellcheck source=/dev/null
+source "$MODULES_DIR/versions.sh"
+# shellcheck source=/dev/null
+source "$MODULES_DIR/apps.sh"
 
 # Instala o actualizador que comproba migracións aínda co repo ao día.
 update_system_update() {

@@ -59,6 +59,8 @@ Isto é o que o proxecto considera imprescindible para a base:
 - Hyprland
 - Noctalia
 - Noctalia Greeter
+- Tradutor integrado no launcher de Noctalia
+- Fondos animados con MPV e mpvpaper
 - greetd
 - XDG Desktop Portals
 - PipeWire

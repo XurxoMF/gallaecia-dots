@@ -1,29 +1,32 @@
-[bar.default]
-background_opacity = 0.99999997764825821
-capsule_thickness = 0.79999998584389687
-center = [ "workspaces" ]
-end = [
-    "media",
-    "tray",
-    "notifications",
-    "clipboard",
-    "network",
-    "bluetooth",
-    "volume",
-    "brightness",
-    "battery",
-    "session"
-]
-font_family = "Adwaita Sans"
-margin_edge = 0
-margin_ends = 0
-padding = 15
-radius = 0
-radius_bottom_left = 20
-radius_bottom_right = 20
-start = [ "clock", "launcher", "wallpaper", "mpvpaper", "system_update" ]
-thickness = 30
-widget_spacing = 10
+[bar]
+order = [ "default" ]
+
+    [bar.default]
+    background_opacity = 1
+    capsule_thickness = 0.8
+    start = [ "clock", "launcher", "wallpaper", "mpvpaper", "system_update" ]
+    center = [ "workspaces" ]
+    end = [
+        "media",
+        "tray",
+        "notifications",
+        "clipboard",
+        "network",
+        "bluetooth",
+        "volume",
+        "brightness",
+        "battery",
+        "session"
+    ]
+    font_family = "Adwaita Sans"
+    margin_edge = 0
+    margin_ends = 0
+    padding = 15
+    radius = 0
+    radius_bottom_left = 20
+    radius_bottom_right = 20
+    thickness = 30
+    widget_spacing = 10
 
 [brightness]
 enable_ddcutil = true
@@ -34,17 +37,32 @@ enabled = true
 [control_center]
 width = 900
 
+    [control_center.calendar]
+    show_events_card = false
+
 [dock]
-background_opacity = 0.99999997764825821
+background_opacity = 1
+enabled = false
+
+[hooks]
+colors_changed = "systemctl --user try-restart xdg-desktop-portal.service xdg-desktop-portal-gtk.service"
+
+[location]
+address = "Galicia"
 
 [notification]
-background_opacity = 0.99999997764825821
+background_opacity = 1
 
 [osd]
-background_opacity = 0.99999997764825821
+background_opacity = 1
 
 [plugins]
-enabled = []
+enabled = [ "noctalia/translator", "noctalia/mpvpaper" ]
+
+[plugin_settings."noctalia/mpvpaper"]
+picker_open_near_click = true
+picker_placement = "attached"
+video_directory = "~/.wallpaper-videos"
 
 [shell]
 font_family = "Adwaita Sans"
@@ -81,7 +99,8 @@ gpu_poll_seconds = 2
 network_poll_seconds = 2
 
 [theme]
-builtin = "Catppuccin"
+builtin = "Tokyo-Night"
+community_palette = "Neon Surf"
 mode = "dark"
 source = "wallpaper"
 wallpaper_scheme = "vibrant"
@@ -105,25 +124,43 @@ wallpaper_scheme = "vibrant"
         "wezterm"
     ]
     community_ids = [
+        "antigravity",
+        "opencode",
+        "pi-agent",
+        "feishin",
+        "pear-desktop",
         "spicetify",
         "tauon",
         "pywalfox",
+        "pywalfox-beta4",
         "zen-browser",
+        "discord",
+        "nchat",
+        "telegram",
         "neovim",
         "obsidian",
         "vscode",
         "zed",
-        "discord",
-        "papirus-icons",
+        "heroiclauncher",
+        "prismlauncher",
         "steam",
-        "telegram",
-        "yazi",
+        "fuzzel",
+        "rofi",
+        "velo",
+        "vicinae",
+        "walker",
+        "obs",
         "zathura",
-        "hyprtoolkit"
+        "hyprtoolkit",
+        "papirus-icons",
+        "snappy-switcher",
+        "bat",
+        "lazygit",
+        "yazi"
     ]
 
         [theme.templates.user.ui-colors]
-        input_path  = "~/.local/share/gallaecia-dots/noctalia/ui-colors.sh.template"
+        input_path = "~/.local/share/gallaecia-dots/noctalia/ui-colors.sh.template"
         output_path = "~/.config/gallaecia-dots/ui-colors.sh"
 
 [wallpaper]
@@ -141,12 +178,17 @@ transition_on_startup = true
 hide_when_no_media = true
 title_scroll = "always"
 
+[widget.mpvpaper]
+type = "noctalia/mpvpaper:mpvpaper"
+
 [widget.network]
 show_label = false
 
 [widget.system_update]
-command = "$TERMINAL -e bash -lc ~/.local/share/gallaecia-dots/scripts/system-update.sh"
 glyph = "cloud-download"
-middle_command = "$TERMINAL -e bash -lc ~/.local/share/gallaecia-dots/scripts/system-update.sh"
-right_command = "$TERMINAL -e bash -lc ~/.local/share/gallaecia-dots/scripts/system-update.sh"
 type = "custom_button"
+
+    [widget.system_update.actions]
+    left = "exec $TERMINAL -e bash -lc ~/.local/share/gallaecia-dots/scripts/system-update.sh"
+    middle = "exec $TERMINAL -e bash -lc ~/.local/share/gallaecia-dots/scripts/system-update.sh"
+    right = "exec $TERMINAL -e bash -lc ~/.local/share/gallaecia-dots/scripts/system-update.sh"

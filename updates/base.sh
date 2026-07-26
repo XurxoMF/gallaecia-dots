@@ -33,7 +33,7 @@ REQUIRED_PACKAGES=(
   noto-fonts-cjk noto-fonts-emoji noto-fonts ttf-noto-nerd
   papirus-icon-theme breeze breeze-icons
   flatpak util-linux pipewire gnome-keyring libsecret greetd cage wlr-randr dbus polkit libnewt ddcutil power-profiles-daemon trash-cli
-  python python-pip python-pipx ffmpeg udisks2 7zip jq poppler fd ripgrep fzf zoxide resvg imagemagick mediainfo
+  python python-pip python-pipx ffmpeg mpv mpvpaper udisks2 7zip jq poppler fd ripgrep fzf zoxide resvg imagemagick mediainfo
   hyprland uwsm
   noctalia noctalia-greeter
   qt5-base qt6-base qt5ct qt6ct qt5-wayland qt6-wayland xsettingsd hyprland-qt-support kservice
@@ -169,7 +169,7 @@ install_gallaecia_config() {
   merge_path "$DOTFILES_DIR/.local/share/gallaecia-dots" "$HOME/.local/share/gallaecia-dots" &&
   replace_file "$DOTFILES_DIR/.config/mimeapps.list" "$HOME/.config/mimeapps.list" &&
   sudo chmod +x -R "$HOME/.local/share/gallaecia-dots/scripts" &&
-  mkdir -p "$HOME/.wallpapers" &&
+  mkdir -p "$HOME/.wallpapers" "$HOME/.wallpaper-videos" &&
   cp -rf "$DOTFILES_DIR/.wallpapers/." "$HOME/.wallpapers/"
 }
 
