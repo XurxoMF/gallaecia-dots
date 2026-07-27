@@ -392,9 +392,10 @@ install_dotfiles() {
   fi
 }
 
-# Executa, unha por unha, as cinco categorías imprescindibles. `--required`
-# impide continuar cunha selección baleira. Cada función instala e configura
-# inmediatamente as súas apps, polo que non existe unha fase posterior de colas.
+# Executa, unha por unha, as cinco categorías imprescindibles. Cada función
+# mostra e acepta as variantes completas xa instaladas, ofrece só as restantes
+# e impide continuar sen ningunha app activa. Instala e configura inmediatamente
+# as novas seleccións, polo que non existe unha fase posterior de colas.
 install_required_app_categories() {
   install-category-terminal --required || return 1
   install-category-editor --required || return 1
@@ -403,8 +404,9 @@ install_required_app_categories() {
   install-category-file-explorer --required || return 1
 }
 
-# Percorre as categorías opcionais na orde visible da instalación base. Sen
-# `--required`, Esc ou unha selección baleira salta só a categoría actual.
+# Percorre as categorías opcionais na orde visible da instalación base. Cada
+# función mostra por separado as variantes completas xa instaladas e ocúltaas
+# do selector. Sen `--required`, Esc salta só a categoría actual.
 # Cada función comparte exactamente o mesmo fluxo usado por `gallaecia
 # install-category`, incluídas configuracións, MIME e Hyprland.
 install_optional_app_categories() {

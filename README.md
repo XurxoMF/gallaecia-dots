@@ -120,8 +120,9 @@ usuario.
 ### Categorías e aplicacións
 
 As cinco primeiras categorías son obrigatorias e requiren polo menos unha
-selección. As demais son opcionais e poden quedar baleiras. Algunhas categorías
-permiten escoller varias aplicacións e definir unha predeterminada.
+selección ou variante completa xa instalada. As demais son opcionais e poden
+quedar baleiras. As categorías homoxéneas permiten escoller varias aplicacións
+e definir unha predeterminada.
 
 **Orixes empregadas:**
 
@@ -439,24 +440,28 @@ Para volver abrir as categorías da instalación:
 gallaecia install-category
 ```
 
-Primeiro escolles unha categoría e despois as aplicacións que queres engadir.
-Ao rematar, o menú de categorías aparece de novo ata que premas Esc. O comando
-non desinstala nin deixa de seleccionar as aplicacións anteriores. Cada
-categoría instala inmediatamente os seus paquetes e configuracións antes de
-volver ao menú.
+Primeiro escolles unha categoría. As variantes completas xa presentes móstranse
+baixo `Xa instaladas:` e ocúltanse do selector; se unha variante require varios
+paquetes, considérase instalada unicamente cando están todos. Ao rematar, o menú
+de categorías aparece de novo ata que premas Esc. O comando non desinstala as
+aplicacións anteriores. Cada categoría instala inmediatamente os novos paquetes
+e configuracións antes de volver ao menú.
 
-Cando unha categoría admite aplicación predeterminada, a elección aplícase sen
-outra pregunta ás regras correspondentes. En IDE, Navegador e Explorador de
-arquivos úsase a mesma app tanto para os MIME como para Hyprland. Terminal e
-Editor de terminal actualizan só Hyprland porque non teñen regras MIME
-equivalentes. Yazi rexistra `yazi.desktop` para abrir directorios e Hyprland
-lánzao sempre con `$TERMINAL -e yazi`, polo que segue automaticamente o terminal
-predeterminado tras reiniciar a sesión.
+Cando unha categoría admite aplicación predeterminada, o selector inclúe tanto
+as variantes xa instaladas como as que se acaban de escoller. En IDE, Navegador
+e Explorador de arquivos úsase a mesma app tanto para os MIME como para
+Hyprland. Terminal e Editor de terminal actualizan só Hyprland porque non teñen
+regras MIME equivalentes. Yazi rexistra `yazi.desktop` para abrir directorios e
+Hyprland lánzao sempre con `$TERMINAL -e yazi`, polo que segue automaticamente
+o terminal predeterminado tras reiniciar a sesión.
 
 As asignacións de Hyprland actualízanse aínda que o placeholder da instalación
 inicial xa teña un valor. As regras MIME existentes substitúense e as que
-falten créanse. Cando varias apps seleccionadas comparten un MIME, este queda
-na predeterminada; os MIME exclusivos das demais consérvanse nas súas apps.
+falten créanse. Nas categorías homoxéneas, cando varias apps activas comparten
+un MIME, este queda na predeterminada; os MIME exclusivos das demais
+consérvanse. Creatividade, Oficina e notas, Xogos e tendas e Utilidades non
+piden unha predeterminada común: aplican os MIME propios de cada app na orde da
+categoría e o usuario pode cambiar despois calquera coincidencia.
 
 Para retirar aplicacións ou paquetes xa instalados están dispoñibles
 `yay-uninstall`, `flatpak-uninstall` e `pipx-uninstall`. Os tres mostran só as

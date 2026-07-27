@@ -140,8 +140,10 @@ USO
 
 DESCRICIÓN
   Mostra as categorías da instalación base e permite instalar novas
-  aplicacións. Non elimina as xa instaladas. A aplicación escollida como
-  predeterminada aplícase tamén a mimeapps.list e Hyprland cando corresponda.
+  aplicacións. Mostra por separado as variantes completas xa instaladas e
+  ocúltaas do selector. Non elimina as xa instaladas. A aplicación escollida
+  como predeterminada entre as existentes e as novas aplícase tamén a
+  mimeapps.list e Hyprland cando corresponda.
 
 PARÁMETROS
   [CATEGORÍA]
@@ -164,8 +166,9 @@ CONTROIS
 
 RESULTADO
   Instala as aplicacións seleccionadas e as súas configuracións opcionais. A
-  mesma elección predeterminada aplícase a MIME e Hyprland cando corresponda.
-  Esc salta a selección actual ou pecha o menú de categorías.
+  mesma elección predeterminada aplícase a MIME e Hyprland nas categorías
+  homoxéneas. As heteroxéneas aplican os MIME propios sen pedir unha
+  predeterminada común. Esc salta a selección actual ou pecha o menú.
 
 EXEMPLOS
   gallaecia install-category

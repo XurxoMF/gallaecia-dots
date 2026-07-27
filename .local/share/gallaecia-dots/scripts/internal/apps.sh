@@ -9,11 +9,12 @@
 # Non conserva seleccións nin colas globais. Cada función
 # `install-category-*` declara as súas aplicacións e completa todo o fluxo:
 #
-#   1. Selecciona aplicacións e, cando corresponde, unha predeterminada.
+#   1. Separa as aplicacións xa instaladas das dispoñibles para seleccionar.
 #   2. Instala inmediatamente os paquetes desa categoría.
 #   3. Copia as configuracións opcionais das aplicacións seleccionadas.
-#   4. Actualiza Hyprland para a aplicación predeterminada.
-#   5. Combina os MIME de toda a selección e aplica a predeterminada ao final.
+#   4. Escolle, cando corresponde, unha predeterminada entre as aplicacións xa
+#      instaladas e as novas, e actualiza Hyprland.
+#   5. Combina os MIME das aplicacións activas e aplica a predeterminada ao final.
 #
 # A repetición dos `case` é intencionada: ao abrir unha categoría pódese ver
 # todo o seu comportamento sen saltar a táboas nin políticas noutro ficheiro.
@@ -80,7 +81,7 @@ _entry_from_label() {
 
 # Mostra un selector múltiple e imprime unha entrada completa por selección.
 # O primeiro argumento indica se Esc debe repetir a pregunta (`true`) ou
-# devolver unha selección baleira (`false`).
+# devolver 2 para cancelar a categoría (`false`).
 _select_category_apps() {
   local required="$1"
   local header="$2"
@@ -102,7 +103,7 @@ _select_category_apps() {
         warning "Tes que escoller polo menos unha aplicación." >&2
         continue
       fi
-      return 0
+      return 2
     fi
 
     if [ -z "$selection" ]; then
@@ -110,7 +111,7 @@ _select_category_apps() {
         warning "Tes que escoller polo menos unha aplicación." >&2
         continue
       fi
-      return 0
+      return 2
     fi
 
     while IFS= read -r selected_label; do
@@ -121,9 +122,106 @@ _select_category_apps() {
   done
 }
 
+# Devolve 0 só cando todos os paquetes dunha variante están instalados co
+# xestor declarado. A separación en palabras do terceiro campo é deliberada:
+# variantes como LibreOffice ou VLC requiren varios paquetes para estar completas.
+_category_app_is_installed() {
+  local entry="$1"
+  local manager packages package_name package_manager
+
+  manager="$(_app_manager "$entry")"
+  packages="$(_app_packages "$entry")"
+  case "$manager" in
+    pkg) package_manager="yay" ;;
+    flatpak) package_manager="flatpak" ;;
+    pipx) package_manager="pipx" ;;
+    *)
+      error "Xestor descoñecido para $(_app_label "$entry"): $manager"
+      return 1
+      ;;
+  esac
+
+  for package_name in $packages; do
+    if ! has_package --manager "$package_manager" "$package_name"; then
+      return 1
+    fi
+  done
+}
+
+# Enche dous arrays locais do chamador: novas seleccións e conxunto activo.
+# Mantén internamente as variantes instaladas e dispoñibles, mostra as primeiras
+# antes do selector e ocúltaas del. Devolve 2 cando unha categoría opcional se
+# cancela; na base, se xa existe unha variante dunha categoría obrigatoria, Esc
+# conserva só as instaladas para poder escoller despois a predeterminada.
+_prepare_category_apps() {
+  local -n selected_entries_ref="$1"
+  local -n active_entries_ref="$2"
+  local required="$3"
+  local header="$4"
+  shift 4
+  local entries=("$@")
+  local installed_entries=()
+  local available_entries=()
+  local entry active_entry selection selection_status
+  local selector_required="$required"
+
+  selected_entries_ref=()
+  active_entries_ref=()
+
+  for entry in "${entries[@]}"; do
+    if _category_app_is_installed "$entry"; then
+      installed_entries+=("$entry")
+    else
+      available_entries+=("$entry")
+    fi
+  done
+
+  if [ ${#installed_entries[@]} -gt 0 ]; then
+    info "Xa instaladas:"
+    for entry in "${installed_entries[@]}"; do
+      info "· $(_app_label "$entry")"
+    done
+    selector_required=false
+  fi
+
+  if [ ${#available_entries[@]} -gt 0 ]; then
+    selection="$(_select_category_apps "$selector_required" \
+      "$header" "${available_entries[@]}")"
+    selection_status=$?
+    if [ "$selection_status" -eq 2 ]; then
+      if $required && [ ${#installed_entries[@]} -gt 0 ]; then
+        active_entries_ref=("${installed_entries[@]}")
+        return 0
+      fi
+      return 2
+    fi
+    if [ "$selection_status" -ne 0 ]; then
+      return 1
+    fi
+
+    while IFS= read -r entry; do
+      [ -n "$entry" ] || continue
+      selected_entries_ref+=("$entry")
+    done <<< "$selection"
+  fi
+
+  # Reconstrúe o conxunto activo na orde declarada pola categoría. Así as
+  # categorías sen predeterminada resolven coincidencias MIME dunha maneira
+  # estable, independentemente da orde na que Gum devolva as marcas.
+  for entry in "${entries[@]}"; do
+    for active_entry in \
+      "${installed_entries[@]}" "${selected_entries_ref[@]}"; do
+      if [ "$entry" = "$active_entry" ]; then
+        active_entries_ref+=("$entry")
+        break
+      fi
+    done
+  done
+}
+
 # Recibe se a elección é obrigatoria, unha cabeceira e as entradas xa
-# seleccionadas. Imprime unha única entrada predeterminada; Esc devolve baleiro
-# nas categorías opcionais e repite a pregunta nas obrigatorias.
+# activas. Imprime unha única entrada predeterminada; Esc devolve baleiro nas
+# categorías opcionais e repite a pregunta nas obrigatorias.
 _select_default_app() {
   local required="$1"
   local header="$2"
@@ -390,10 +488,10 @@ set_hyprland_default_app() {
 ###############################################################################
 
 # Todas as funcións `install-category-*` aceptan unicamente `--required`.
-# Con esa opción, cancelar ou confirmar unha selección baleira repite o selector;
-# sen ela, a categoría retorna 0 sen instalar nada. Cada función conserva os
-# arrays só durante a súa execución e remata todo o traballo da categoría antes
-# de devolver o control á base ou ao menú de `gallaecia`.
+# Con esa opción, unha variante xa instalada satisfai a categoría; se non hai
+# ningunha, cancelar ou confirmar unha selección baleira repite o selector. Sen
+# ela, cancelar salta a categoría. Cada función conserva os arrays só durante a
+# súa execución e remata todo o traballo antes de devolver o control.
 
 # Instala terminais, copia a configuración de cada selección e escribe
 # explicitamente o comando da predeterminada en `Gallaecia.terminal`.
@@ -412,18 +510,23 @@ install-category-terminal() {
     "pkg|Ghostty|ghostty|ghostty"
     "pkg|WezTerm|wezterm|wezterm"
   )
-  local selected_entries=()
+  local selected_entries=() active_entries=()
   local default_entry=""
-  local default_label
+  local default_label selection_status
 
-  mapfile -t selected_entries < <(
-    _select_category_apps "$required" \
-      "Selecciona terminal ou terminais:" "${entries[@]}"
-  )
-  [ ${#selected_entries[@]} -gt 0 ] || return 0
+  _prepare_category_apps \
+    selected_entries active_entries \
+    "$required" "Selecciona terminal ou terminais:" "${entries[@]}"
+  selection_status=$?
+  case "$selection_status" in
+    0) ;;
+    2) return 0 ;;
+    *) return 1 ;;
+  esac
+  [ ${#active_entries[@]} -gt 0 ] || return 0
 
   default_entry="$(_select_default_app "$required" \
-    "Escolle o terminal predeterminado:" "${selected_entries[@]}")"
+    "Escolle o terminal predeterminado:" "${active_entries[@]}")"
 
   _install_selected_packages "${selected_entries[@]}" || return 1
 
@@ -471,16 +574,22 @@ install-category-editor() {
     "pkg|Nano|nano|nano"
     "pkg|Micro|micro|micro"
   )
-  local selected_entries=()
+  local selected_entries=() active_entries=()
   local default_entry=""
+  local selection_status
 
-  mapfile -t selected_entries < <(
-    _select_category_apps "$required" \
-      "Selecciona editor ou editores de terminal:" "${entries[@]}"
-  )
-  [ ${#selected_entries[@]} -gt 0 ] || return 0
+  _prepare_category_apps \
+    selected_entries active_entries \
+    "$required" "Selecciona editor ou editores de terminal:" "${entries[@]}"
+  selection_status=$?
+  case "$selection_status" in
+    0) ;;
+    2) return 0 ;;
+    *) return 1 ;;
+  esac
+  [ ${#active_entries[@]} -gt 0 ] || return 0
   default_entry="$(_select_default_app "$required" \
-    "Escolle o editor de terminal predeterminado:" "${selected_entries[@]}")"
+    "Escolle o editor de terminal predeterminado:" "${active_entries[@]}")"
 
   _install_selected_packages "${selected_entries[@]}" || return 1
   [ -n "$default_entry" ] || return 0
@@ -511,17 +620,22 @@ install-category-ide() {
     "pkg|Obsidian|obsidian|obsidian"
     "pkg|Geany|geany|geany"
   )
-  local selected_entries=()
+  local selected_entries=() active_entries=()
   local mime_entries=()
-  local default_entry="" entry
+  local default_entry="" entry selection_status
 
-  mapfile -t selected_entries < <(
-    _select_category_apps "$required" \
-      "Selecciona IDE ou editores con interface gráfica:" "${entries[@]}"
-  )
-  [ ${#selected_entries[@]} -gt 0 ] || return 0
+  _prepare_category_apps \
+    selected_entries active_entries \
+    "$required" "Selecciona IDE ou editores con interface gráfica:" "${entries[@]}"
+  selection_status=$?
+  case "$selection_status" in
+    0) ;;
+    2) return 0 ;;
+    *) return 1 ;;
+  esac
+  [ ${#active_entries[@]} -gt 0 ] || return 0
   default_entry="$(_select_default_app "$required" \
-    "Escolle o IDE predeterminado:" "${selected_entries[@]}")"
+    "Escolle o IDE predeterminado:" "${active_entries[@]}")"
 
   _install_selected_packages "${selected_entries[@]}" || return 1
   [ -n "$default_entry" ] || return 0
@@ -534,7 +648,7 @@ install-category-ide() {
   esac
 
   mapfile -t mime_entries < <(
-    _mime_application_order "$default_entry" "${selected_entries[@]}"
+    _mime_application_order "$default_entry" "${active_entries[@]}"
   )
   for entry in "${mime_entries[@]}"; do
     case "$(_app_label "$entry")" in
@@ -562,17 +676,22 @@ install-category-browser() {
     "pkg|Zen Browser|zen-browser|zen-browser"
     "pkg|Tor Browser|tor-browser-bin|tor-browser"
   )
-  local selected_entries=()
+  local selected_entries=() active_entries=()
   local mime_entries=()
-  local default_entry="" entry
+  local default_entry="" entry selection_status
 
-  mapfile -t selected_entries < <(
-    _select_category_apps "$required" \
-      "Selecciona navegador ou navegadores:" "${entries[@]}"
-  )
-  [ ${#selected_entries[@]} -gt 0 ] || return 0
+  _prepare_category_apps \
+    selected_entries active_entries \
+    "$required" "Selecciona navegador ou navegadores:" "${entries[@]}"
+  selection_status=$?
+  case "$selection_status" in
+    0) ;;
+    2) return 0 ;;
+    *) return 1 ;;
+  esac
+  [ ${#active_entries[@]} -gt 0 ] || return 0
   default_entry="$(_select_default_app "$required" \
-    "Escolle o navegador predeterminado:" "${selected_entries[@]}")"
+    "Escolle o navegador predeterminado:" "${active_entries[@]}")"
 
   _install_selected_packages "${selected_entries[@]}" || return 1
   [ -n "$default_entry" ] || return 0
@@ -585,7 +704,7 @@ install-category-browser() {
   esac
 
   mapfile -t mime_entries < <(
-    _mime_application_order "$default_entry" "${selected_entries[@]}"
+    _mime_application_order "$default_entry" "${active_entries[@]}"
   )
   for entry in "${mime_entries[@]}"; do
     case "$(_app_label "$entry")" in
@@ -627,19 +746,24 @@ install-category-file-explorer() {
     "pkg|Dolphin|dolphin ark|dolphin"
     "pkg|Nautilus|nautilus|nautilus"
     "pkg|Nemo|nemo|nemo"
-    'pkg|Yazi|yazi|$TERMINAL -e yazi'
+    "pkg|Yazi|yazi|\$TERMINAL -e yazi"
   )
-  local selected_entries=()
+  local selected_entries=() active_entries=()
   local mime_entries=()
-  local default_entry="" entry
+  local default_entry="" entry selection_status
 
-  mapfile -t selected_entries < <(
-    _select_category_apps "$required" \
-      "Selecciona explorador ou exploradores de arquivos:" "${entries[@]}"
-  )
-  [ ${#selected_entries[@]} -gt 0 ] || return 0
+  _prepare_category_apps \
+    selected_entries active_entries \
+    "$required" "Selecciona explorador ou exploradores de arquivos:" "${entries[@]}"
+  selection_status=$?
+  case "$selection_status" in
+    0) ;;
+    2) return 0 ;;
+    *) return 1 ;;
+  esac
+  [ ${#active_entries[@]} -gt 0 ] || return 0
   default_entry="$(_select_default_app "$required" \
-    "Escolle o explorador predeterminado:" "${selected_entries[@]}")"
+    "Escolle o explorador predeterminado:" "${active_entries[@]}")"
 
   _install_selected_packages "${selected_entries[@]}" || return 1
   if _selection_has Dolphin "${selected_entries[@]}"; then
@@ -665,7 +789,7 @@ install-category-file-explorer() {
   esac
 
   mapfile -t mime_entries < <(
-    _mime_application_order "$default_entry" "${selected_entries[@]}"
+    _mime_application_order "$default_entry" "${active_entries[@]}"
   )
   for entry in "${mime_entries[@]}"; do
     case "$(_app_label "$entry")" in
@@ -696,20 +820,25 @@ install-category-audio() {
     "pkg|VLC|vlc vlc-plugins-all|vlc"
     "pkg|MPV|mpv|mpv"
   )
-  local selected_entries=() mime_entries=()
-  local default_entry="" entry
+  local selected_entries=() active_entries=() mime_entries=()
+  local default_entry="" entry selection_status
 
-  mapfile -t selected_entries < <(
-    _select_category_apps "$required" \
-      "Selecciona reprodutor ou reprodutores de audio:" "${entries[@]}"
-  )
-  [ ${#selected_entries[@]} -gt 0 ] || return 0
+  _prepare_category_apps \
+    selected_entries active_entries \
+    "$required" "Selecciona reprodutor ou reprodutores de audio:" "${entries[@]}"
+  selection_status=$?
+  case "$selection_status" in
+    0) ;;
+    2) return 0 ;;
+    *) return 1 ;;
+  esac
+  [ ${#active_entries[@]} -gt 0 ] || return 0
   default_entry="$(_select_default_app "$required" \
-    "Escolle o reprodutor de audio predeterminado:" "${selected_entries[@]}")"
+    "Escolle o reprodutor de audio predeterminado:" "${active_entries[@]}")"
   _install_selected_packages "${selected_entries[@]}" || return 1
   [ -n "$default_entry" ] || return 0
 
-  mapfile -t mime_entries < <(_mime_application_order "$default_entry" "${selected_entries[@]}")
+  mapfile -t mime_entries < <(_mime_application_order "$default_entry" "${active_entries[@]}")
   for entry in "${mime_entries[@]}"; do
     case "$(_app_label "$entry")" in
       Amberol)
@@ -751,20 +880,25 @@ install-category-video() {
     "pkg|MPV|mpv|mpv"
     "pkg|Clapper|clapper|clapper"
   )
-  local selected_entries=() mime_entries=()
-  local default_entry="" entry
+  local selected_entries=() active_entries=() mime_entries=()
+  local default_entry="" entry selection_status
 
-  mapfile -t selected_entries < <(
-    _select_category_apps "$required" \
-      "Selecciona reprodutor ou reprodutores de vídeo:" "${entries[@]}"
-  )
-  [ ${#selected_entries[@]} -gt 0 ] || return 0
+  _prepare_category_apps \
+    selected_entries active_entries \
+    "$required" "Selecciona reprodutor ou reprodutores de vídeo:" "${entries[@]}"
+  selection_status=$?
+  case "$selection_status" in
+    0) ;;
+    2) return 0 ;;
+    *) return 1 ;;
+  esac
+  [ ${#active_entries[@]} -gt 0 ] || return 0
   default_entry="$(_select_default_app "$required" \
-    "Escolle o reprodutor de vídeo predeterminado:" "${selected_entries[@]}")"
+    "Escolle o reprodutor de vídeo predeterminado:" "${active_entries[@]}")"
   _install_selected_packages "${selected_entries[@]}" || return 1
   [ -n "$default_entry" ] || return 0
 
-  mapfile -t mime_entries < <(_mime_application_order "$default_entry" "${selected_entries[@]}")
+  mapfile -t mime_entries < <(_mime_application_order "$default_entry" "${active_entries[@]}")
   for entry in "${mime_entries[@]}"; do
     case "$(_app_label "$entry")" in
       VLC)
@@ -801,20 +935,25 @@ install-category-pdf() {
     "pkg|Zathura|zathura zathura-pdf-mupdf|zathura"
     "pkg|Evince|evince|evince"
   )
-  local selected_entries=() mime_entries=()
-  local default_entry="" entry
+  local selected_entries=() active_entries=() mime_entries=()
+  local default_entry="" entry selection_status
 
-  mapfile -t selected_entries < <(
-    _select_category_apps "$required" \
-      "Selecciona visor ou visores de PDF:" "${entries[@]}"
-  )
-  [ ${#selected_entries[@]} -gt 0 ] || return 0
+  _prepare_category_apps \
+    selected_entries active_entries \
+    "$required" "Selecciona visor ou visores de PDF:" "${entries[@]}"
+  selection_status=$?
+  case "$selection_status" in
+    0) ;;
+    2) return 0 ;;
+    *) return 1 ;;
+  esac
+  [ ${#active_entries[@]} -gt 0 ] || return 0
   default_entry="$(_select_default_app "$required" \
-    "Escolle o visor de documentos predeterminado:" "${selected_entries[@]}")"
+    "Escolle o visor de documentos predeterminado:" "${active_entries[@]}")"
   _install_selected_packages "${selected_entries[@]}" || return 1
   [ -n "$default_entry" ] || return 0
 
-  mapfile -t mime_entries < <(_mime_application_order "$default_entry" "${selected_entries[@]}")
+  mapfile -t mime_entries < <(_mime_application_order "$default_entry" "${active_entries[@]}")
   for entry in "${mime_entries[@]}"; do
     case "$(_app_label "$entry")" in
       Okular)
@@ -850,20 +989,25 @@ install-category-images() {
     "pkg|GIMP|gimp|gimp"
     "pkg|Krita|krita|krita"
   )
-  local selected_entries=() mime_entries=()
-  local default_entry="" entry
+  local selected_entries=() active_entries=() mime_entries=()
+  local default_entry="" entry selection_status
 
-  mapfile -t selected_entries < <(
-    _select_category_apps "$required" \
-      "Selecciona visor ou visores de imaxes:" "${entries[@]}"
-  )
-  [ ${#selected_entries[@]} -gt 0 ] || return 0
+  _prepare_category_apps \
+    selected_entries active_entries \
+    "$required" "Selecciona visor ou visores de imaxes:" "${entries[@]}"
+  selection_status=$?
+  case "$selection_status" in
+    0) ;;
+    2) return 0 ;;
+    *) return 1 ;;
+  esac
+  [ ${#active_entries[@]} -gt 0 ] || return 0
   default_entry="$(_select_default_app "$required" \
-    "Escolle o visor de imaxes predeterminado:" "${selected_entries[@]}")"
+    "Escolle o visor de imaxes predeterminado:" "${active_entries[@]}")"
   _install_selected_packages "${selected_entries[@]}" || return 1
   [ -n "$default_entry" ] || return 0
 
-  mapfile -t mime_entries < <(_mime_application_order "$default_entry" "${selected_entries[@]}")
+  mapfile -t mime_entries < <(_mime_application_order "$default_entry" "${active_entries[@]}")
   for entry in "${mime_entries[@]}"; do
     case "$(_app_label "$entry")" in
       Loupe)
@@ -896,20 +1040,25 @@ install-category-mail() {
   fi
 
   local entries=("pkg|Thunderbird|thunderbird|thunderbird")
-  local selected_entries=() mime_entries=()
-  local default_entry="" entry
+  local selected_entries=() active_entries=() mime_entries=()
+  local default_entry="" entry selection_status
 
-  mapfile -t selected_entries < <(
-    _select_category_apps "$required" \
-      "Selecciona cliente ou clientes de correo:" "${entries[@]}"
-  )
-  [ ${#selected_entries[@]} -gt 0 ] || return 0
+  _prepare_category_apps \
+    selected_entries active_entries \
+    "$required" "Selecciona cliente ou clientes de correo:" "${entries[@]}"
+  selection_status=$?
+  case "$selection_status" in
+    0) ;;
+    2) return 0 ;;
+    *) return 1 ;;
+  esac
+  [ ${#active_entries[@]} -gt 0 ] || return 0
   default_entry="$(_select_default_app "$required" \
-    "Escolle o cliente de correo predeterminado:" "${selected_entries[@]}")"
+    "Escolle o cliente de correo predeterminado:" "${active_entries[@]}")"
   _install_selected_packages "${selected_entries[@]}" || return 1
   [ -n "$default_entry" ] || return 0
 
-  mapfile -t mime_entries < <(_mime_application_order "$default_entry" "${selected_entries[@]}")
+  mapfile -t mime_entries < <(_mime_application_order "$default_entry" "${active_entries[@]}")
   for entry in "${mime_entries[@]}"; do
     case "$(_app_label "$entry")" in
       Thunderbird)
@@ -936,19 +1085,25 @@ install-category-chat() {
     "pkg|Telegram|telegram-desktop|telegram-desktop"
     "pkg|Element|element-desktop|element-desktop"
   )
-  local selected_entries=() mime_entries=()
-  local default_entry="" entry
+  local selected_entries=() active_entries=() mime_entries=()
+  local default_entry="" entry selection_status
 
-  mapfile -t selected_entries < <(
-    _select_category_apps "$required" "Selecciona apps de chat:" "${entries[@]}"
-  )
-  [ ${#selected_entries[@]} -gt 0 ] || return 0
+  _prepare_category_apps \
+    selected_entries active_entries \
+    "$required" "Selecciona apps de chat:" "${entries[@]}"
+  selection_status=$?
+  case "$selection_status" in
+    0) ;;
+    2) return 0 ;;
+    *) return 1 ;;
+  esac
+  [ ${#active_entries[@]} -gt 0 ] || return 0
   default_entry="$(_select_default_app "$required" \
-    "Escolle a app de chat predeterminada:" "${selected_entries[@]}")"
+    "Escolle a app de chat predeterminada:" "${active_entries[@]}")"
   _install_selected_packages "${selected_entries[@]}" || return 1
   [ -n "$default_entry" ] || return 0
 
-  mapfile -t mime_entries < <(_mime_application_order "$default_entry" "${selected_entries[@]}")
+  mapfile -t mime_entries < <(_mime_application_order "$default_entry" "${active_entries[@]}")
   for entry in "${mime_entries[@]}"; do
     case "$(_app_label "$entry")" in
       Discord) set_default_apps discord.desktop x-scheme-handler/discord ;;
@@ -963,8 +1118,10 @@ install-category-chat() {
 # CATEGORÍAS CREATIVAS, OFICINA, XOGOS E UTILIDADES
 ###############################################################################
 
-# Instala ferramentas creativas e rexistra os formatos nativos declarados por
-# cada unha. Os casos baleiros fan visible que esas apps non teñen MIME propio.
+# Instala ferramentas creativas heteroxéneas e rexistra os formatos nativos de
+# cada unha sen pedir unha aplicación predeterminada común. As coincidencias
+# resólvense pola orde estable das entradas; os casos baleiros fan visible que
+# esas apps non teñen MIME propio nesta categoría.
 install-category-creativity() {
   local required=false
   if [ "${1:-}" = "--required" ]; then required=true; shift; fi
@@ -983,20 +1140,22 @@ install-category-creativity() {
     "pkg|Puddletag|puddletag|puddletag"
     "pkg|HandBrake|handbrake|handbrake"
   )
-  local selected_entries=() mime_entries=()
-  local default_entry="" entry
+  local selected_entries=() active_entries=()
+  local entry selection_status
 
-  mapfile -t selected_entries < <(
-    _select_category_apps "$required" "Selecciona apps creativas:" "${entries[@]}"
-  )
-  [ ${#selected_entries[@]} -gt 0 ] || return 0
-  default_entry="$(_select_default_app "$required" \
-    "Escolle a app creativa predeterminada:" "${selected_entries[@]}")"
+  _prepare_category_apps \
+    selected_entries active_entries \
+    "$required" "Selecciona apps creativas:" "${entries[@]}"
+  selection_status=$?
+  case "$selection_status" in
+    0) ;;
+    2) return 0 ;;
+    *) return 1 ;;
+  esac
+  [ ${#active_entries[@]} -gt 0 ] || return 0
   _install_selected_packages "${selected_entries[@]}" || return 1
-  [ -n "$default_entry" ] || return 0
 
-  mapfile -t mime_entries < <(_mime_application_order "$default_entry" "${selected_entries[@]}")
-  for entry in "${mime_entries[@]}"; do
+  for entry in "${active_entries[@]}"; do
     case "$(_app_label "$entry")" in
       "OBS Studio") : ;;
       Krita)
@@ -1020,7 +1179,8 @@ install-category-creativity() {
   done
 }
 
-# Instala oficina/notas. LibreOffice declara cada formato co executable
+# Instala aplicacións heteroxéneas de oficina e notas sen pedir unha
+# predeterminada común. LibreOffice declara cada formato co executable
 # especializado; Obsidian queda explícito sen MIME adicional nesta categoría.
 install-category-office() {
   local required=false
@@ -1034,21 +1194,22 @@ install-category-office() {
     "pkg|LibreOffice|libreoffice-still libreoffice-still-gl libreoffice-still-es|libreoffice"
     "pkg|Obsidian|obsidian|obsidian"
   )
-  local selected_entries=() mime_entries=()
-  local default_entry="" entry
+  local selected_entries=() active_entries=()
+  local entry selection_status
 
-  mapfile -t selected_entries < <(
-    _select_category_apps "$required" \
-      "Selecciona apps de oficina e notas:" "${entries[@]}"
-  )
-  [ ${#selected_entries[@]} -gt 0 ] || return 0
-  default_entry="$(_select_default_app "$required" \
-    "Escolle a app de oficina predeterminada:" "${selected_entries[@]}")"
+  _prepare_category_apps \
+    selected_entries active_entries \
+    "$required" "Selecciona apps de oficina e notas:" "${entries[@]}"
+  selection_status=$?
+  case "$selection_status" in
+    0) ;;
+    2) return 0 ;;
+    *) return 1 ;;
+  esac
+  [ ${#active_entries[@]} -gt 0 ] || return 0
   _install_selected_packages "${selected_entries[@]}" || return 1
-  [ -n "$default_entry" ] || return 0
 
-  mapfile -t mime_entries < <(_mime_application_order "$default_entry" "${selected_entries[@]}")
-  for entry in "${mime_entries[@]}"; do
+  for entry in "${active_entries[@]}"; do
     case "$(_app_label "$entry")" in
       LibreOffice)
         set_default_apps libreoffice-writer.desktop \
@@ -1071,8 +1232,9 @@ install-category-office() {
   done
 }
 
-# Instala xogos e tendas. Steam rexistra os seus protocolos; o resto das
-# aplicacións aparecen con MIME baleiro para facer explícito o comportamento.
+# Instala xogos e tendas sen pedir unha predeterminada común. Steam rexistra os
+# seus protocolos; o resto das aplicacións aparecen con MIME baleiro para facer
+# explícito o comportamento.
 install-category-games() {
   local required=false
   if [ "${1:-}" = "--required" ]; then required=true; shift; fi
@@ -1087,21 +1249,22 @@ install-category-games() {
     "pkg|Lutris|lutris|lutris"
     "flatpak|Bottles|com.usebottles.bottles|flatpak run com.usebottles.bottles"
   )
-  local selected_entries=() mime_entries=()
-  local default_entry="" entry
+  local selected_entries=() active_entries=()
+  local entry selection_status
 
-  mapfile -t selected_entries < <(
-    _select_category_apps "$required" \
-      "Selecciona xogos e tendas:" "${entries[@]}"
-  )
-  [ ${#selected_entries[@]} -gt 0 ] || return 0
-  default_entry="$(_select_default_app "$required" \
-    "Escolle a app de xogos predeterminada:" "${selected_entries[@]}")"
+  _prepare_category_apps \
+    selected_entries active_entries \
+    "$required" "Selecciona xogos e tendas:" "${entries[@]}"
+  selection_status=$?
+  case "$selection_status" in
+    0) ;;
+    2) return 0 ;;
+    *) return 1 ;;
+  esac
+  [ ${#active_entries[@]} -gt 0 ] || return 0
   _install_selected_packages "${selected_entries[@]}" || return 1
-  [ -n "$default_entry" ] || return 0
 
-  mapfile -t mime_entries < <(_mime_application_order "$default_entry" "${selected_entries[@]}")
-  for entry in "${mime_entries[@]}"; do
+  for entry in "${active_entries[@]}"; do
     case "$(_app_label "$entry")" in
       Steam)
         set_default_apps steam.desktop \
@@ -1114,8 +1277,9 @@ install-category-games() {
   done
 }
 
-# Instala utilidades. qBittorrent declara torrent/magnet e KeePassXC queda
-# explicitamente sen asociacións novas controladas por esta categoría.
+# Instala utilidades heteroxéneas sen pedir unha predeterminada común.
+# qBittorrent declara torrent/magnet e KeePassXC queda explicitamente sen
+# asociacións novas controladas por esta categoría.
 install-category-utilities() {
   local required=false
   if [ "${1:-}" = "--required" ]; then required=true; shift; fi
@@ -1128,20 +1292,22 @@ install-category-utilities() {
     "pkg|KeePassXC|keepassxc|keepassxc"
     "pkg|qBittorrent|qbittorrent|qbittorrent"
   )
-  local selected_entries=() mime_entries=()
-  local default_entry="" entry
+  local selected_entries=() active_entries=()
+  local entry selection_status
 
-  mapfile -t selected_entries < <(
-    _select_category_apps "$required" "Selecciona utilidades:" "${entries[@]}"
-  )
-  [ ${#selected_entries[@]} -gt 0 ] || return 0
-  default_entry="$(_select_default_app "$required" \
-    "Escolle a utilidade predeterminada:" "${selected_entries[@]}")"
+  _prepare_category_apps \
+    selected_entries active_entries \
+    "$required" "Selecciona utilidades:" "${entries[@]}"
+  selection_status=$?
+  case "$selection_status" in
+    0) ;;
+    2) return 0 ;;
+    *) return 1 ;;
+  esac
+  [ ${#active_entries[@]} -gt 0 ] || return 0
   _install_selected_packages "${selected_entries[@]}" || return 1
-  [ -n "$default_entry" ] || return 0
 
-  mapfile -t mime_entries < <(_mime_application_order "$default_entry" "${selected_entries[@]}")
-  for entry in "${mime_entries[@]}"; do
+  for entry in "${active_entries[@]}"; do
     case "$(_app_label "$entry")" in
       KeePassXC) : ;;
       qBittorrent)
@@ -1172,13 +1338,19 @@ install-category-development() {
     "flatpak|Bruno|com.usebruno.Bruno|bruno"
     "pkg|FileZilla|filezilla|filezilla"
   )
-  local selected_entries=()
+  local selected_entries=() active_entries=()
+  local selection_status
 
-  mapfile -t selected_entries < <(
-    _select_category_apps "$required" \
-      "Selecciona apps de desenvolvemento:" "${entries[@]}"
-  )
-  [ ${#selected_entries[@]} -gt 0 ] || return 0
+  _prepare_category_apps \
+    selected_entries active_entries \
+    "$required" "Selecciona apps de desenvolvemento:" "${entries[@]}"
+  selection_status=$?
+  case "$selection_status" in
+    0) ;;
+    2) return 0 ;;
+    *) return 1 ;;
+  esac
+  [ ${#active_entries[@]} -gt 0 ] || return 0
   _install_selected_packages "${selected_entries[@]}" || return 1
 
   if _selection_has "Git + GitHub CLI" "${selected_entries[@]}"; then
@@ -1209,13 +1381,19 @@ install-category-network() {
   fi
 
   local entries=("flatpak|Proton VPN|com.protonvpn.www|protonvpn")
-  local selected_entries=()
+  local selected_entries=() active_entries=()
+  local selection_status
 
-  mapfile -t selected_entries < <(
-    _select_category_apps "$required" \
-      "Selecciona apps de rede e privacidade:" "${entries[@]}"
-  )
-  [ ${#selected_entries[@]} -gt 0 ] || return 0
+  _prepare_category_apps \
+    selected_entries active_entries \
+    "$required" "Selecciona apps de rede e privacidade:" "${entries[@]}"
+  selection_status=$?
+  case "$selection_status" in
+    0) ;;
+    2) return 0 ;;
+    *) return 1 ;;
+  esac
+  [ ${#active_entries[@]} -gt 0 ] || return 0
   _install_selected_packages "${selected_entries[@]}"
 }
 
@@ -1233,13 +1411,19 @@ install-category-downloads() {
     "pkg|yt-dlp|yt-dlp|yt-dlp"
     "pipx|SpotDL|spotdl|spotdl"
   )
-  local selected_entries=()
+  local selected_entries=() active_entries=()
+  local selection_status
 
-  mapfile -t selected_entries < <(
-    _select_category_apps "$required" \
-      "Selecciona ferramentas de descarga e personalización:" "${entries[@]}"
-  )
-  [ ${#selected_entries[@]} -gt 0 ] || return 0
+  _prepare_category_apps \
+    selected_entries active_entries \
+    "$required" "Selecciona ferramentas de descarga e personalización:" "${entries[@]}"
+  selection_status=$?
+  case "$selection_status" in
+    0) ;;
+    2) return 0 ;;
+    *) return 1 ;;
+  esac
+  [ ${#active_entries[@]} -gt 0 ] || return 0
   _install_selected_packages "${selected_entries[@]}" || return 1
 
   if _selection_has yt-dlp "${selected_entries[@]}"; then

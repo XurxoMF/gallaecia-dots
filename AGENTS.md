@@ -131,11 +131,16 @@ O campo de paquetes pode conter varios nomes separados por espazos. O comando
 úsase nas categorías que actualizan Hyprland. Os ficheiros `.desktop` e os MIME
 decláranse explicitamente no `case` de cada aplicación dentro da mesma función.
 
-As categorías principais esixen polo menos unha selección cando `base.sh` as
-chama con `--required`; desde `gallaecia install-category` todas poden
-cancelarse. Cada función selecciona, instala e configura as súas aplicacións
-antes de retornar: non hai colas nin contexto global entre categorías. Ao
-engadir unha aplicación:
+Antes do selector, todas as categorías separan as variantes completas xa
+instaladas e móstranas baixo `Xa instaladas:`. Unha variante con varios paquetes
+só se considera instalada cando están todos presentes co xestor declarado; as
+variantes incompletas seguen dispoñibles para instalar. As xa instaladas
+ocúltanse do selector de novas aplicacións, pero únense ás novas para a elección
+predeterminada posterior. As categorías principais esixen polo menos unha
+selección ou variante xa instalada cando `base.sh` as chama con `--required`;
+desde `gallaecia install-category` todas poden cancelarse. Cada función
+selecciona, instala e configura as súas aplicacións antes de retornar: non hai
+colas nin contexto global entre categorías. Ao engadir unha aplicación:
 
 - Engade a entrada e todo o seu comportamento á función da categoría. Prefire
   un `case` explícito por aplicación para Hyprland e MIME, mesmo cando varias
@@ -143,13 +148,15 @@ engadir unha aplicación:
 - Instala a selección mediante os modos directos `yay-install --packages`,
   `flatpak-install --packages` e `pipx-install --packages`.
 - Instala configuración opcional só se a aplicación foi escollida.
-- Para fusionar MIME, aplica primeiro as aplicacións secundarias e por último a
-  predeterminada: así os tipos exclusivos quedan coa súa aplicación e os
-  compartidos quedan asignados á predeterminada.
-- Usa unha única elección predeterminada para MIME e para a asignación
-  correspondente da táboa `Gallaecia` de `~/.config/hypr/hyprland.lua`.
-  A actualización debe funcionar tanto cos placeholders iniciais como con
-  valores xa substituídos, sen volver preguntar ao usuario.
+- Nas categorías homoxéneas, para fusionar MIME aplica primeiro as aplicacións
+  secundarias e por último a predeterminada: así os tipos exclusivos quedan coa
+  súa aplicación e os compartidos quedan asignados á predeterminada.
+- Nas categorías heteroxéneas non pidas unha predeterminada común. Aplica os
+  MIME de cada app na orde estable das entradas; se existe unha coincidencia,
+  a última regra aplicada queda como valor inicial e o usuario pode cambiala.
+- Cando unha categoría homoxénea actualiza MIME e Hyprland, usa unha única
+  elección predeterminada para ambos. A actualización debe funcionar tanto cos
+  placeholders iniciais como con valores xa substituídos.
 - Yazi usa `yazi.desktop` para `inode/directory` e o comando literal
   `$TERMINAL -e yazi` en Hyprland.
 - `updates/base.sh` chama directamente as funcións de categoría. O menú de

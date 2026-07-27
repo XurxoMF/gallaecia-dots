@@ -946,7 +946,10 @@ gum_filter() {
     shift
   done
 
-  # O fondo baleiro do indicador desmarcado anula tamén estilos do ambiente.
+  # Os fondos baleiros evitan estilos herdados. A coincidencia conserva o seu
+  # primeiro plano, pero non pode fixar un fondo propio: Lip Gloss insíreo
+  # dentro do estilo da fila e o seu reset cortaría o fondo do cursor xusto
+  # despois do primeiro tramo coincidente.
   gum filter \
 	--show-help \
 	--indicator.foreground="$CURSOR_FOREGROUND" \
@@ -962,7 +965,7 @@ gum_filter() {
 	--cursor-text.foreground="$SELECTED_FOREGROUND" \
 	--cursor-text.background="$SELECTED_BACKGROUND" \
 	--match.foreground="$ACCENT_FOREGROUND" \
-	--match.background="$BACKGROUND" \
+	--match.background="" \
 	--prompt.foreground="$PROMPT_FOREGROUND" \
 	--prompt.background="$PROMPT_BACKGROUND" \
 	--placeholder.foreground="$MUTED_FOREGROUND" \
