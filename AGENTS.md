@@ -334,6 +334,12 @@ Non codifiques cores novas directamente nun fluxo se poden formar parte do módu
   Gallaecia para VS Code. Instálaa só cando VS Code estea seleccionado ou xa
   instalado e mantén nela `--password-store=gnome-libsecret` para usar GNOME
   Keyring mediante Secret Service.
+- `~/.config/electron-flags.conf` é unha configuración controlada por Gallaecia
+  para todas as aplicacións que usan os wrappers `electronXX` de Arch.
+  Instálaa sempre desde a base e mantén nela
+  `--password-store=gnome-libsecret`, porque Electron non detecta
+  automaticamente GNOME Keyring cando o escritorio é Hyprland. As aplicacións
+  que non usan eses wrappers poden requirir o seu propio ficheiro de flags.
 - Conserva os nomes galegos dos directorios XDG e calquera ruta que dependa deles.
 - `others/pam/greetd` é o template controlado para `/etc/pam.d/greetd`.
   Conserva a pila predeterminada de Arch e as dúas regras

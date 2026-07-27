@@ -305,6 +305,14 @@ install_xsettingsd() {
   replace_path "$DOTFILES_DIR/.config/xsettingsd" "$HOME/.config/xsettingsd"
 }
 
+# Instala a configuración global dos wrappers `electronXX` de Arch. A selección
+# explícita evita a detección por nome de escritorio, que non recoñece Hyprland.
+install_electron_config() {
+  replace_file \
+    "$DOTFILES_DIR/.config/electron-flags.conf" \
+    "$HOME/.config/electron-flags.conf"
+}
+
 # Instala o wrapper de Hyprland en ~/.config.
 # Ese ficheiro queda para o usuario; a base actualizable vive en ~/.local/share.
 install_hyprland() {
@@ -365,6 +373,12 @@ install_dotfiles() {
     success "XSettingsd configurado con éxito!"
   else
     fail "Algo fallou ao configurar o XSettingsd! Abortando instalación..."
+  fi
+
+  if install_electron_config; then
+    success "Electron configurado para usar GNOME Keyring con éxito!"
+  else
+    fail "Algo fallou ao configurar Electron! Abortando instalación..."
   fi
 
   if install_gtk_config; then

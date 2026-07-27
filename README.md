@@ -153,6 +153,12 @@ e definir unha predeterminada.
 
 Os paquetes compartidos por varias categorías só se instalan unha vez.
 
+Gallaecia configura globalmente os wrappers `electronXX` de Arch para usar
+GNOME Keyring mediante `gnome-libsecret`, xa que Electron non recoñece Hyprland
+automaticamente como un escritorio con Secret Service. As aplicacións que
+inclúen a súa propia copia de Electron, como VS Code, conservan a súa
+configuración específica.
+
 ## Referencia de comandos, funcións e alias
 
 ### Dispoñibilidade e axuda
