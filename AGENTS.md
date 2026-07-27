@@ -161,7 +161,9 @@ colas nin contexto global entre categorías. Ao engadir unha aplicación:
   `$TERMINAL -e yazi` en Hyprland.
 - `updates/base.sh` chama directamente as funcións de categoría. O menú de
   `gallaecia install-category` declara manualmente as mesmas categorías e
-  chama esas funcións sen `--required`, repetindo o menú ata Esc.
+  chama as funcións da versión instalada sen `--required`, repetindo o menú ata
+  Esc. Este comando non sincroniza o repositorio: as novas categorías e
+  aplicacións só aparecen despois de aplicar a actualización correspondente.
 - Conserva a orde intencionada das opcións; a primeira adoita ser a recomendada.
 - Actualiza no mesmo cambio a lista de categorías e aplicacións do
   `README.md`, indicando o xestor e os identificadores reais dos paquetes.
@@ -328,9 +330,10 @@ Non codifiques cores novas directamente nun fluxo se poden formar parte do módu
   Non habilites templates de programas que Gallaecia non instala nin permite
   seleccionar.
 - As configuracións opcionais de terminais, Yazi, SpotDL e yt-dlp deben permanecer dentro de `optional/` mentres dependan da selección do usuario.
-- `~/.config/code-flags.conf` pertence ao usuario: non o crees nin o
-  substitúas ao instalar VS Code. Unha migración pode retirar unha flag obsoleta
-  cunha coincidencia exacta, pero debe conservar todas as demais liñas.
+- `~/.config/code-flags.conf` é unha configuración opcional controlada por
+  Gallaecia para VS Code. Instálaa só cando VS Code estea seleccionado ou xa
+  instalado e mantén nela `--password-store=gnome-libsecret` para usar GNOME
+  Keyring mediante Secret Service.
 - Conserva os nomes galegos dos directorios XDG e calquera ruta que dependa deles.
 - `others/pam/greetd` é o template controlado para `/etc/pam.d/greetd`.
   Conserva a pila predeterminada de Arch e as dúas regras

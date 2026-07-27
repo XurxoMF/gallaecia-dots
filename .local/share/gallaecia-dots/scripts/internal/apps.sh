@@ -604,8 +604,8 @@ install-category-editor() {
 }
 
 # Instala IDEs e fusiona `text/plain` entre todas as eleccións. A predeterminada
-# queda tamén en `Gallaecia.ide`. As flags de VS Code pertencen ao usuario e
-# esta categoría non crea nin substitúe `~/.config/code-flags.conf`.
+# queda tamén en `Gallaecia.ide`. Se VS Code forma parte do conxunto activo,
+# instala a súa flag controlada para usar GNOME Keyring mediante libsecret.
 install-category-ide() {
   local required=false
   if [ "${1:-}" = "--required" ]; then required=true; shift; fi
@@ -638,6 +638,13 @@ install-category-ide() {
     "Escolle o IDE predeterminado:" "${active_entries[@]}")"
 
   _install_selected_packages "${selected_entries[@]}" || return 1
+
+  if _selection_has "Visual Studio Code" "${active_entries[@]}"; then
+    replace_file \
+      "$DOTFILES_DIR/optional/.config/code-flags.conf" \
+      "$HOME/.config/code-flags.conf" || return 1
+  fi
+
   [ -n "$default_entry" ] || return 0
 
   case "$(_app_label "$default_entry")" in

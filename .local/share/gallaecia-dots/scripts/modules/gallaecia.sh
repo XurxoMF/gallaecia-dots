@@ -12,12 +12,13 @@
 #      ├─ commands          -> referencia curta
 #      ├─ update            -> system-update.sh
 #      ├─ reinstall         -> sincroniza repo + install.sh en modo reinstall
-#      ├─ install-category  -> sincroniza repo + internal/apps.sh nun subshell
+#      ├─ install-category  -> módulos da versión instalada nun subshell
 #      └─ wallpaper-add     -> clasifica e copia imaxes ou fondos animados
 #
-# O repo sincronízase antes dos fluxos que precisan os fontes máis recentes.
-# `install-category` execútase entre parénteses para que as funcións e variables
-# de `scripts/internal/` desaparezan ao rematar e non contaminen a terminal.
+# `update` e `reinstall` sincronizan o repo cando precisan os fontes máis
+# recentes. `install-category` usa os módulos xa instalados e execútase entre
+# parénteses para que as funcións e variables de `scripts/internal/`
+# desaparezan ao rematar e non contaminen a terminal.
 #
 # PARA ENGADIR UN SUBCOMANDO
 #
@@ -143,7 +144,8 @@ DESCRICIÓN
   aplicacións. Mostra por separado as variantes completas xa instaladas e
   ocúltaas do selector. Non elimina as xa instaladas. A aplicación escollida
   como predeterminada entre as existentes e as novas aplícase tamén a
-  mimeapps.list e Hyprland cando corresponda.
+  mimeapps.list e Hyprland cando corresponda. Usa exclusivamente as categorías
+  da versión instalada e non sincroniza o repositorio.
 
 PARÁMETROS
   [CATEGORÍA]
@@ -392,7 +394,8 @@ _gallaecia_reinstall() {
 _gallaecia_install_category() (
   local category_id=""
   local dotfiles_dir="${DOTFILES_DIR:-$HOME/.dotfiles}"
-  local modules_dir internal_dir
+  local modules_dir="$HOME/.local/share/gallaecia-dots/scripts/modules"
+  local internal_dir="$HOME/.local/share/gallaecia-dots/scripts/internal"
   local selected_category=""
 
   while (($#)); do
@@ -424,11 +427,6 @@ _gallaecia_install_category() (
     esac
     shift
   done
-
-  _gallaecia_sync_repo || return 1
-
-  modules_dir="$dotfiles_dir/.local/share/gallaecia-dots/scripts/modules"
-  internal_dir="$dotfiles_dir/.local/share/gallaecia-dots/scripts/internal"
 
   if [ ! -r "$modules_dir/apps.sh" ] ||
     [ ! -r "$modules_dir/commands.sh" ] ||

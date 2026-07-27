@@ -417,7 +417,10 @@ _apps_has_pipx_package() {
   fi
   # PyPI considera equivalentes maiúsculas e secuencias de `.`, `_` ou `-`.
   normalized_name="$(_apps_normalize_python_package "$package_name")"
-  while IFS= read -r installed_name; do
+  # `pipx list --short` devolve `nome versión`; só a primeira columna
+  # identifica o paquete e debe entrar na comparación normalizada.
+  while read -r installed_name _; do
+    [ -n "$installed_name" ] || continue
     if [ "$(_apps_normalize_python_package "$installed_name")" = \
       "$normalized_name" ]; then
       return 0

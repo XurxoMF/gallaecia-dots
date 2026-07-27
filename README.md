@@ -249,7 +249,7 @@ as operacións propias do proxecto:
 | `gallaecia commands`            | Lista os subcomandos públicos cunha descrición breve.                         |
 | `gallaecia update`              | Abre o actualizador completo do sistema e dos dotfiles.                       |
 | `gallaecia reinstall`           | Sincroniza o repositorio e volve executar a instalación base tras confirmar.  |
-| `gallaecia install-category`    | Abre repetidamente as categorías para instalar máis aplicacións ata premer Esc. |
+| `gallaecia install-category`    | Abre as categorías da versión instalada para engadir aplicacións ata premer Esc. |
 | `gallaecia wallpaper-add`       | Clasifica e copia imaxes ou fondos animados no directorio correspondente.    |
 
 Cada subcomando dispón da súa propia axuda, por exemplo
@@ -445,7 +445,8 @@ baixo `Xa instaladas:` e ocúltanse do selector; se unha variante require varios
 paquetes, considérase instalada unicamente cando están todos. Ao rematar, o menú
 de categorías aparece de novo ata que premas Esc. O comando non desinstala as
 aplicacións anteriores. Cada categoría instala inmediatamente os novos paquetes
-e configuracións antes de volver ao menú.
+e configuracións antes de volver ao menú. Emprega exclusivamente as categorías
+e aplicacións dispoñibles na versión xa instalada, sen sincronizar o repositorio.
 
 Cando unha categoría admite aplicación predeterminada, o selector inclúe tanto
 as variantes xa instaladas como as que se acaban de escoller. En IDE, Navegador
