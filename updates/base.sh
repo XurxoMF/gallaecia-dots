@@ -87,7 +87,7 @@ source "$INTERNAL_DIR/versions.sh"
 REQUIRED_PACKAGES=(
   noto-fonts-cjk noto-fonts-emoji noto-fonts ttf-noto-nerd
   papirus-icon-theme breeze breeze-icons
-  flatpak util-linux pipewire gnome-keyring libsecret greetd cage wlr-randr dbus polkit libnewt ddcutil power-profiles-daemon trash-cli
+  flatpak util-linux pipewire gnome-keyring seahorse libsecret greetd cage wlr-randr dbus polkit libnewt ddcutil power-profiles-daemon trash-cli
   networkmanager networkmanager-openvpn
   python python-pip python-pipx ffmpeg mpv mpvpaper udisks2 7zip jq poppler fd ripgrep fzf zoxide resvg imagemagick mediainfo
   hyprland uwsm
@@ -238,6 +238,16 @@ install_greetd_config() {
   sudo systemctl enable greetd
 }
 
+# Instala a pila PAM de greetd controlada por Gallaecia. Mantén as regras base
+# de Arch e engade GNOME Keyring nas fases `auth` e `session`: a primeira recibe
+# o contrasinal validado por greetd e a segunda inicia e desbloquea o chaveiro
+# cando Noctalia Greeter abre a sesión.
+install_greetd_pam_config() {
+  sudo install -Dm644 \
+    "$DOTFILES_DIR/others/pam/greetd" \
+    "/etc/pam.d/greetd"
+}
+
 # Instala os ficheiros controlados por Gallaecia en ~/.local/share.
 # Estes son actualizables porque non son configs directas do usuario.
 install_gallaecia_config() {
@@ -310,6 +320,12 @@ install_dotfiles() {
     success "Configuración de greetd instalada con éxito!"
   else
     fail "Algo fallou ao instalar a configuración de greetd! Abortando instalación..."
+  fi
+
+  if install_greetd_pam_config; then
+    success "Desbloqueo automático de GNOME Keyring configurado con éxito!"
+  else
+    fail "Algo fallou ao configurar PAM para GNOME Keyring! Abortando instalación..."
   fi
 
   if install_gallaecia_config; then

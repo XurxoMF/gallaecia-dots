@@ -1,0 +1,16 @@
+#%PAM-1.0
+
+# Conserva a pila predeterminada de greetd en Arch e entrega ao módulo de GNOME
+# Keyring o contrasinal que xa validou `system-local-login`. A regra é opcional:
+# un problema no chaveiro non debe impedir que o usuario inicie sesión.
+auth       required     pam_securetty.so
+auth       requisite    pam_nologin.so
+auth       include      system-local-login
+auth       optional     pam_gnome_keyring.so
+
+account    include      system-local-login
+
+# Inicializa o daemon dentro da sesión autenticada e usa o contrasinal recibido
+# na fase `auth` para desbloquear automaticamente o chaveiro `Login`.
+session    include      system-local-login
+session    optional     pam_gnome_keyring.so auto_start

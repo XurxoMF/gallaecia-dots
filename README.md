@@ -98,6 +98,7 @@ usuario.
 - XDG Desktop Portals.
 - PipeWire.
 - NetworkManager e soporte para importar OpenVPN.
+- GNOME Keyring e Seahorse para gardar e administrar contrasinais e claves.
 - Kitty.
 - Flatpak e Flathub.
 - Yay para paquetes oficiais de Arch e AUR.
@@ -105,6 +106,12 @@ usuario.
 - Gum para os menús e formularios interactivos.
 - Configuración GTK, Qt e XDG User Directories.
 - Tipografías, iconas e dependencias comúns do escritorio.
+
+> [!IMPORTANT]
+> Para que PAM desbloquee automaticamente o cofre `Login` de GNOME Keyring ao
+> iniciar sesión con greetd e Noctalia Greeter, o cofre debe ter o mesmo
+> contrasinal que a conta do usuario. Podes abrir Seahorse —«Contrasinais e
+> claves»— para revisar o chaveiro ou cambiar o seu contrasinal.
 
 ### Categorías e aplicacións
 

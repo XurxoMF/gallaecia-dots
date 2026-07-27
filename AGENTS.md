@@ -26,7 +26,7 @@ Emprega o galego nos comentarios, mensaxes da interface, documentación e nomes 
 - `.config/noctalia/custom.toml`: configuración persoal, creada só cando non existe.
 - `.config/`: outras configuracións base do escritorio.
 - `optional/`: configuracións que só se instalan cando se escolle a aplicación correspondente.
-- `others/`: ficheiros de sistema para `greetd` e Noctalia Greeter.
+- `others/`: ficheiros de sistema para `greetd`, a súa pila PAM e Noctalia Greeter.
 - `archinstall/user_configuration.json`: perfil para preparar unha instalación base de Arch.
 - `.wallpapers/`: fondos distribuídos polo proxecto.
 
@@ -313,8 +313,15 @@ Non codifiques cores novas directamente nun fluxo se poden formar parte do módu
   núcleo e os das aplicacións ofrecidas nas categorías de `internal/apps.sh`.
   Non habilites templates de programas que Gallaecia non instala nin permite
   seleccionar.
-- As configuracións opcionais de terminais, Yazi, VS Code, SpotDL e yt-dlp deben permanecer dentro de `optional/` mentres dependan da selección do usuario.
+- As configuracións opcionais de terminais, Yazi, SpotDL e yt-dlp deben permanecer dentro de `optional/` mentres dependan da selección do usuario.
+- `~/.config/code-flags.conf` pertence ao usuario: non o crees nin o
+  substitúas ao instalar VS Code. Unha migración pode retirar unha flag obsoleta
+  cunha coincidencia exacta, pero debe conservar todas as demais liñas.
 - Conserva os nomes galegos dos directorios XDG e calquera ruta que dependa deles.
+- `others/pam/greetd` é o template controlado para `/etc/pam.d/greetd`.
+  Conserva a pila predeterminada de Arch e as dúas regras
+  `pam_gnome_keyring.so`; calquera cambio debe revisarse como configuración de
+  autenticación sensible.
 
 ## Comprobacións seguras
 

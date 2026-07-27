@@ -49,6 +49,25 @@ install_network_dependencies() {
   fi
 }
 
+# Garante o backend que proporciona `pam_gnome_keyring.so` e instala Seahorse
+# como interface gráfica para administrar os chaveiros, contrasinais e claves.
+install_keyring_dependencies() {
+  if ! yay -S --needed gnome-keyring seahorse; then
+    return 1
+  fi
+}
+
+# Substitúe a pila PAM específica de greetd polo template controlado por
+# Gallaecia. As regras `auth` e `session` permiten que o contrasinal introducido
+# en Noctalia Greeter desbloquee o chaveiro `Login` ao abrir a sesión.
+update_greetd_pam_config() {
+  if ! sudo install -Dm644 \
+    "$DOTFILES_DIR/others/pam/greetd" \
+    "/etc/pam.d/greetd"; then
+    return 1
+  fi
+}
+
 # Substitúe a API pública de resolución, validación e reintento de comandos.
 # Non executa nin instala paquetes durante a copia.
 update_commands_module() {
@@ -151,6 +170,23 @@ remove_legacy_installed_versions() {
     "$INSTALLED_VERSIONS_FILE"
 }
 
+# Retira exclusivamente a flag que obrigaba VS Code a usar almacenamento básico.
+# O ficheiro é propiedade do usuario: se non existe non fai nada e, se contén
+# outras flags, conserva as liñas, a súa orde e o resto do contido.
+remove_legacy_vscode_password_store() {
+  local code_flags_file="$HOME/.config/code-flags.conf"
+
+  if [ ! -f "$code_flags_file" ]; then
+    return 0
+  fi
+
+  # Os límites permiten espazos arredor da flag, pero non eliminan variantes
+  # con outros valores nin liñas onde forme parte doutro argumento.
+  sed -i \
+    '/^[[:space:]]*--password-store=basic[[:space:]]*$/d' \
+    "$code_flags_file"
+}
+
 # Presenta o amplo cambio de APIs, CLI, categorías e estrutura interna.
 # Non copia nin elimina ficheiros antes da confirmación do usuario.
 show_changelog() {
@@ -166,6 +202,8 @@ show_changelog() {
   info "· Engadido o comando gallaecia para mantemento, categorías e fondos."
   info "· Unificado wallpaper-add para clasificar imaxes e fondos animados."
   info "· Engadida a administración de perfís VPN que non ofrece Noctalia."
+  info "· Engadidos Seahorse e o desbloqueo do chaveiro mediante PAM."
+  info "· Retirada a flag de VS Code que evitaba utilizar o chaveiro."
   info "· Simplificada cada categoría nun único fluxo de selección, instalación e configuración."
   info "· Eliminadas as colas e o contexto global compartido entre categorías."
   info "· Unificada a aplicación predeterminada de MIME e Hyprland por categoría."
@@ -179,6 +217,12 @@ show_changelog() {
 # Detense ao primeiro erro para que a versión poida reintentarse completa.
 apply_update() {
   if ! install_network_dependencies; then
+    return 1
+  fi
+  if ! install_keyring_dependencies; then
+    return 1
+  fi
+  if ! update_greetd_pam_config; then
     return 1
   fi
   if ! update_commands_module; then
@@ -215,6 +259,9 @@ apply_update() {
     return 1
   fi
   if ! remove_legacy_installed_versions; then
+    return 1
+  fi
+  if ! remove_legacy_vscode_password_store; then
     return 1
   fi
 }
