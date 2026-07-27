@@ -8,10 +8,10 @@
 # o repositorio; cada comando público chámaa ao atopar `-h|--help`.
 _git_help() {
   case "$1" in
-    git-credenciales)
+    git-credentials)
       cat <<'EOF'
 USO
-  git-credenciales [OPCIÓNS]
+  git-credentials [OPCIÓNS]
 
 DESCRICIÓN
   Configura interactivamente o nome e o correo usados para asinar commits.
@@ -25,8 +25,8 @@ RESULTADO
   Garda user.name e user.email na configuración de Git escollida.
 
 EXEMPLOS
-  git-credenciales
-  git-credenciales --help
+  git-credentials
+  git-credentials --help
 EOF
       ;;
     github-login)
@@ -426,25 +426,25 @@ _git_select_commit() {
 # Recibe opcionalmente nome, correo e alcance; solicita con Gum os datos ausentes.
 # Escribe `user.name` e `user.email` na configuración local ou global de Git e
 # valida que o modo local se execute dentro dun repositorio.
-git-credenciales() {
+git-credentials() {
   local scope scope_flag current_name current_email name email
 
   while (($#)); do
     case "$1" in
       -h|--help)
-        _git_help git-credenciales
+        _git_help git-credentials
         return 0
         ;;
       --)
         shift
         if (($#)); then
-          warning "git-credenciales non reenvía argumentos a ningún comando orixinal."
+          warning "git-credentials non reenvía argumentos a ningún comando orixinal."
           return 1
         fi
         break
         ;;
       *)
-        warning "Opción descoñecida: $1. Usa git-credenciales --help."
+        warning "Opción descoñecida: $1. Usa git-credentials --help."
         return 1
         ;;
     esac
@@ -464,13 +464,13 @@ git-credenciales() {
   current_name="$(git config "$scope_flag" --get user.name 2> /dev/null || true)"
   current_email="$(git config "$scope_flag" --get user.email 2> /dev/null || true)"
 
-  name="$(gum_input --header "Nome para os commits" --placeholder "Nome e apelidos" --value "$current_name")" || return 0
+  name="$(gum_input --header "Nome" --value "$current_name")" || return 0
   if [ -z "$name" ]; then
     warning "O nome non pode quedar baleiro."
     return 1
   fi
 
-  email="$(gum_input --header "Correo para os commits" --placeholder "usuario@exemplo.gal" --value "$current_email")" || return 0
+  email="$(gum_input --header "Email" --value "$current_email")" || return 0
   if [ -z "$email" ]; then
     warning "O correo non pode quedar baleiro."
     return 1

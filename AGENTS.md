@@ -230,6 +230,8 @@ administración de perfís que non está dispoñible na interface.
 Mantén o mesmo formato nos módulos compartidos e nos Bashrc:
 
 - Se un ficheiro expón varios comandos, centraliza os textos nunha función privada `_nome_help()` e fai que cada comando chame a súa sección.
+- Mantén en inglés os nomes dos comandos públicos; as axudas, descricións,
+  mensaxes e inputs continúan en galego.
 - Todos os comandos públicos deben procesar opcións cun `while (($#)); do` e un `case "$1" in`, mesmo cando inicialmente só admitan `-h|--help` e `--`. A estrutura uniforme facilita engadir opcións no futuro.
 - `-h|--help` debe usar sempre o mesmo formato, con seccións en maiúsculas e
   nesta orde: `USO`, `DESCRICIÓN`, `PARÁMETROS` cando existan, `OPCIÓNS`,

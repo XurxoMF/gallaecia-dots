@@ -42,10 +42,10 @@ COMANDO ORIXINAL
   yt-dlp-video -- --help
 EOF
       ;;
-    yt-dlp-musica)
+    yt-dlp-music)
       cat <<'EOF'
 USO
-  yt-dlp-musica [OPCIÓNS] [-- ARGUMENTOS DE YT-DLP]
+  yt-dlp-music [OPCIÓNS] [-- ARGUMENTOS DE YT-DLP]
 
 DESCRICIÓN
   Descarga música usando a configuración de YouTube Music de Gallaecia. Sen
@@ -69,14 +69,14 @@ RESULTADO
   Cancelar o input sen descargar nada devolve 0.
 
 EXEMPLOS
-  yt-dlp-musica --once
-  yt-dlp-musica --url URL -- --cookies-from-browser firefox
-  yt-dlp-musica -- --embed-thumbnail --embed-metadata
+  yt-dlp-music --once
+  yt-dlp-music --url URL -- --cookies-from-browser firefox
+  yt-dlp-music -- --embed-thumbnail --embed-metadata
 
 COMANDO ORIXINAL
   Para consultar todas as opcións admitidas por yt-dlp:
 
-  yt-dlp-musica -- --help
+  yt-dlp-music -- --help
 EOF
       ;;
   esac
@@ -158,7 +158,7 @@ yt-dlp-video() {
 # Usa a configuración musical de Gallaecia, que decide formato e destino; sen
 # URL mantén un bucle de `gum_input` ata cancelar. A axuda/versión do programa
 # real evita o prompt e o modo dunha soa execución conserva o seu código de saída.
-yt-dlp-musica() {
+yt-dlp-music() {
   local once=false
   local url=""
   local original_args=()
@@ -179,7 +179,7 @@ yt-dlp-musica() {
         shift
         ;;
       -h|--help)
-        _yt_dlp_help yt-dlp-musica
+        _yt_dlp_help yt-dlp-music
         return 0
         ;;
       --)
@@ -189,7 +189,7 @@ yt-dlp-musica() {
         break
         ;;
       *)
-        warning "Opción descoñecida: $1. Usa yt-dlp-musica --help."
+        warning "Opción descoñecida: $1. Usa yt-dlp-music --help."
         return 1
         ;;
     esac

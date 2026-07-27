@@ -345,8 +345,8 @@ Estes comandos só existen se instalas a aplicación correspondente na categorí
 | Aplicación necesaria | Comando         | Descrición                                                      |
 | -------------------- | --------------- | --------------------------------------------------------------- |
 | yt-dlp               | `yt-dlp-video`  | Descarga vídeos coa configuración de YouTube de Gallaecia.      |
-| yt-dlp               | `yt-dlp-musica` | Descarga audio coa configuración de YouTube Music de Gallaecia. |
-| SpotDL               | `spotdl-musica` | Busca e descarga música mediante SpotDL.                        |
+| yt-dlp               | `yt-dlp-music`  | Descarga audio coa configuración de YouTube Music de Gallaecia. |
+| SpotDL               | `spotdl-music`  | Busca e descarga música mediante SpotDL.                        |
 
 Os tres admiten URL, modo dunha soa descarga e argumentos adicionais para o
 programa orixinal. Consulta `COMANDO --help` para ver todas as opcións.
@@ -358,7 +358,7 @@ Estes comandos só existen se instalas **Git + GitHub CLI** na categoría
 
 | Comando             | Descrición                                                                    |
 | ------------------- | ----------------------------------------------------------------------------- |
-| `git-credenciales`  | Configura o nome e o correo da autoría de Git, no repositorio ou globalmente. |
+| `git-credentials`   | Configura o nome e o correo da autoría de Git, no repositorio ou globalmente. |
 | `github-login`      | Inicia sesión en GitHub mediante GitHub CLI.                                  |
 | `git-add`           | Prepara cambios completos, interactivos ou ficheiros seleccionados.           |
 | `git-commit`        | Crea un commit solicitando título e corpo.                                    |

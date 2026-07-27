@@ -5,10 +5,10 @@
 # do parser do comando público e permite ampliala se aparecen máis wrappers.
 _spotdl_help() {
   case "$1" in
-    spotdl-musica)
+    spotdl-music)
       cat <<'EOF'
 USO
-  spotdl-musica [OPCIÓNS] [-- ARGUMENTOS DE SPOTDL DOWNLOAD]
+  spotdl-music [OPCIÓNS] [-- ARGUMENTOS DE SPOTDL DOWNLOAD]
 
 DESCRICIÓN
   Descarga música mediante `spotdl download`. Sen opcións, pide URLs
@@ -33,15 +33,15 @@ RESULTADO
   Cancelar o input sen descargar nada devolve 0.
 
 EXEMPLOS
-  spotdl-musica --once
-  spotdl-musica --url URL -- --format flac
-  spotdl-musica -- --bitrate 320k
+  spotdl-music --once
+  spotdl-music --url URL -- --format flac
+  spotdl-music -- --bitrate 320k
 
 COMANDO ORIXINAL
   Para consultar a axuda ou a versión de SpotDL:
 
-  spotdl-musica -- --help
-  spotdl-musica -- --version
+  spotdl-music -- --help
+  spotdl-music -- --version
 EOF
       ;;
   esac
@@ -51,7 +51,7 @@ EOF
 # para `spotdl download`. Sen URL abre un prompt en bucle ata cancelar; con
 # `--url` descarga directamente. A axuda e versión de SpotDL evitan o prompt e
 # cada descarga conserva o código do comando orixinal cando o fluxo debe rematar.
-spotdl-musica() {
+spotdl-music() {
   local once=false
   local url=""
   local original_args=()
@@ -72,7 +72,7 @@ spotdl-musica() {
         shift
         ;;
       -h|--help)
-        _spotdl_help spotdl-musica
+        _spotdl_help spotdl-music
         return 0
         ;;
       --)
@@ -82,7 +82,7 @@ spotdl-musica() {
         break
         ;;
       *)
-        warning "Opción descoñecida: $1. Usa spotdl-musica --help."
+        warning "Opción descoñecida: $1. Usa spotdl-music --help."
         return 1
         ;;
     esac
