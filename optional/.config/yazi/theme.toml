@@ -4,7 +4,7 @@ light = "noctalia"
 
 [icon]
 prepend_dirs = [
-	{ name = "Aplicacións", text = "" },
+	{ name = "Aplicacións", text = "󰀻" },
 	{ name = "Desarrollo", text = "" },
 	{ name = "Descargas", text = "" },
 	{ name = "Documentos", text = "" },

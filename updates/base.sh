@@ -259,6 +259,14 @@ install_gallaecia_config() {
   cp -rf "$DOTFILES_DIR/.wallpapers/." "$HOME/.wallpapers/"
 }
 
+# Fixa `Login` como chaveiro predeterminado para Secret Service sen substituír
+# os demais chaveiros que poida ter o usuario.
+install_default_keyring() {
+  replace_file \
+    "$DOTFILES_DIR/.local/share/keyrings/default" \
+    "$HOME/.local/share/keyrings/default"
+}
+
 # Instala os `.desktop` mínimos que ocultan utilidades técnicas do launcher.
 # `merge_path` sobrescribe só estes IDs controlados por Gallaecia e conserva
 # calquera outro lanzador ou override persoal do usuario no mesmo directorio.
@@ -349,6 +357,12 @@ install_dotfiles() {
     success "Configs propias de Gallaecia Dots instaladas con éxito!"
   else
     fail "Algo fallou ao instalar as configs propias de Gallaecia Dots! Abortando instalación..."
+  fi
+
+  if install_default_keyring; then
+    success "Login configurado como chaveiro predeterminado con éxito!"
+  else
+    fail "Algo fallou ao configurar o chaveiro predeterminado! Abortando instalación..."
   fi
 
   if install_desktop_overrides; then

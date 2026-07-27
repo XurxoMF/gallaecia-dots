@@ -349,7 +349,9 @@ Non codifiques cores novas directamente nun fluxo se poden formar parte do módu
   Gallaecia. O paquete de Arch habilita globalmente o seu socket e PAM entrega
   o contrasinal no login; habilitar tamén o servizo no usuario pode facer que
   enumere os chaveiros antes de crear `Login` no primeiro acceso. As migracións
-  poden deshabilitar o servizo sen detelo para retirar symlinks antigos.
+  poden deshabilitar o servizo sen detelo para retirar symlinks antigos. Unha
+  migración correctiva pode reiniciar puntualmente o daemon, sen habilitalo,
+  cando sexa necesario rexenerar `login.keyring`.
 - Os overrides de `.local/share/applications/` deben conservar exactamente o
   nome do `.desktop` de `/usr/share/applications/` e conter só `[Desktop Entry]`,
   `Type`, `Name` e `Hidden=true`, o mínimo que valida freedesktop. Instálaos
