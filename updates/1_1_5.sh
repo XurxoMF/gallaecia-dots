@@ -12,6 +12,7 @@ if [ ! -r "$MODULES_DIR/apps.sh" ] ||
   [ ! -r "$MODULES_DIR/commands.sh" ] ||
   [ ! -r "$MODULES_DIR/files.sh" ] ||
   [ ! -r "$MODULES_DIR/gallaecia.sh" ] ||
+  [ ! -r "$MODULES_DIR/network.sh" ] ||
   [ ! -r "$MODULES_DIR/ui.sh" ] ||
   [ ! -r "$INTERNAL_DIR/apps.sh" ] ||
   [ ! -r "$INTERNAL_DIR/versions.sh" ]; then
@@ -27,6 +28,8 @@ source "$MODULES_DIR/commands.sh"
 source "$MODULES_DIR/files.sh"
 # shellcheck source=/dev/null
 source "$MODULES_DIR/gallaecia.sh"
+# shellcheck source=/dev/null
+source "$MODULES_DIR/network.sh"
 # shellcheck source=/dev/null
 source "$MODULES_DIR/ui.sh"
 # shellcheck source=/dev/null

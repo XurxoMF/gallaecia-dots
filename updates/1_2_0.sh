@@ -13,6 +13,7 @@ if [ ! -r "$MODULES_DIR/apps.sh" ] ||
   [ ! -r "$MODULES_DIR/commands.sh" ] ||
   [ ! -r "$MODULES_DIR/files.sh" ] ||
   [ ! -r "$MODULES_DIR/gallaecia.sh" ] ||
+  [ ! -r "$MODULES_DIR/network.sh" ] ||
   [ ! -r "$MODULES_DIR/ui.sh" ] ||
   [ ! -r "$INTERNAL_DIR/apps.sh" ] ||
   [ ! -r "$INTERNAL_DIR/versions.sh" ]; then
@@ -29,11 +30,24 @@ source "$MODULES_DIR/files.sh"
 # shellcheck source=/dev/null
 source "$MODULES_DIR/gallaecia.sh"
 # shellcheck source=/dev/null
+source "$MODULES_DIR/network.sh"
+# shellcheck source=/dev/null
 source "$MODULES_DIR/ui.sh"
 # shellcheck source=/dev/null
 source "$INTERNAL_DIR/apps.sh"
 # shellcheck source=/dev/null
 source "$INTERNAL_DIR/versions.sh"
+
+# Instala a infraestrutura usada polo módulo público de VPN. NetworkManager xa
+# é o backend de Noctalia; o plugin adicional permite importar ficheiros OpenVPN.
+install_network_dependencies() {
+  if ! yay -S --needed networkmanager networkmanager-openvpn; then
+    return 1
+  fi
+  if ! sudo systemctl enable --now NetworkManager.service; then
+    return 1
+  fi
+}
 
 # Substitúe a API pública de resolución, validación e reintento de comandos.
 # Non executa nin instala paquetes durante a copia.
@@ -92,6 +106,13 @@ update_gallaecia_module() {
     "$HOME/.local/share/gallaecia-dots/scripts/modules/gallaecia.sh"
 }
 
+# Instala os comandos públicos para administrar perfís VPN con NetworkManager.
+update_network_module() {
+  replace_file \
+    "$DOTFILES_DIR/.local/share/gallaecia-dots/scripts/modules/network.sh" \
+    "$HOME/.local/share/gallaecia-dots/scripts/modules/network.sh"
+}
+
 # Substitúe o actualizador invocado por Noctalia para que reutilice `_sync-repo`.
 # Esta función só instala o script; non lanza unha actualización.
 update_system_update_script() {
@@ -143,6 +164,7 @@ show_changelog() {
   info "· Unificadas as cores de Gum nunha paleta semántica reutilizable."
   info "· Engadidos instaladores interactivos para Yay, Flatpak e Pipx."
   info "· Engadido o comando gallaecia para mantemento, categorías e fondos."
+  info "· Engadida a administración de perfís VPN que non ofrece Noctalia."
   info "· Simplificada cada categoría nun único fluxo de selección, instalación e configuración."
   info "· Eliminadas as colas e o contexto global compartido entre categorías."
   info "· Unificada a aplicación predeterminada de MIME e Hyprland por categoría."
@@ -155,6 +177,9 @@ show_changelog() {
 # Aplica cada módulo e limpeza nun paso explícito e na orde de dependencias.
 # Detense ao primeiro erro para que a versión poida reintentarse completa.
 apply_update() {
+  if ! install_network_dependencies; then
+    return 1
+  fi
   if ! update_commands_module; then
     return 1
   fi
@@ -174,6 +199,9 @@ apply_update() {
     return 1
   fi
   if ! update_gallaecia_module; then
+    return 1
+  fi
+  if ! update_network_module; then
     return 1
   fi
   if ! update_system_update_script; then

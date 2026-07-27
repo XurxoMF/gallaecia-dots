@@ -444,6 +444,7 @@ _gallaecia_install_category() (
     [ ! -r "$modules_dir/commands.sh" ] ||
     [ ! -r "$modules_dir/files.sh" ] ||
     [ ! -r "$modules_dir/gallaecia.sh" ] ||
+    [ ! -r "$modules_dir/network.sh" ] ||
     [ ! -r "$modules_dir/ui.sh" ] ||
     [ ! -r "$internal_dir/apps.sh" ] ||
     [ ! -r "$internal_dir/versions.sh" ]; then
@@ -451,7 +452,7 @@ _gallaecia_install_category() (
     return 1
   fi
 
-  # As sete cargas estándar quedan confinadas neste subshell.
+  # As oito cargas estándar quedan confinadas neste subshell.
   # shellcheck source=/dev/null
   source "$modules_dir/apps.sh"
   # shellcheck source=/dev/null
@@ -460,6 +461,8 @@ _gallaecia_install_category() (
   source "$modules_dir/files.sh"
   # shellcheck source=/dev/null
   source "$modules_dir/gallaecia.sh"
+  # shellcheck source=/dev/null
+  source "$modules_dir/network.sh"
   # shellcheck source=/dev/null
   source "$modules_dir/ui.sh"
   # shellcheck source=/dev/null

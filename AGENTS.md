@@ -4,7 +4,7 @@
 
 Gallaecia Dots é un conxunto de dotfiles e un instalador interactivo para preparar un escritorio minimalista baseado en Arch Linux, Hyprland e Noctalia. O proxecto ofrece unha base pequena, actualizable e en galego, e permite que cada usuario escolla as aplicacións que quere instalar.
 
-Non é unha distribución nin pretende abstraer o funcionamento de Arch. Os scripts empregan directamente ferramentas como `pacman`, `yay`, `flatpak`, `pipx`, `systemctl` e `rustup`.
+Non é unha distribución nin pretende abstraer o funcionamento de Arch. Os scripts empregan directamente ferramentas como `pacman`, `yay`, `flatpak`, `pipx`, `nmcli`, `systemctl` e `rustup`.
 
 Emprega o galego nos comentarios, mensaxes da interface, documentación e nomes propios novos. Mantén os nomes técnicos, comandos e identificadores na forma que corresponda ao programa ou API utilizada.
 
@@ -15,7 +15,7 @@ Emprega o galego nos comentarios, mensaxes da interface, documentación e nomes 
 - `updates/base.sh`: instalación inicial completa. Debe representar sempre o estado máis recente do proxecto.
 - `updates/X_Y_Z.sh`: migracións incrementais para instalacións antigas.
 - `updates/X_X_X.sh.example`: plantilla para crear unha migración.
-- `.local/share/gallaecia-dots/scripts/modules/`: API Bash pública cargada polo `.bashrc`, con helpers de aplicacións, comandos, ficheiros, interface e o dispatcher `gallaecia`.
+- `.local/share/gallaecia-dots/scripts/modules/`: API Bash pública cargada polo `.bashrc`, con helpers de aplicacións, comandos, ficheiros, rede, interface e o dispatcher `gallaecia`.
 - `.local/share/gallaecia-dots/scripts/internal/`: librarías internas de instalación de aplicacións e versións, cargadas explicitamente polo instalador e por todos os updates, pero nunca polo `.bashrc`.
 - `.local/share/gallaecia-dots/scripts/system-update.sh`: actualizador interactivo do sistema e dos dotfiles.
 - `.config/bashrc/`: módulos base e espazo de personalización do usuario, cargados por orde numérica.
@@ -86,11 +86,12 @@ Non concentres varias operacións nunha cadea `comando && comando || return 1`. 
 
 `install.sh` e as cabeceiras dos updates deben manter sempre o mesmo estándar
 despois de que o repo estea dispoñible: declarar `MODULES_DIR` e `INTERNAL_DIR`,
-comprobar que se poden ler `apps.sh`, `commands.sh`, `files.sh`, `gallaecia.sh`
-e `ui.sh` dentro de módulos, comprobar tamén `apps.sh` e `versions.sh` dentro
-de internal, e facer `source` explícito dos sete ficheiros con cadanseu
-comentario de ShellCheck. Non retires unha carga por non ser necesaria nese
-momento; a dispoñibilidade uniforme de todos os helpers é intencionada.
+comprobar que se poden ler `apps.sh`, `commands.sh`, `files.sh`,
+`gallaecia.sh`, `network.sh` e `ui.sh` dentro de módulos, comprobar tamén
+`apps.sh` e `versions.sh` dentro de internal, e facer `source` explícito dos
+oito ficheiros con cadanseu comentario de ShellCheck. Non retires unha carga
+por non ser necesaria nese momento; a dispoñibilidade uniforme de todos os
+helpers é intencionada.
 
 ## Separación entre base e personalización
 
@@ -155,6 +156,27 @@ engadir unha aplicación:
 - Conserva a orde intencionada das opcións; a primeira adoita ser a recomendada.
 - Actualiza no mesmo cambio a lista de categorías e aplicacións do
   `README.md`, indicando o xestor e os identificadores reais dos paquetes.
+
+## Rede e NetworkManager
+
+Noctalia é a interface para as operacións diarias que xa ofrece, como Wi-Fi,
+estado e activación de VPN. `scripts/modules/network.sh` completa unicamente a
+administración de perfís que non está dispoñible na interface.
+
+- Emprega `nmcli` e identifica internamente as conexións por UUID. Os nomes son
+  só etiquetas visibles e poden estar repetidos.
+- Non engadas wrappers que dupliquen unha operación xa resolta por Noctalia sen
+  unha vantaxe concreta.
+- Non imprimas contrasinais, claves privadas nin o contido completo dun perfil.
+- Importar un protocolo require o plugin correspondente de NetworkManager. A
+  base garante NetworkManager e OpenVPN; outros plugins son opcionais.
+- Para iniciar automaticamente unha VPN clásica usa o seu UUID en
+  `connection.secondaries` da conexión base. NetworkManager non implementa
+  `connection.autoconnect` para perfís VPN.
+- Eliminar perfís ou sobrescribir unha exportación require confirmación
+  explícita. Cancelar non debe modificar NetworkManager nin os ficheiros.
+- Mantén no README todos os comandos públicos deste módulo e explica cales
+  limitacións pertencen a NetworkManager, como a exportación de WireGuard.
 
 ## Convencións de Bash
 
@@ -223,7 +245,7 @@ Mantén o mesmo formato nos módulos compartidos e nos Bashrc:
 - Mantén os helpers específicos no ficheiro da aplicación que os utiliza. Non movas lóxica exclusiva de Git, Docker, yt-dlp ou SpotDL a módulos globais.
 - Os módulos internos de aplicacións e versións deben advertir claramente que
   non son unha API para comandos personalizados. Os helpers reutilizables son
-  os de aplicacións, interface, ficheiros e comandos.
+  os de aplicacións, interface, ficheiros, comandos e rede.
 - Conserva en `scripts/modules/` só helpers públicos seguros para cargar en cada shell. As librarías exclusivas do instalador deben vivir en `scripts/internal/` e cargarse explicitamente desde `~/.dotfiles`.
 - O módulo público `gallaecia.sh` expón só a función `gallaecia`; os seus
   helpers comezan por `_gallaecia_`. Calquera carga de `scripts/internal/`

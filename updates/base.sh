@@ -13,6 +13,7 @@ if [ ! -r "$MODULES_DIR/apps.sh" ] ||
   [ ! -r "$MODULES_DIR/commands.sh" ] ||
   [ ! -r "$MODULES_DIR/files.sh" ] ||
   [ ! -r "$MODULES_DIR/gallaecia.sh" ] ||
+  [ ! -r "$MODULES_DIR/network.sh" ] ||
   [ ! -r "$MODULES_DIR/ui.sh" ] ||
   [ ! -r "$INTERNAL_DIR/apps.sh" ] ||
   [ ! -r "$INTERNAL_DIR/versions.sh" ]; then
@@ -29,6 +30,8 @@ source "$MODULES_DIR/commands.sh"
 source "$MODULES_DIR/files.sh"
 # shellcheck source=/dev/null
 source "$MODULES_DIR/gallaecia.sh"
+# shellcheck source=/dev/null
+source "$MODULES_DIR/network.sh"
 # shellcheck source=/dev/null
 source "$MODULES_DIR/ui.sh"
 # shellcheck source=/dev/null
@@ -85,6 +88,7 @@ REQUIRED_PACKAGES=(
   noto-fonts-cjk noto-fonts-emoji noto-fonts ttf-noto-nerd
   papirus-icon-theme breeze breeze-icons
   flatpak util-linux pipewire gnome-keyring libsecret greetd cage wlr-randr dbus polkit libnewt ddcutil power-profiles-daemon trash-cli
+  networkmanager networkmanager-openvpn
   python python-pip python-pipx ffmpeg mpv mpvpaper udisks2 7zip jq poppler fd ripgrep fzf zoxide resvg imagemagick mediainfo
   hyprland uwsm
   noctalia noctalia-greeter
@@ -201,11 +205,19 @@ install_required_packages() {
   flatpak install -y flathub org.gtk.Gtk3theme.adw-gtk3-dark org.gtk.Gtk3theme.adw-gtk3
 }
 
-# Habilita e inicia o daemon de chaveiros na sesión do usuario.
-# Ambos pasos deben completarse para que as aplicacións poidan gardar segredos.
+# Habilita NetworkManager para Noctalia e o daemon de chaveiros da sesión. O
+# plugin OpenVPN xa se instalou cos paquetes obrigatorios; o chaveiro permite
+# que NetworkManager e outras aplicacións garden segredos cando corresponda.
 configure_required_services() {
-  systemctl --user enable gnome-keyring-daemon.service &&
-  systemctl --user start gnome-keyring-daemon.service
+  if ! sudo systemctl enable --now NetworkManager.service; then
+    return 1
+  fi
+  if ! systemctl --user enable gnome-keyring-daemon.service; then
+    return 1
+  fi
+  if ! systemctl --user start gnome-keyring-daemon.service; then
+    return 1
+  fi
 }
 
 # Crea todos os directorios XDG persoais e instala os dous ficheiros que fixan

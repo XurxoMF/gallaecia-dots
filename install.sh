@@ -204,7 +204,7 @@ run_install_flow() {
 # Fluxo bootstrap completo:
 # 1. instalar gum/git,
 # 2. clonar repo,
-# 3. cargar as sete librarías estándar desde o repo,
+# 3. cargar as oito librarías estándar desde o repo,
 # 4. resolver o modo,
 # 5. delegar a instalación real á base ou ás migracións.
 main() {
@@ -219,6 +219,7 @@ main() {
     [ ! -r "$MODULES_DIR/commands.sh" ] ||
     [ ! -r "$MODULES_DIR/files.sh" ] ||
     [ ! -r "$MODULES_DIR/gallaecia.sh" ] ||
+    [ ! -r "$MODULES_DIR/network.sh" ] ||
     [ ! -r "$MODULES_DIR/ui.sh" ] ||
     [ ! -r "$INTERNAL_DIR/apps.sh" ] ||
     [ ! -r "$INTERNAL_DIR/versions.sh" ]; then
@@ -234,6 +235,8 @@ main() {
   source "$MODULES_DIR/files.sh"
   # shellcheck source=/dev/null
   source "$MODULES_DIR/gallaecia.sh"
+  # shellcheck source=/dev/null
+  source "$MODULES_DIR/network.sh"
   # shellcheck source=/dev/null
   source "$MODULES_DIR/ui.sh"
   # shellcheck source=/dev/null

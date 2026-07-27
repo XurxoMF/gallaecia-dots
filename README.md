@@ -22,6 +22,7 @@ obxectivo é ofrecer un punto de partida pequeno, actualizable e fácil de mante
   - [Dispoñibilidade e axuda](#dispoñibilidade-e-axuda)
   - [Aplicacións e paquetes](#aplicacións-e-paquetes)
   - [Comandos do sistema](#comandos-do-sistema)
+  - [Rede e VPN](#rede-e-vpn)
   - [Comando Gallaecia](#comando-gallaecia)
   - [Ficheiros e directorios](#ficheiros-e-directorios)
   - [Interface con Gum](#interface-con-gum)
@@ -96,6 +97,7 @@ usuario.
 - greetd.
 - XDG Desktop Portals.
 - PipeWire.
+- NetworkManager e soporte para importar OpenVPN.
 - Kitty.
 - Flatpak e Flathub.
 - Yay para paquetes oficiais de Arch e AUR.
@@ -143,8 +145,8 @@ Os paquetes compartidos por varias categorías só se instalan unha vez.
 
 ### Dispoñibilidade e axuda
 
-Os módulos públicos de aplicacións, comandos, ficheiros e interface cárganse
-en cada shell desde
+Os módulos públicos de aplicacións, comandos, ficheiros, rede e interface
+cárganse en cada shell desde
 `~/.local/share/gallaecia-dots/scripts/modules/`. Pódense usar nun terminal,
 nun script persoal ou nun ficheiro `~/.config/bashrc/NNN-nome`.
 
@@ -184,6 +186,41 @@ Estes helpers do módulo público `commands.sh` están sempre dispoñibles:
 | `command_path`         | Devolve a ruta executable que resolvería a shell.                              |
 | `package_owns_command` | Indica que paquete Yay/Pacman instalado proporciona un executable.             |
 | `retry_command`        | Repite un comando un número configurable de veces e cunha espera configurable. |
+
+### Rede e VPN
+
+Noctalia cobre a conexión diaria, o estado de rede e a activación das VPN. O
+módulo público `network.sh` completa a administración dos perfís de
+NetworkManager:
+
+| Comando           | Descrición                                                                 |
+| ----------------- | -------------------------------------------------------------------------- |
+| `vpn-list`        | Lista VPN e WireGuard con tipo, estado e UUID.                             |
+| `vpn-import`      | Importa `.ovpn`, configuracións WireGuard ou outro tipo indicado.          |
+| `vpn-rename`      | Cambia o nome visible dun perfil sen modificar o UUID.                     |
+| `vpn-clone`       | Duplica unha VPN cun nome e UUID novos.                                    |
+| `vpn-export`      | Exporta unha VPN mediante o plugin de NetworkManager correspondente.       |
+| `vpn-autoconnect` | Asocia unha VPN a unha conexión base para iniciala automaticamente.        |
+| `vpn-edit`        | Abre o editor avanzado e interactivo de `nmcli`.                           |
+| `vpn-delete`      | Elimina un ou varios perfís despois dun selector e unha confirmación.      |
+
+Os comandos que actúan sobre un perfil permiten indicar o nome ou UUID e abren
+un selector Gum cando se omite. `vpn-list` mostra a colección completa e
+`vpn-import` recibe directamente o ficheiro que se quere importar. Por exemplo:
+
+```bash
+vpn-import --name "VPN do traballo" ~/Descargas/traballo.ovpn
+vpn-rename "VPN do traballo" "Oficina"
+vpn-autoconnect Oficina "Wi-Fi da casa"
+vpn-autoconnect --disable Oficina
+vpn-export Oficina ~/Descargas/oficina.ovpn
+vpn-delete Oficina
+```
+
+`vpn-import` necesita o plugin de NetworkManager correspondente ao formato. A
+base instala soporte OpenVPN; para outros protocolos debes instalar o seu
+plugin. NetworkManager non permite exportar perfís WireGuard mediante
+`nmcli connection export`.
 
 ### Comando Gallaecia
 
