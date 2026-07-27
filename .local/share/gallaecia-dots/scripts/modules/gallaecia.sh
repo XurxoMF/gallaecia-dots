@@ -13,8 +13,7 @@
 #      ├─ update            -> system-update.sh
 #      ├─ reinstall         -> sincroniza repo + install.sh en modo reinstall
 #      ├─ install-category  -> sincroniza repo + internal/apps.sh nun subshell
-#      ├─ wallpaper-add     -> copia a ~/.wallpapers
-#      └─ wallpaper-video-add -> copia a ~/.wallpaper-videos
+#      └─ wallpaper-add     -> clasifica e copia imaxes ou fondos animados
 #
 # O repo sincronízase antes dos fluxos que precisan os fontes máis recentes.
 # `install-category` execútase entre parénteses para que as funcións e variables
@@ -63,10 +62,7 @@ COMANDOS
       Instala máis aplicacións dunha categoría sen retirar as existentes.
 
   wallpaper-add
-      Copia imaxes ao directorio de fondos estáticos.
-
-  wallpaper-video-add
-      Copia vídeos ao directorio de fondos animados.
+      Engade imaxes ou fondos animados ao directorio correspondente.
 
 RESULTADO
   Devolve 0 cando o subcomando remata correctamente e un código distinto de 0
@@ -176,30 +172,20 @@ EXEMPLOS
   gallaecia install-category development
 EOF
       ;;
-    wallpaper-add|wallpaper-video-add)
-      local destination description example
-
-      if [ "$1" = "wallpaper-add" ]; then
-        destination="$HOME/.wallpapers/"
-        description="imaxes para os fondos estáticos"
-        example="gallaecia wallpaper-add $HOME/Imaxes/fondo.jpg"
-      else
-        destination="$HOME/.wallpaper-videos/"
-        description="vídeos para os fondos animados"
-        example="gallaecia wallpaper-video-add $HOME/Vídeos/fondo.mp4"
-      fi
-
-      cat <<EOF
+    wallpaper-add)
+      cat <<'EOF'
 USO
-  gallaecia $1 [OPCIÓNS] FICHEIRO...
+  gallaecia wallpaper-add [OPCIÓNS] FICHEIRO...
 
 DESCRICIÓN
-  Copia un ou máis $description en $destination. Non sobrescribe ficheiros
-  existentes.
+  Clasifica cada fondo pola extensión e cópiao ao directorio correspondente:
+  as imaxes van a ~/.wallpapers e os vídeos animados a ~/.wallpaper-videos.
+  Non sobrescribe ficheiros existentes.
 
 PARÁMETROS
   FICHEIRO...
-      Un ou máis ficheiros que se copiarán.
+      Un ou máis fondos. Admítense como imaxes JPG, JPEG, PNG, WEBP, AVIF e BMP;
+      e como fondos animados MP4, WEBM, MKV, MOV e GIF.
 
 OPCIÓNS
   -h, --help
@@ -209,11 +195,13 @@ OPCIÓNS
       Remata as opcións e permite rutas que comecen por guión.
 
 RESULTADO
-  Conserva o nome de cada ficheiro e devolve un código distinto de 0 se algunha
-  copia falla.
+  Conserva os nomes e copia cada formato no seu directorio. Valida todos os
+  ficheiros antes de copiar e devolve un código distinto de 0 se algún formato
+  non está admitido ou unha copia falla.
 
 EXEMPLOS
-  $example
+  gallaecia wallpaper-add ~/Imaxes/fondo.jpg
+  gallaecia wallpaper-add ~/Vídeos/fondo.mp4 ~/Imaxes/outro.webp
 EOF
       ;;
   esac
@@ -227,8 +215,7 @@ commands             Lista esta referencia.
 update               Actualiza o sistema e os dotfiles.
 reinstall            Reinstala Gallaecia Dots desde a base actual.
 install-category     Instala máis aplicacións dunha categoría.
-wallpaper-add        Engade fondos estáticos.
-wallpaper-video-add  Engade fondos animados.
+wallpaper-add        Engade imaxes e fondos animados.
 EOF
 }
 
@@ -533,21 +520,24 @@ _gallaecia_install_category() (
   done
 )
 
-# Recibe o nome do subcomando, o directorio destino e unha ou máis rutas.
-# Comparte o parser entre imaxes e vídeos, crea o destino e usa copy_file para
-# rexeitar sobrescrituras. Non valida o formato multimedia: Noctalia decide que
-# ficheiros pode reproducir ou mostrar.
+# Recibe unha ou máis rutas e clasifícaas pola extensión, sen inspeccionar o
+# contido multimedia:
+#
+# - JPG, JPEG, PNG, WEBP, AVIF e BMP van a `~/.wallpapers`.
+# - MP4, WEBM, MKV, MOV e GIF van a `~/.wallpaper-videos`.
+#
+# A primeira pasada comproba que todas as rutas sexan ficheiros normais e que
+# todos os formatos estean admitidos. Así, un argumento incorrecto non deixa
+# unha copia parcial. A segunda crea os destinos e usa `copy_file`, que conserva
+# o nome e rexeita sobrescrituras.
 _gallaecia_add_wallpapers() {
-  local command_name="$1"
-  local destination="$2"
-  shift 2
   local files=()
-  local source_file target_file
+  local source_file extension destination target_file
 
   while (($#)); do
     case "$1" in
       -h|--help)
-        _gallaecia_help "$command_name"
+        _gallaecia_help wallpaper-add
         return 0
         ;;
       --)
@@ -556,8 +546,8 @@ _gallaecia_add_wallpapers() {
         break
         ;;
       -*)
-        printf 'Opción descoñecida: %s. Usa gallaecia %s --help.\n' \
-          "$1" "$command_name" >&2
+        printf 'Opción descoñecida: %s. Usa gallaecia wallpaper-add --help.\n' \
+          "$1" >&2
         return 1
         ;;
       *)
@@ -568,14 +558,39 @@ _gallaecia_add_wallpapers() {
   done
 
   if [ ${#files[@]} -eq 0 ]; then
-    printf 'gallaecia %s require polo menos un FICHEIRO. Usa --help.\n' \
-      "$command_name" >&2
+    printf 'gallaecia wallpaper-add require polo menos un FICHEIRO. Usa --help.\n' >&2
     return 1
   fi
 
-  ensure_directory "$destination" || return 1
+  for source_file in "${files[@]}"; do
+    if [ ! -f "$source_file" ]; then
+      error "A orixe non é un ficheiro normal: $source_file"
+      return 1
+    fi
+
+    extension="${source_file##*.}"
+    extension="${extension,,}"
+    case "$extension" in
+      jpg|jpeg|png|webp|avif|bmp|mp4|webm|mkv|mov|gif) ;;
+      *)
+        error "Formato de fondo non admitido: $source_file"
+        return 1
+        ;;
+    esac
+  done
 
   for source_file in "${files[@]}"; do
+    extension="${source_file##*.}"
+    extension="${extension,,}"
+    case "$extension" in
+      jpg|jpeg|png|webp|avif|bmp)
+        destination="$HOME/.wallpapers"
+        ;;
+      mp4|webm|mkv|mov|gif)
+        destination="$HOME/.wallpaper-videos"
+        ;;
+    esac
+
     target_file="$destination/${source_file##*/}"
     copy_file "$source_file" "$target_file" || return 1
     success "Engadido: $target_file"
@@ -645,12 +660,7 @@ gallaecia() {
       _gallaecia_install_category "$@"
       ;;
     wallpaper-add)
-      _gallaecia_add_wallpapers \
-        wallpaper-add "$HOME/.wallpapers" "$@"
-      ;;
-    wallpaper-video-add)
-      _gallaecia_add_wallpapers \
-        wallpaper-video-add "$HOME/.wallpaper-videos" "$@"
+      _gallaecia_add_wallpapers "$@"
       ;;
     _sync-repo)
       _gallaecia_sync_repo "$@"

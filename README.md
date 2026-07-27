@@ -235,8 +235,7 @@ as operacións propias do proxecto:
 | `gallaecia update`              | Abre o actualizador completo do sistema e dos dotfiles.                       |
 | `gallaecia reinstall`           | Sincroniza o repositorio e volve executar a instalación base tras confirmar.  |
 | `gallaecia install-category`    | Abre repetidamente as categorías para instalar máis aplicacións ata premer Esc. |
-| `gallaecia wallpaper-add`       | Copia un ou varios fondos estáticos a `~/.wallpapers/` sen sobrescribir.      |
-| `gallaecia wallpaper-video-add` | Copia un ou varios fondos animados a `~/.wallpaper-videos/` sen sobrescribir. |
+| `gallaecia wallpaper-add`       | Clasifica e copia imaxes ou fondos animados no directorio correspondente.    |
 
 Cada subcomando dispón da súa propia axuda, por exemplo
 `gallaecia install-category --help`. As operacións internas de instalación
@@ -467,8 +466,15 @@ Para engadir un ou varios fondos podes usar:
 
 ```bash
 gallaecia wallpaper-add ~/Imaxes/fondo.jpg
-gallaecia wallpaper-video-add ~/Vídeos/fondo.mp4
+gallaecia wallpaper-add ~/Vídeos/fondo.mp4
+gallaecia wallpaper-add ~/Imaxes/outro.webp ~/Vídeos/outro.webm
 ```
+
+O comando recoñece como imaxes `.jpg`, `.jpeg`, `.png`, `.webp`, `.avif` e
+`.bmp`, que copia a `~/.wallpapers/`. Os formatos `.mp4`, `.webm`, `.mkv`,
+`.mov` e `.gif` considéranse fondos animados e van a
+`~/.wallpaper-videos/`. Calquera outra extensión produce un erro sen copiar
+ningún dos ficheiros recibidos nesa execución.
 
 Despois abre o selector de fondos desde a barra de Noctalia e escolle o novo
 ficheiro. Ao cambiar un fondo estático, Noctalia rexenera tamén a paleta

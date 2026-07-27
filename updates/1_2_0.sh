@@ -164,6 +164,7 @@ show_changelog() {
   info "· Unificadas as cores de Gum nunha paleta semántica reutilizable."
   info "· Engadidos instaladores interactivos para Yay, Flatpak e Pipx."
   info "· Engadido o comando gallaecia para mantemento, categorías e fondos."
+  info "· Unificado wallpaper-add para clasificar imaxes e fondos animados."
   info "· Engadida a administración de perfís VPN que non ofrece Noctalia."
   info "· Simplificada cada categoría nun único fluxo de selección, instalación e configuración."
   info "· Eliminadas as colas e o contexto global compartido entre categorías."
