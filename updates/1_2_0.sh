@@ -68,6 +68,17 @@ update_greetd_pam_config() {
   fi
 }
 
+# Instala os overrides mínimos que marcan como ocultas as utilidades técnicas.
+# A fusión actualiza unicamente os IDs distribuídos polo proxecto e non elimina
+# outros `.desktop` que o usuario gardase en `~/.local/share/applications`.
+update_desktop_overrides() {
+  if ! merge_path \
+    "$DOTFILES_DIR/.local/share/applications" \
+    "$HOME/.local/share/applications"; then
+    return 1
+  fi
+}
+
 # Substitúe a API pública de resolución, validación e reintento de comandos.
 # Non executa nin instala paquetes durante a copia.
 update_commands_module() {
@@ -109,8 +120,9 @@ update_noctalia_config() {
     "$HOME/.config/noctalia/gallaecia.toml"
 }
 
-# Substitúe `apps.sh`, que expón comprobación e instaladores Yay/Flatpak/Pipx.
-# Os modos `--packages` permiten ás categorías instalar unha selección directa.
+# Substitúe `apps.sh`, que expón comprobación, instalación e desinstalación
+# interactiva con Yay, Flatpak e Pipx. Os modos `--packages` permiten operar
+# directamente sobre unha selección xa coñecida.
 update_apps_module() {
   replace_file \
     "$DOTFILES_DIR/.local/share/gallaecia-dots/scripts/modules/apps.sh" \
@@ -199,11 +211,13 @@ show_changelog() {
   info "· Engadidos máis wrappers de Gum para ficheiros, progreso, táboas e logs."
   info "· Unificadas as cores de Gum nunha paleta semántica reutilizable."
   info "· Engadidos instaladores interactivos para Yay, Flatpak e Pipx."
+  info "· Engadidos desinstaladores seguros con selección e limpeza recomendada."
   info "· Engadido o comando gallaecia para mantemento, categorías e fondos."
   info "· Unificado wallpaper-add para clasificar imaxes e fondos animados."
   info "· Engadida a administración de perfís VPN que non ofrece Noctalia."
   info "· Engadidos Seahorse e o desbloqueo do chaveiro mediante PAM."
   info "· Retirada a flag de VS Code que evitaba utilizar o chaveiro."
+  info "· Ocultadas do launcher as utilidades técnicas que non son apps de uso diario."
   info "· Simplificada cada categoría nun único fluxo de selección, instalación e configuración."
   info "· Eliminadas as colas e o contexto global compartido entre categorías."
   info "· Unificada a aplicación predeterminada de MIME e Hyprland por categoría."
@@ -223,6 +237,9 @@ apply_update() {
     return 1
   fi
   if ! update_greetd_pam_config; then
+    return 1
+  fi
+  if ! update_desktop_overrides; then
     return 1
   fi
   if ! update_commands_module; then

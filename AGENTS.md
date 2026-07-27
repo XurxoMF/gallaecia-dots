@@ -18,6 +18,8 @@ Emprega o galego nos comentarios, mensaxes da interface, documentación e nomes 
 - `.local/share/gallaecia-dots/scripts/modules/`: API Bash pública cargada polo `.bashrc`, con helpers de aplicacións, comandos, ficheiros, rede, interface e o dispatcher `gallaecia`.
 - `.local/share/gallaecia-dots/scripts/internal/`: librarías internas de instalación de aplicacións e versións, cargadas explicitamente polo instalador e por todos os updates, pero nunca polo `.bashrc`.
 - `.local/share/gallaecia-dots/scripts/system-update.sh`: actualizador interactivo do sistema e dos dotfiles.
+- `.local/share/applications/`: overrides mínimos que ocultan do launcher
+  utilidades técnicas instaladas como dependencias.
 - `.config/bashrc/`: módulos base e espazo de personalización do usuario, cargados por orde numérica.
 - `optional/.local/share/gallaecia-dots/bashrc/`: comandos Bash opcionais que só se instalan coa aplicación correspondente.
 - `.local/share/gallaecia-dots/hypr/gallaecia.lua`: base de Hyprland controlada polo proxecto.
@@ -279,6 +281,11 @@ opcionais ou os fluxos de uso documentados.
 - Despois de seleccionar recursos para borrar, pide sempre unha confirmación Si/No antes de executar a operación.
 - Usa unha segunda confirmación cando a acción sexa forzada ou poida eliminar datos importantes, por exemplo volumes, commits non integrados ou contedores activos.
 - Cancelar unha selección ou confirmación debe saír sen executar a acción destrutiva.
+- Nos desinstaladores de aplicacións, conserva a limpeza proporcionada polo
+  propio xestor e limita os efectos colaterais: Yay usa `-Rns` e só limpa a
+  caché global cunha opción explícita; Flatpak limpa os runtimes sen uso e pide
+  unha segunda confirmación para `--delete-data`; Pipx deixa que `uninstall`
+  retire o contorno e os accesos da aplicación sen purgar recursos globais.
 
 ## Interface e idioma
 
@@ -322,6 +329,10 @@ Non codifiques cores novas directamente nun fluxo se poden formar parte do módu
   Conserva a pila predeterminada de Arch e as dúas regras
   `pam_gnome_keyring.so`; calquera cambio debe revisarse como configuración de
   autenticación sensible.
+- Os overrides de `.local/share/applications/` deben conservar exactamente o
+  nome do `.desktop` de `/usr/share/applications/` e conter só `[Desktop Entry]`,
+  `Type`, `Name` e `Hidden=true`, o mínimo que valida freedesktop. Instálaos
+  mediante unha fusión que non elimine outros overrides persoais.
 
 ## Comprobacións seguras
 

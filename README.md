@@ -99,6 +99,8 @@ usuario.
 - PipeWire.
 - NetworkManager e soporte para importar OpenVPN.
 - GNOME Keyring e Seahorse para gardar e administrar contrasinais e claves.
+- Overrides locais para ocultar do launcher utilidades técnicas de Qt, CMake,
+  Avahi, hwloc, V4L2 e systemd.
 - Kitty.
 - Flatpak e Flathub.
 - Yay para paquetes oficiais de Arch e AUR.
@@ -174,12 +176,15 @@ se deben usar como API persoal.
 
 Estes helpers do módulo público `apps.sh` están sempre dispoñibles:
 
-| Comando ou función | Descrición                                                                                                                                      |
-| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| `has_package`      | Comproba se un paquete está instalado con Yay/Pacman, Flatpak ou Pipx; permite limitar a comprobación cun xestor.                               |
-| `yay-install`      | Explora e filtra o catálogo local de paquetes oficiais e AUR; `--refresh` actualízao e `--packages` instala nomes directamente.                  |
-| `flatpak-install`  | Explora o catálogo Flatpak e instala a selección confirmada; `--packages` instala directamente os IDs indicados.                                |
-| `pipx-install`     | Valida en PyPI e instala unha aplicación Python illada; `--packages` instala directamente un ou máis nomes.                                     |
+| Comando ou función  | Descrición                                                                                                                                                                |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `has_package`       | Comproba se un paquete está instalado con Yay/Pacman, Flatpak ou Pipx; permite limitar a comprobación cun xestor.                                                         |
+| `yay-install`       | Explora e filtra o catálogo local de paquetes oficiais e AUR; `--refresh` actualízao e `--packages` instala nomes directamente.                                            |
+| `flatpak-install`   | Explora o catálogo Flatpak e instala a selección confirmada; `--packages` instala directamente os IDs indicados.                                                          |
+| `pipx-install`      | Valida en PyPI e instala unha aplicación Python illada; `--packages` instala directamente un ou máis nomes.                                                               |
+| `yay-uninstall`     | Selecciona paquetes explícitos e elimínaos con `yay -Rns`; `--clean-cache` permite limpar ademais a caché global de paquetes non instalados.                               |
+| `flatpak-uninstall` | Elimina as apps seleccionadas e os runtimes sen uso; `--delete-data` permite borrar tamén datos persistentes tras unha segunda confirmación.                              |
+| `pipx-uninstall`    | Elimina os contornos Pipx seleccionados xunto cos seus comandos e páxinas de manual, tanto do usuario como globais.                                                       |
 
 ### Comandos do sistema
 
@@ -450,6 +455,12 @@ As asignacións de Hyprland actualízanse aínda que o placeholder da instalaci�
 inicial xa teña un valor. As regras MIME existentes substitúense e as que
 falten créanse. Cando varias apps seleccionadas comparten un MIME, este queda
 na predeterminada; os MIME exclusivos das demais consérvanse nas súas apps.
+
+Para retirar aplicacións ou paquetes xa instalados están dispoñibles
+`yay-uninstall`, `flatpak-uninstall` e `pipx-uninstall`. Os tres mostran só as
+apps xa instaladas, permiten marcar varias e sempre ensinan a información e
+piden confirmación antes de borrar. Usa `COMANDO --help` para ver a limpeza
+específica de cada xestor e o modo directo `--packages`.
 
 Tamén podes indicar directamente o identificador dunha categoría:
 

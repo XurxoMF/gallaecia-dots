@@ -259,6 +259,15 @@ install_gallaecia_config() {
   cp -rf "$DOTFILES_DIR/.wallpapers/." "$HOME/.wallpapers/"
 }
 
+# Instala os `.desktop` mínimos que ocultan utilidades técnicas do launcher.
+# `merge_path` sobrescribe só estes IDs controlados por Gallaecia e conserva
+# calquera outro lanzador ou override persoal do usuario no mesmo directorio.
+install_desktop_overrides() {
+  merge_path \
+    "$DOTFILES_DIR/.local/share/applications" \
+    "$HOME/.local/share/applications"
+}
+
 # Substitúe o `.bashrc` principal e a árbore inicial de módulos públicos.
 # Esta función pertence á instalación base; as migracións posteriores preservan
 # personalizacións xa existentes en `~/.config/bashrc`.
@@ -332,6 +341,12 @@ install_dotfiles() {
     success "Configs propias de Gallaecia Dots instaladas con éxito!"
   else
     fail "Algo fallou ao instalar as configs propias de Gallaecia Dots! Abortando instalación..."
+  fi
+
+  if install_desktop_overrides; then
+    success "Utilidades técnicas ocultadas do launcher con éxito!"
+  else
+    fail "Algo fallou ao instalar os overrides do launcher! Abortando instalación..."
   fi
 
   if install_bashrc; then
