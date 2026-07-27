@@ -168,9 +168,9 @@ Estes helpers do módulo público `apps.sh` están sempre dispoñibles:
 | Comando ou función | Descrición                                                                                                                                      |
 | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
 | `has_package`      | Comproba se un paquete está instalado con Yay/Pacman, Flatpak ou Pipx; permite limitar a comprobación cun xestor.                               |
-| `yay-install`      | Explora e filtra o catálogo local de paquetes oficiais e AUR, mostra información e instala a selección; `--refresh` actualiza antes o catálogo. |
-| `flatpak-install`  | Explora o catálogo Flatpak configurado, filtra aplicacións e instala a selección confirmada.                                                    |
-| `pipx-install`     | Valida en PyPI o nome indicado e instala a aplicación Python de maneira illada.                                                                 |
+| `yay-install`      | Explora e filtra o catálogo local de paquetes oficiais e AUR; `--refresh` actualízao e `--packages` instala nomes directamente.                  |
+| `flatpak-install`  | Explora o catálogo Flatpak e instala a selección confirmada; `--packages` instala directamente os IDs indicados.                                |
+| `pipx-install`     | Valida en PyPI e instala unha aplicación Python illada; `--packages` instala directamente un ou máis nomes.                                     |
 
 ### Comandos do sistema
 
@@ -197,7 +197,7 @@ as operacións propias do proxecto:
 | `gallaecia commands`            | Lista os subcomandos públicos cunha descrición breve.                         |
 | `gallaecia update`              | Abre o actualizador completo do sistema e dos dotfiles.                       |
 | `gallaecia reinstall`           | Sincroniza o repositorio e volve executar a instalación base tras confirmar.  |
-| `gallaecia install-category`    | Permite instalar máis aplicacións dunha categoría sen eliminar as existentes. |
+| `gallaecia install-category`    | Abre repetidamente as categorías para instalar máis aplicacións ata premer Esc. |
 | `gallaecia wallpaper-add`       | Copia un ou varios fondos estáticos a `~/.wallpapers/` sen sobrescribir.      |
 | `gallaecia wallpaper-video-add` | Copia un ou varios fondos animados a `~/.wallpaper-videos/` sen sobrescribir. |
 
@@ -390,17 +390,23 @@ gallaecia install-category
 ```
 
 Primeiro escolles unha categoría e despois as aplicacións que queres engadir.
-O comando non desinstala nin deixa de seleccionar as aplicacións anteriores.
-Instala os paquetes e configuracións que correspondan e, cando a categoría
-teña unha aplicación predeterminada, pregunta se queres actualizala. Nas
-categorías IDE, Navegador e Explorador de arquivos a mesma elección aplícase
-tanto aos MIME types como aos atallos de teclado de Hyprland. Terminal e Editor de
-terminal actualizan só os atallos de teclado de Hyprland porque non teñen regras MIME
-equivalentes.
+Ao rematar, o menú de categorías aparece de novo ata que premas Esc. O comando
+non desinstala nin deixa de seleccionar as aplicacións anteriores. Cada
+categoría instala inmediatamente os seus paquetes e configuracións antes de
+volver ao menú.
+
+Cando unha categoría admite aplicación predeterminada, a elección aplícase sen
+outra pregunta ás regras correspondentes. En IDE, Navegador e Explorador de
+arquivos úsase a mesma app tanto para os MIME como para Hyprland. Terminal e
+Editor de terminal actualizan só Hyprland porque non teñen regras MIME
+equivalentes. Yazi rexistra `yazi.desktop` para abrir directorios e Hyprland
+lánzao sempre con `$TERMINAL -e yazi`, polo que segue automaticamente o terminal
+predeterminado tras reiniciar a sesión.
 
 As asignacións de Hyprland actualízanse aínda que o placeholder da instalación
 inicial xa teña un valor. As regras MIME existentes substitúense e as que
-falten créanse.
+falten créanse. Cando varias apps seleccionadas comparten un MIME, este queda
+na predeterminada; os MIME exclusivos das demais consérvanse nas súas apps.
 
 Tamén podes indicar directamente o identificador dunha categoría:
 

@@ -63,7 +63,7 @@ update_ui_colors_template() {
 # Só cando yt-dlp e o módulo opcional existen, substitúe ese módulo pola versión
 # compatible coa nova interface. Non instala yt-dlp nin activa unha app non elixida.
 update_yt_dlp_bash_module() {
-  if ! is_pkg_installed yt-dlp ||
+  if ! has_package --manager yay yt-dlp ||
     ! file_exists "$HOME/.local/share/gallaecia-dots/bashrc/201-yt-dlp"; then
     return 0
   fi

@@ -16,7 +16,7 @@ Emprega o galego nos comentarios, mensaxes da interface, documentación e nomes 
 - `updates/X_Y_Z.sh`: migracións incrementais para instalacións antigas.
 - `updates/X_X_X.sh.example`: plantilla para crear unha migración.
 - `.local/share/gallaecia-dots/scripts/modules/`: API Bash pública cargada polo `.bashrc`, con helpers de aplicacións, comandos, ficheiros, interface e o dispatcher `gallaecia`.
-- `.local/share/gallaecia-dots/scripts/internal/`: librarías internas de aplicacións, catálogo e versións, cargadas explicitamente polo instalador e por todos os updates, pero nunca polo `.bashrc`.
+- `.local/share/gallaecia-dots/scripts/internal/`: librarías internas de instalación de aplicacións e versións, cargadas explicitamente polo instalador e por todos os updates, pero nunca polo `.bashrc`.
 - `.local/share/gallaecia-dots/scripts/system-update.sh`: actualizador interactivo do sistema e dos dotfiles.
 - `.config/bashrc/`: módulos base e espazo de personalización do usuario, cargados por orde numérica.
 - `optional/.local/share/gallaecia-dots/bashrc/`: comandos Bash opcionais que só se instalan coa aplicación correspondente.
@@ -110,11 +110,12 @@ Antes de cambiar unha operación de copia, comproba se o destino está pensado p
 
 ## Aplicacións
 
-As aplicacións descríbense no catálogo de `scripts/internal/apps.sh` con
-entradas neste formato:
+Cada categoría defínese nunha función `install-category-<categoría>()` de
+`scripts/internal/apps.sh`. A propia función contén as súas entradas neste
+formato:
 
 ```text
-tipo|Nome visible|paquetes|comando|ficheiro .desktop
+tipo|Nome visible|paquetes|comando
 ```
 
 Os tipos admitidos son:
@@ -123,28 +124,58 @@ Os tipos admitidos son:
 - `flatpak`: identificador de Flathub.
 - `pipx`: paquete Python instalado con `pipx`.
 
-O campo de paquetes pode conter varios nomes separados por espazos. O comando úsase en Hyprland ou en variables de contorno. O ficheiro `.desktop` emprégase para asociacións MIME e pode quedar baleiro cando non aplique.
+O campo de paquetes pode conter varios nomes separados por espazos. O comando
+úsase nas categorías que actualizan Hyprland. Os ficheiros `.desktop` e os MIME
+decláranse explicitamente no `case` de cada aplicación dentro da mesma función.
 
-As categorías principais esixen polo menos unha selección e poden pedir unha aplicación predeterminada. As categorías opcionais poden quedar baleiras. Ao engadir unha aplicación:
+As categorías principais esixen polo menos unha selección cando `base.sh` as
+chama con `--required`; desde `gallaecia install-category` todas poden
+cancelarse. Cada función selecciona, instala e configura as súas aplicacións
+antes de retornar: non hai colas nin contexto global entre categorías. Ao
+engadir unha aplicación:
 
-- Emprega os helpers de `scripts/internal/apps.sh` e non dupliques a lóxica das colas.
-- Mantén o catálogo unicamente en `scripts/internal/apps.sh`; `updates/base.sh`
-  e `gallaecia install-category` deben consumir esa mesma fonte de verdade.
-- Evita engadir dúas veces un paquete compartido por varias categorías.
+- Engade a entrada e todo o seu comportamento á función da categoría. Prefire
+  un `case` explícito por aplicación para Hyprland e MIME, mesmo cando varias
+  aplicacións repitan as mesmas asociacións.
+- Instala a selección mediante os modos directos `yay-install --packages`,
+  `flatpak-install --packages` e `pipx-install --packages`.
 - Instala configuración opcional só se a aplicación foi escollida.
-- Actualiza as asociacións MIME cando a categoría teña unha aplicación predeterminada.
+- Para fusionar MIME, aplica primeiro as aplicacións secundarias e por último a
+  predeterminada: así os tipos exclusivos quedan coa súa aplicación e os
+  compartidos quedan asignados á predeterminada.
 - Usa unha única elección predeterminada para MIME e para a asignación
   correspondente da táboa `Gallaecia` de `~/.config/hypr/hyprland.lua`.
   A actualización debe funcionar tanto cos placeholders iniciais como con
   valores xa substituídos, sen volver preguntar ao usuario.
+- Yazi usa `yazi.desktop` para `inode/directory` e o comando literal
+  `$TERMINAL -e yazi` en Hyprland.
+- `updates/base.sh` chama directamente as funcións de categoría. O menú de
+  `gallaecia install-category` declara manualmente as mesmas categorías e
+  chama esas funcións sen `--required`, repetindo o menú ata Esc.
 - Conserva a orde intencionada das opcións; a primeira adoita ser a recomendada.
-- Actualiza no mesmo cambio o catálogo de categorías e aplicacións do
+- Actualiza no mesmo cambio a lista de categorías e aplicacións do
   `README.md`, indicando o xestor e os identificadores reais dos paquetes.
 
 ## Convencións de Bash
 
+- Prioriza código explícito, lineal e fácil de modificar a man sobre
+  abstraccións moi optimizadas. É aceptable repetir bloques pequenos, `case` ou
+  chamadas cando iso permite ver nun único lugar todo o comportamento dunha
+  categoría ou fluxo.
+- Non extraías helpers xenéricos só para reducir duplicación. Faino cando
+  eliminen unha cantidade importante de código sen ocultar que función se chama,
+  que estado recibe, que ficheiros modifica nin que casos atende.
+- Prefire unha función clara por responsabilidade ou categoría fronte a un
+  orquestrador que dependa de contexto global, colas, variables preparadas por
+  fases anteriores ou múltiples táboas indirectas. A persoa que edite o script
+  debe poder seguir o fluxo de arriba abaixo sen saltar repetidamente entre
+  funcións.
+- Se hai que escoller entre unha implementación algo máis longa e outra máis
+  compacta pero difícil de entender, escolle a máis explícita. Neste proxecto a
+  facilidade de revisión e ampliación é máis importante ca minimizar liñas ou
+  eliminar toda duplicación.
 - Usa Bash e conserva os shebangs existentes.
-- Nas funcións internas e variables locais usa `snake_case`; reserva maiúsculas para constantes e arrays globais de configuración. Os comandos públicos cargados no Bashrc poden usar nomes con guión, como `git-branch-delete`.
+- Nas funcións internas e variables locais usa `snake_case`; reserva maiúsculas para constantes e arrays globais de configuración. Os comandos públicos cargados no Bashrc poden usar nomes con guión, como `git-branch-delete`. As funcións internas `install-category-*` son a excepción intencionada: o seu nome común fai visible que son os puntos de entrada das categorías.
 - Declara variables de función con `local`.
 - Cita as expansións de variables e rutas salvo cando a separación en palabras sexa deliberada, como no campo de paquetes das entradas de aplicacións.
 - Os scripts principais usan `set -u` e `set -o pipefail`. Non introduzas `set -e` sen revisar todo o control explícito de erros.
@@ -208,7 +239,7 @@ Mantén o mesmo formato nos módulos compartidos e nos Bashrc:
 O `README.md` funciona tamén como referencia de uso e debe manter sempre:
 
 - Un índice sincronizado con todos os seus apartados e subapartados.
-- O catálogo completo das categorías e aplicacións de
+- A lista completa das categorías e aplicacións de
   `scripts/internal/apps.sh`, co
   xestor e os identificadores de paquete correspondentes.
 - A lista completa de comandos, funcións e alias públicos dos módulos e dos
@@ -256,6 +287,10 @@ Non codifiques cores novas directamente nun fluxo se poden formar parte do módu
 - A configuración común debe ir en `.local/share/gallaecia-dots/hypr/gallaecia.lua`; o wrapper debe quedar pequeno e personalizable.
 - Noctalia é a peza central da barra, launcher, portapapeis, capturas, multimedia, fondo e actualizacións.
 - As paletas dinámicas de `gum` xéranse con `.local/share/gallaecia-dots/noctalia/ui-colors.sh.template`.
+- En `[theme.templates]` de Noctalia conserva só os templates estruturais do
+  núcleo e os das aplicacións ofrecidas nas categorías de `internal/apps.sh`.
+  Non habilites templates de programas que Gallaecia non instala nin permite
+  seleccionar.
 - As configuracións opcionais de terminais, Yazi, VS Code, SpotDL e yt-dlp deben permanecer dentro de `optional/` mentres dependan da selección do usuario.
 - Conserva os nomes galegos dos directorios XDG e calquera ruta que dependa deles.
 

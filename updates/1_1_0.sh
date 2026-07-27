@@ -127,7 +127,8 @@ install_git_tools() {
   if ! yay -Syu --needed git github-cli; then
     return 1
   fi
-  if ! is_pkg_installed git || ! is_pkg_installed github-cli; then
+  if ! has_package --manager yay git ||
+    ! has_package --manager yay github-cli; then
     warning "Git ou GitHub CLI non quedaron instalados correctamente."
     return 1
   fi
@@ -142,9 +143,9 @@ install_docker_tools() {
   if ! yay -Syu --needed docker docker-compose docker-buildx; then
     return 1
   fi
-  if ! is_pkg_installed docker ||
-    ! is_pkg_installed docker-compose ||
-    ! is_pkg_installed docker-buildx; then
+  if ! has_package --manager yay docker ||
+    ! has_package --manager yay docker-compose ||
+    ! has_package --manager yay docker-buildx; then
     warning "Docker, Compose ou Buildx non quedaron instalados correctamente."
     return 1
   fi

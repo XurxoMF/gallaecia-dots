@@ -37,7 +37,7 @@ source "$INTERNAL_DIR/versions.sh"
 # Se yt-dlp e o módulo antigo existen, retírao de `~/.config/bashrc` e instala a
 # versión nova na área opcional controlada por Gallaecia; noutro caso non actúa.
 migrate_yt_dlp_bash_module() {
-  if ! is_pkg_installed yt-dlp ||
+  if ! has_package --manager yay yt-dlp ||
     ! file_exists "$HOME/.config/bashrc/201-yt-dlp"; then
     return 0
   fi
@@ -55,8 +55,8 @@ migrate_yt_dlp_bash_module() {
   fi
 }
 
-# Crea as dúas áreas de scripts e substitúe o módulo público de ficheiros e o
-# catálogo interno necesarios para que os seguintes fluxos compartan helpers.
+# Crea as dúas áreas de scripts e substitúe o módulo público de ficheiros e a
+# libraría interna de aplicacións necesaria para os seguintes fluxos.
 update_helpers_modules() {
   if ! mkdir -p \
     "$HOME/.local/share/gallaecia-dots/scripts/modules" \

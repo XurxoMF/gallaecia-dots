@@ -60,26 +60,23 @@ source "$INTERNAL_DIR/versions.sh"
 #          │
 #          ▼
 #   categorías opcionais
-#          │
-#          ▼
-#   instalación das colas Yay/Flatpak/Pipx
+#   (cada categoría instala e configura a súa selección ao momento)
 #          │
 #          ▼
 #   rexistro de `base` e reinicio opcional
 #
-# As categorías non se definen neste ficheiro: veñen do catálogo único de
-# `scripts/internal/apps.sh`. As funcións choose_* dese módulo van acumulando
-# paquetes nas tres colas globais e esta base chama `install_selected_apps` unha
-# soa vez despois de rematar todas as preguntas.
+# Cada categoría vive nunha función `install-category-*` de
+# `scripts/internal/apps.sh`. A función contén a lista visible, instala os
+# paquetes seleccionados e aplica as configuracións, MIME e valores de
+# Hyprland que lle corresponden antes de pasar á seguinte categoría.
 #
 # PARA MODIFICAR A BASE
 #
 # - Paquete imprescindible para todos: REQUIRED_PACKAGES.
 # - Directorio persoal: PERSONAL_DIRS.
-# - Aplicación dunha categoría: internal/apps.sh, non a dupliques aquí.
+# - Aplicación dunha categoría: a súa función en internal/apps.sh.
 # - Configuración controlada polo proxecto: función install_* correspondente.
-# - Configuración opcional dunha app: mantén tamén configure_installed_app_entry
-#   en internal/apps.sh sincronizada para `gallaecia install-category`.
+# - Configuración opcional dunha app: dentro da mesma función de categoría.
 ###############################################################################
 
 # Paquetes que sempre forman parte do escritorio, independentemente das
@@ -111,15 +108,6 @@ PERSONAL_DIRS=(
   "$HOME/Vídeos"
   "$HOME/Xogos"
 )
-
-# Comandos predeterminados escollidos nas cinco categorías principais.
-# Gárdanse porque se reutilizan ao configurar Hyprland e, no caso do terminal,
-# para construír o comando `TERMINAL -e yazi`.
-terminal_command=""
-editor_command=""
-ide_command=""
-browser_command=""
-file_explorer_command=""
 
 # Imprime o logo ASCII ao comezo da instalación base.
 # Non consulta nin modifica o sistema; serve só como cabeceira visual.
@@ -286,59 +274,6 @@ install_xsettingsd() {
   replace_path "$DOTFILES_DIR/.config/xsettingsd" "$HOME/.config/xsettingsd"
 }
 
-# Substitúe a configuración opcional de Kitty pola plantilla distribuída.
-# Só a chama o fluxo de categorías cando Kitty foi unha selección do usuario.
-install_kitty_config() {
-  replace_path "$DOTFILES_DIR/optional/.config/kitty" "$HOME/.config/kitty"
-}
-
-# Substitúe a configuración opcional de Alacritty, aliñada co aspecto base.
-# Só se executa cando Alacritty aparece entre as seleccións instaladas.
-install_alacritty_config() {
-  replace_path "$DOTFILES_DIR/optional/.config/alacritty" "$HOME/.config/alacritty"
-}
-
-# Substitúe a configuración opcional de Foot coa fonte e tamaño comúns.
-# Non se aplica a instalacións que non escolleron este terminal.
-install_foot_config() {
-  replace_path "$DOTFILES_DIR/optional/.config/foot" "$HOME/.config/foot"
-}
-
-# Substitúe a configuración opcional de Ghostty co aspecto común do proxecto.
-# O dispatcher de aplicacións só a chama cando Ghostty foi seleccionado.
-install_ghostty_config() {
-  replace_path "$DOTFILES_DIR/optional/.config/ghostty" "$HOME/.config/ghostty"
-}
-
-# Substitúe a configuración opcional de WezTerm coa fonte e tamaño da base.
-# Só modifica o destino cando o usuario escolle esta aplicación.
-install_wezterm_config() {
-  replace_path "$DOTFILES_DIR/optional/.config/wezterm" "$HOME/.config/wezterm"
-}
-
-# Instala o único ficheiro opcional de Dolphin controlado por Gallaecia.
-# Só se chama tras seleccionar Dolphin como explorador de ficheiros.
-install_dolphin_config() {
-  replace_file "$DOTFILES_DIR/optional/.config/dolphinrc" "$HOME/.config/dolphinrc"
-}
-
-# Config opcional de Yazi e plugins recomendados.
-# Só se aplica se o usuario escolle Yazi.
-install_yazi_config() {
-  replace_path "$DOTFILES_DIR/optional/.config/yazi" "$HOME/.config/yazi" &&
-  ya pkg add yazi-rs/plugins:git &&
-  ya pkg add yazi-rs/plugins:mount &&
-  ya pkg add yazi-rs/plugins:chmod &&
-  ya pkg add boydaihungst/restore &&
-  ya pkg add boydaihungst/mediainfo
-}
-
-# Instala os flags opcionais de VS Code usados para a sesión Wayland.
-# Só se chama cando a entrada de VS Code foi seleccionada na categoría IDE.
-install_vscode_config() {
-  replace_file "$DOTFILES_DIR/optional/.config/code-flags.conf" "$HOME/.config/code-flags.conf"
-}
-
 # Instala o wrapper de Hyprland en ~/.config.
 # Ese ficheiro queda para o usuario; a base actualizable vive en ~/.local/share.
 install_hyprland() {
@@ -354,13 +289,6 @@ install_noctalia() {
   if [ ! -f "$HOME/.config/noctalia/custom.toml" ]; then
     replace_file "$DOTFILES_DIR/.config/noctalia/custom.toml" "$HOME/.config/noctalia/custom.toml"
   fi
-}
-
-# Habilita o daemon de Docker e engade o usuario actual ao grupo `docker`.
-# O novo grupo adoita facerse efectivo no seguinte inicio de sesión.
-install_docker() {
-  sudo systemctl enable docker.service &&
-  sudo usermod -aG docker "$USER"
 }
 
 # Aplica todos os dotfiles base, sen apps opcionais.
@@ -421,324 +349,42 @@ install_dotfiles() {
   fi
 }
 
-# Substitúe a configuración de yt-dlp e instala o seu módulo Bash opcional.
-# Ambas pezas se manteñen xuntas porque os wrappers dependen deses perfís.
-configure_yt_dlp() {
-  mkdir -p "$HOME/.local/share/gallaecia-dots/bashrc" &&
-  replace_path "$DOTFILES_DIR/optional/.config/yt-dlp" "$HOME/.config/yt-dlp" &&
-  replace_file "$DOTFILES_DIR/optional/.local/share/gallaecia-dots/bashrc/201-yt-dlp" "$HOME/.local/share/gallaecia-dots/bashrc/201-yt-dlp"
+# Executa, unha por unha, as cinco categorías imprescindibles. `--required`
+# impide continuar cunha selección baleira. Cada función instala e configura
+# inmediatamente as súas apps, polo que non existe unha fase posterior de colas.
+install_required_app_categories() {
+  install-category-terminal --required || return 1
+  install-category-editor --required || return 1
+  install-category-ide --required || return 1
+  install-category-browser --required || return 1
+  install-category-file-explorer --required || return 1
 }
 
-# Substitúe a configuración de SpotDL e instala o wrapper Bash correspondente.
-# Só se chama cando SpotDL foi seleccionado e instalado mediante Pipx.
-configure_spotdl() {
-  mkdir -p "$HOME/.local/share/gallaecia-dots/bashrc" &&
-  replace_path "$DOTFILES_DIR/optional/.config/spotdl" "$HOME/.config/spotdl" &&
-  replace_file "$DOTFILES_DIR/optional/.local/share/gallaecia-dots/bashrc/202-spotdl" "$HOME/.local/share/gallaecia-dots/bashrc/202-spotdl"
-}
-
-# Copia o módulo de comandos interactivos de Git á área cargada polo Bashrc.
-# A función non configura credenciais nin modifica ningún repositorio.
-configure_git() {
-  mkdir -p "$HOME/.local/share/gallaecia-dots/bashrc" &&
-  replace_file "$DOTFILES_DIR/optional/.local/share/gallaecia-dots/bashrc/203-git" "$HOME/.local/share/gallaecia-dots/bashrc/203-git"
-}
-
-# Copia o módulo de Docker/Compose á área opcional cargada polo Bashrc.
-# Non inicia contedores; `install_docker` xestiona por separado servizo e grupo.
-configure_docker() {
-  mkdir -p "$HOME/.local/share/gallaecia-dots/bashrc" &&
-  replace_file "$DOTFILES_DIR/optional/.local/share/gallaecia-dots/bashrc/204-docker" "$HOME/.local/share/gallaecia-dots/bashrc/204-docker"
-}
-
-# Escolla das cinco categorías obrigatorias.
-# Primeiro se escolle terminal porque Yazi usa "$terminal_command -e yazi"
-# cando se configura como explorador de arquivos.
-#
-# Cada bloque repite o mesmo patrón de forma explícita:
-#   1. load_app_category enche APP_CATEGORY_ENTRIES.
-#   2. choose_required_category enche SELECTED_ENTRIES e as colas.
-#   3. choose_default_entry devolve unha entrada completa.
-#   4. app_command extrae o comando e set_hypr_app_command escríbeo.
-#   5. Se corresponde, aplícanse MIME e configuracións opcionais.
-#
-# SELECTED_ENTRIES e DEFAULT_ENTRY reutilízanse entre categorías: ao comezar a
-# seguinte selección substitúen o valor da anterior. As colas de paquetes, en
-# cambio, acumúlanse ata install_selected_apps.
-configure_required_apps() {
-  # Cada entrada segue: "tipo|Nome|paquetes|comando|desktop".
-  # A orde tamén importa: a primeira opción adoita ser a recomendada.
-
-  # Seleccionar terminal
-
-  load_app_category terminal
-  local terminal_entries=("${APP_CATEGORY_ENTRIES[@]}")
-
-  choose_required_category \
-    "Selecciona terminal ou terminais:" \
-    "${terminal_entries[@]}"
-  
-  DEFAULT_ENTRY=$(choose_default_entry "Escolle terminal por defecto:" "${SELECTED_ENTRIES[@]}") || return 1
-  terminal_command="$(app_command "$DEFAULT_ENTRY")"
-
-  set_hypr_app_command terminal "$terminal_command"
-
-  if has_selected_app kitty; then
-    install_kitty_config || return 1
-  fi
-
-  if has_selected_app alacritty; then
-    install_alacritty_config || return 1
-  fi
-
-  if has_selected_app foot; then
-    install_foot_config || return 1
-  fi
-
-  if has_selected_app ghostty; then
-    install_ghostty_config || return 1
-  fi
-
-  if has_selected_app wezterm; then
-    install_wezterm_config || return 1
-  fi
-
-  # Seleccionar editor
-
-  load_app_category editor
-  local editor_entries=("${APP_CATEGORY_ENTRIES[@]}")
-
-  choose_required_category \
-    "Selecciona editor ou editores de terminal:" \
-    "${editor_entries[@]}"
-
-  DEFAULT_ENTRY=$(choose_default_entry "Escolle editor de terminal por defecto:" "${SELECTED_ENTRIES[@]}") || return 1
-  editor_command="$(app_command "$DEFAULT_ENTRY")"
-
-  set_hypr_app_command editor "$editor_command"
-
-  # Seleccionar IDE
-
-  load_app_category ide
-  local ide_entries=("${APP_CATEGORY_ENTRIES[@]}")
-
-  choose_required_category \
-    "Selecciona IDE ou editores con interface gráfica:" \
-    "${ide_entries[@]}"
-
-  DEFAULT_ENTRY=$(choose_default_entry "Escolle IDE por defecto:" "${SELECTED_ENTRIES[@]}") || return 1
-  ide_command="$(app_command "$DEFAULT_ENTRY")"
-
-  set_hypr_app_command ide "$ide_command"
-
-  apply_app_category_default ide "$DEFAULT_ENTRY"
-
-  if has_selected_app visual-studio-code-bin; then
-    install_vscode_config || return 1
-  fi
-
-  # Seleccionar buscador
-
-  load_app_category browser
-  local browser_entries=("${APP_CATEGORY_ENTRIES[@]}")
-
-  choose_required_category \
-    "Selecciona navegador ou navegadores:" \
-    "${browser_entries[@]}"
-
-  DEFAULT_ENTRY=$(choose_default_entry "Escolle navegador por defecto:" "${SELECTED_ENTRIES[@]}") || return 1
-  browser_command="$(app_command "$DEFAULT_ENTRY")"
-
-  set_hypr_app_command browser "$browser_command"
-
-  apply_app_category_default browser "$DEFAULT_ENTRY"
-
-  # Seleccionar explorador de arquivos
-
-  load_app_category file-explorer "$terminal_command"
-  local file_explorer_entries=("${APP_CATEGORY_ENTRIES[@]}")
-
-  choose_required_category \
-    "Selecciona explorador ou exploradores de arquivos:" \
-    "${file_explorer_entries[@]}"
-
-  DEFAULT_ENTRY=$(choose_default_entry "Escolle explorador de arquivos por defecto:" "${SELECTED_ENTRIES[@]}") || return 1
-  file_explorer_command="$(app_command "$DEFAULT_ENTRY")"
-
-  set_hypr_app_command file-explorer "$file_explorer_command"
-  apply_app_category_default file-explorer "$DEFAULT_ENTRY"
-
-  if has_selected_app dolphin; then
-    install_dolphin_config || return 1
-  fi
-
-  if has_selected_app yazi; then
-    install_yazi_config || return 1
-  fi
-}
-
-# Percorre as categorías opcionais. `choose_optional_category` permite unha
-# selección baleira, pero as eleccións non baleiras seguen acumulando paquetes
-# nas colas globais.
-#
-# As categorías cunha app xenérica predeterminada chaman
-# apply_app_category_default. As que teñen regras por aplicación chaman
-# apply_selected_app_mime_rules. Desenvolvemento e descargas tamén instalan os
-# seus Bashrc/configuracións opcionais cando a app foi seleccionada.
-configure_optional_apps() {
-  # Nestas categorías o usuario pode non escoller nada.
-  # Se escolle varias apps nunha categoría con MIME, pedimos cal queda por defecto.
-
-  # Escoller resproductores de audio
-
-  load_app_category audio
-  local audio_entries=("${APP_CATEGORY_ENTRIES[@]}")
-
-  choose_optional_category "Selecciona reprodutor ou reprodutores de audio:" "${audio_entries[@]}"
-
-  if [ ${#SELECTED_ENTRIES[@]} -gt 0 ]; then
-    DEFAULT_ENTRY=$(choose_default_entry "Escolle reprodutor de audio por defecto:" "${SELECTED_ENTRIES[@]}") || return 1
-    apply_app_category_default audio "$DEFAULT_ENTRY"
-  fi
-
-  # Escoller resproductores de vídeo
-
-  load_app_category video
-  local video_entries=("${APP_CATEGORY_ENTRIES[@]}")
-
-  choose_optional_category "Selecciona reprodutor ou reprodutores de vídeo:" "${video_entries[@]}"
-
-  if [ ${#SELECTED_ENTRIES[@]} -gt 0 ]; then
-    DEFAULT_ENTRY=$(choose_default_entry "Escolle reprodutor de vídeo por defecto:" "${SELECTED_ENTRIES[@]}") || return 1
-    apply_app_category_default video "$DEFAULT_ENTRY"
-  fi
-
-  # Escoller visores de PDF
-
-  load_app_category pdf
-  local pdf_entries=("${APP_CATEGORY_ENTRIES[@]}")
-
-  choose_optional_category "Selecciona visor ou visores de PDF:" "${pdf_entries[@]}"
-
-  if [ ${#SELECTED_ENTRIES[@]} -gt 0 ]; then
-    DEFAULT_ENTRY=$(choose_default_entry "Escolle visor de PDF por defecto:" "${SELECTED_ENTRIES[@]}") || return 1
-    apply_app_category_default pdf "$DEFAULT_ENTRY"
-  fi
-
-  # Escoller visores de imaxes
-
-  load_app_category images
-  local image_entries=("${APP_CATEGORY_ENTRIES[@]}")
-
-  choose_optional_category "Selecciona visor ou visores de imaxes:" "${image_entries[@]}"
-
-  if [ ${#SELECTED_ENTRIES[@]} -gt 0 ]; then
-    DEFAULT_ENTRY=$(choose_default_entry "Escolle visor de imaxes por defecto:" "${SELECTED_ENTRIES[@]}") || return 1
-    apply_app_category_default images "$DEFAULT_ENTRY"
-  fi
-
-  # Escoller clientes de correo
-
-  load_app_category mail
-  local mail_entries=("${APP_CATEGORY_ENTRIES[@]}")
-
-  choose_optional_category "Selecciona cliente ou clientes de correo:" "${mail_entries[@]}"
-
-  if [ ${#SELECTED_ENTRIES[@]} -gt 0 ]; then
-    DEFAULT_ENTRY=$(choose_default_entry "Escolle cliente de correo por defecto:" "${SELECTED_ENTRIES[@]}") || return 1
-    apply_app_category_default mail "$DEFAULT_ENTRY"
-  fi
-
-  # Escoller apps de chat
-
-  load_app_category chat
-  local chat_entries=("${APP_CATEGORY_ENTRIES[@]}")
-
-  choose_optional_category "Selecciona apps de chat:" "${chat_entries[@]}"
-
-  if has_selected_app vesktop; then
-    apply_app_category_default chat \
-      "$(find_app_by_label Vesktop "${SELECTED_ENTRIES[@]}")"
-  elif has_selected_app discord; then
-    apply_app_category_default chat \
-      "$(find_app_by_label Discord "${SELECTED_ENTRIES[@]}")"
-  fi
-
-  # Escoller apps creativas
-
-  load_app_category creativity
-  local creative_entries=("${APP_CATEGORY_ENTRIES[@]}")
-
-  choose_optional_category "Selecciona apps creativas:" "${creative_entries[@]}"
-  apply_selected_app_mime_rules creativity
-
-  # Escoller apps de ofimática
-
-  load_app_category office
-  local office_entries=("${APP_CATEGORY_ENTRIES[@]}")
-
-  choose_optional_category "Selecciona apps de oficina e notas:" "${office_entries[@]}"
-  apply_selected_app_mime_rules office
-
-  # Escoller apps de xogos
-
-  load_app_category games
-  local gaming_entries=("${APP_CATEGORY_ENTRIES[@]}")
-
-  choose_optional_category "Selecciona xogos e tendas:" "${gaming_entries[@]}"
-  apply_selected_app_mime_rules games
-
-  # Escoller apps de utilidades
-
-  load_app_category utilities
-  local utilities_entries=("${APP_CATEGORY_ENTRIES[@]}")
-
-  choose_optional_category "Selecciona utilidades:" "${utilities_entries[@]}"
-  apply_selected_app_mime_rules utilities
-
-  # Escoller apps de desenvolvemento
-
-  load_app_category development
-  local development_entries=("${APP_CATEGORY_ENTRIES[@]}")
-
-  choose_optional_category "Selecciona apps de desenvolvemento:" "${development_entries[@]}"
-
-  if has_selected_app git; then
-    configure_git || return 1
-  fi
-
-  if has_selected_app docker; then
-    configure_docker || return 1
-  fi
-
-  # Escoller apps de rede e privacidade
-
-  load_app_category network
-  local network_entries=("${APP_CATEGORY_ENTRIES[@]}")
-
-  choose_optional_category "Selecciona apps de rede e privacidade:" "${network_entries[@]}"
-
-  # Escoller scripts
-
-  load_app_category downloads
-  local script_entries=("${APP_CATEGORY_ENTRIES[@]}")
-
-  choose_optional_category "Selecciona ferramentas de descarga e personalización:" "${script_entries[@]}"
-
-  if has_selected_app yt-dlp; then
-    configure_yt_dlp || return 1
-  fi
-
-  if has_pipx_app spotdl; then
-    configure_spotdl || return 1
-  fi
+# Percorre as categorías opcionais na orde visible da instalación base. Sen
+# `--required`, Esc ou unha selección baleira salta só a categoría actual.
+# Cada función comparte exactamente o mesmo fluxo usado por `gallaecia
+# install-category`, incluídas configuracións, MIME e Hyprland.
+install_optional_app_categories() {
+  install-category-audio || return 1
+  install-category-video || return 1
+  install-category-pdf || return 1
+  install-category-images || return 1
+  install-category-mail || return 1
+  install-category-chat || return 1
+  install-category-creativity || return 1
+  install-category-office || return 1
+  install-category-games || return 1
+  install-category-utilities || return 1
+  install-category-development || return 1
+  install-category-network || return 1
+  install-category-downloads || return 1
 }
 
 # Executa as fases visuais e técnicas da instalación base na orde necesaria.
 # Se "base" xa aparece en versions-instaladas, non repite o proceso.
 #
-# É importante que `install_selected_apps` se execute despois das dúas funcións
-# de selección: ata ese momento os helpers só estiveron enchendo colas.
+# As categorías instalan inmediatamente as súas seleccións. Se unha delas
+# falla, a base non se marca como instalada e o erro queda localizado nesa fase.
 install_base_version() {
   if is_version_installed "$VERSION"; then
     info "Gallaecia Dots $VERSION xa está instalado. Saltando instalación base..."
@@ -827,50 +473,19 @@ install_base_version() {
   title "Aplicacións principais"
   info "Selecciona polo menos unha aplicación por categoría. Se escolles varias, poderás indicar cal usar por defecto."
 
-  if configure_required_apps; then
-    success "Aplicacións principais seleccionadas con éxito!"
+  if install_required_app_categories; then
+    success "Aplicacións principais instaladas e configuradas con éxito!"
   else
-    fail "Algo fallou ao seleccionar as aplicacións principais! Abortando instalación..."
+    fail "Algo fallou ao instalar as aplicacións principais! Abortando instalación..."
   fi
 
   title "Aplicacións opcionais"
   info "Selecciona aplicacións opcionais por categoría. Podes deixar categorías baleiras."
 
-  if configure_optional_apps; then
-    success "Aplicacións opcionais seleccionadas con éxito!"
+  if install_optional_app_categories; then
+    success "Aplicacións opcionais instaladas e configuradas con éxito!"
   else
-    fail "Algo fallou ao seleccionar as aplicacións opcionais! Abortando instalación..."
-  fi
-
-  title "Resumo da instalación de apps"
-  # shellcheck disable=SC2154
-  info "Paquetes pacman/AUR pendentes: ${#pkgs_apps[@]}"
-  # shellcheck disable=SC2154
-  info "Paquetes Flatpak pendentes: ${#flatpaks_apps[@]}"
-  # shellcheck disable=SC2154
-  info "Paquetes pipx pendentes: ${#pipx_apps[@]}"
-
-  if [ ${#pkgs_apps[@]} -gt 0 ]; then
-    info "Pacman/AUR: ${pkgs_apps[*]}"
-  fi
-
-  if [ ${#flatpaks_apps[@]} -gt 0 ]; then
-    info "Flatpak: ${flatpaks_apps[*]}"
-  fi
-
-  if [ ${#pipx_apps[@]} -gt 0 ]; then
-    info "Pipx: ${pipx_apps[*]}"
-  fi
-  echo
-
-  if install_selected_apps; then
-    success "Aplicacións instaladas con éxito!"
-  else
-    fail "Algo fallou ao instalar as aplicacións seleccionadas! Abortando instalación..."
-  fi
-
-  if has_pkg_app docker; then
-    install_docker || fail "Algo fallou ao configurar Docker! Abortando instalación..."
+    fail "Algo fallou ao instalar as aplicacións opcionais! Abortando instalación..."
   fi
 }
 

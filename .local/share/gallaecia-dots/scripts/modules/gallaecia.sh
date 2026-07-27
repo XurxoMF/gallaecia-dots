@@ -144,22 +144,32 @@ USO
 
 DESCRICIÓN
   Mostra as categorías da instalación base e permite instalar novas
-  aplicacións. Non elimina as xa instaladas e pregunta antes de modificar os
-  valores predeterminados de mimeapps.list e Hyprland.
+  aplicacións. Non elimina as xa instaladas. A aplicación escollida como
+  predeterminada aplícase tamén a mimeapps.list e Hyprland cando corresponda.
 
 PARÁMETROS
   [CATEGORÍA]
       Identificador interno opcional, por exemplo `audio`, `development` ou
-      `downloads`. Se se omite, mostra un selector.
+      `downloads`. Se se omite, mantén o selector aberto ata premer Esc.
 
 OPCIÓNS
   -h, --help
       Mostra esta axuda.
 
+CONTROIS
+  Frechas e Enter
+      Navegan e confirman a categoría ou a aplicación predeterminada.
+
+  Tab ou Ctrl+Espazo
+      Marca ou desmarca aplicacións no selector múltiple.
+
+  Esc
+      Cancela a selección actual; no menú de categorías pecha o comando.
+
 RESULTADO
   Instala as aplicacións seleccionadas e as súas configuracións opcionais. A
   mesma elección predeterminada aplícase a MIME e Hyprland cando corresponda.
-  Cancelar unha selección non modifica nada.
+  Esc salta a selección actual ou pecha o menú de categorías.
 
 EXEMPLOS
   gallaecia install-category
@@ -384,14 +394,16 @@ _gallaecia_reinstall() {
   SKIP_CLONE=1 INSTALL_MODE=reinstall bash "$dotfiles_dir/install.sh"
 }
 
-# Resolve a categoría dentro dun subshell. Primeiro sincroniza `release`;
-# despois carga desde ese repo as sete librarías estándar e chama
-# install_app_category. As parénteses fan que todo o estado interno se destrúa
-# ao volver á shell do usuario.
+# Instala categorías dentro dun subshell para que a libraría interna e as súas
+# variables desaparezan ao volver á terminal do usuario. Sen CATEGORÍA mantén
+# aberto un menú declarado aquí ata que se prema Esc; cun identificador procesa
+# unha única categoría. En ambos casos reutiliza exactamente as mesmas funcións
+# que a instalación base, pero sen --required.
 _gallaecia_install_category() (
   local category_id=""
   local dotfiles_dir="${DOTFILES_DIR:-$HOME/.dotfiles}"
   local modules_dir internal_dir
+  local selected_category=""
 
   while (($#)); do
     case "$1" in
@@ -439,7 +451,7 @@ _gallaecia_install_category() (
     return 1
   fi
 
-  # Todo se carga dentro deste subshell e desaparece ao rematar o comando.
+  # As sete cargas estándar quedan confinadas neste subshell.
   # shellcheck source=/dev/null
   source "$modules_dir/apps.sh"
   # shellcheck source=/dev/null
@@ -456,7 +468,66 @@ _gallaecia_install_category() (
   source "$internal_dir/versions.sh"
 
   DOTFILES_DIR="$dotfiles_dir"
-  install_app_category "$category_id"
+
+  # Este case é a lista pública de categorías do subcomando. Mantense manual e
+  # explícito para que engadir unha categoría non introduza outro catálogo global.
+  _gallaecia_run_category() {
+    case "$1" in
+      terminal|"Terminal") install-category-terminal ;;
+      editor|"Editor de terminal") install-category-editor ;;
+      ide|"IDE ou editor gráfico") install-category-ide ;;
+      browser|"Navegador") install-category-browser ;;
+      file-explorer|"Explorador de arquivos") install-category-file-explorer ;;
+      audio|"Audio") install-category-audio ;;
+      video|"Vídeo") install-category-video ;;
+      pdf|"PDF") install-category-pdf ;;
+      images|"Imaxes") install-category-images ;;
+      mail|"Correo") install-category-mail ;;
+      chat|"Chat") install-category-chat ;;
+      creativity|"Creatividade") install-category-creativity ;;
+      office|"Oficina e notas") install-category-office ;;
+      games|"Xogos e tendas") install-category-games ;;
+      utilities|"Utilidades") install-category-utilities ;;
+      development|"Desenvolvemento") install-category-development ;;
+      network|"Rede e privacidade") install-category-network ;;
+      downloads|"Descargas e personalización") install-category-downloads ;;
+      *)
+        error "Categoría descoñecida: $1"
+        return 1
+        ;;
+    esac
+  }
+
+  if [ -n "$category_id" ]; then
+    _gallaecia_run_category "$category_id"
+    return
+  fi
+
+  while true; do
+    if ! selected_category="$(gum_choose --header "Escolle unha categoría; preme Esc para saír:" \
+      "Terminal" \
+      "Editor de terminal" \
+      "IDE ou editor gráfico" \
+      "Navegador" \
+      "Explorador de arquivos" \
+      "Audio" \
+      "Vídeo" \
+      "PDF" \
+      "Imaxes" \
+      "Correo" \
+      "Chat" \
+      "Creatividade" \
+      "Oficina e notas" \
+      "Xogos e tendas" \
+      "Utilidades" \
+      "Desenvolvemento" \
+      "Rede e privacidade" \
+      "Descargas e personalización")"; then
+      return 0
+    fi
+
+    _gallaecia_run_category "$selected_category" || return 1
+  done
 )
 
 # Recibe o nome do subcomando, o directorio destino e unha ou máis rutas.

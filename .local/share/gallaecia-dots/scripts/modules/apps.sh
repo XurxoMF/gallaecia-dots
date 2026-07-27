@@ -10,7 +10,7 @@
 #   flatpak-install  -> explora o catálogo dun remoto Flatpak.
 #   pipx-install     -> valida e instala un nome exacto desde PyPI.
 #
-# Non comparte o estado nin o catálogo predefinido de `internal/apps.sh`.
+# Non comparte estado coas funcións de categoría de `internal/apps.sh`.
 # Estes comandos son ferramentas xenéricas para uso diario. O fluxo común dos
 # tres instaladores interactivos é:
 #
@@ -86,6 +86,10 @@ PARÁMETROS
       Texto co que se inicia o filtro do catálogo.
 
 OPCIÓNS
+  --packages PAQUETE...
+      Instala directamente os paquetes indicados, sen abrir o catálogo nin
+      pedir confirmación. Debe ser a última opción do wrapper.
+
   -r, --refresh
       Actualiza inmediatamente a caché de paquetes de Yay antes de mostrar o
       catálogo, sen modificar o intervalo gardado na súa configuración.
@@ -119,6 +123,7 @@ EXEMPLOS
   yay-install alacritty
   yay-install --refresh
   yay-install --refresh firefox
+  yay-install --packages kitty foot
 EOF
       ;;
     flatpak-install)
@@ -132,6 +137,10 @@ DESCRICIÓN
   instalalas.
 
 OPCIÓNS
+  --packages ID...
+      Instala directamente os identificadores indicados, sen abrir o catálogo
+      nin pedir confirmación. Debe ser a última opción do wrapper.
+
   --remote REMOTO
       Remoto que se consultará. O valor predeterminado é `flathub`.
 
@@ -162,6 +171,7 @@ RESULTADO
 EXEMPLOS
   flatpak-install
   flatpak-install --remote flathub
+  flatpak-install --packages com.usebottles.bottles
 EOF
       ;;
     pipx-install)
@@ -182,6 +192,10 @@ PARÁMETROS
       Nome exacto dun paquete publicado no índice configurado de Pip.
 
 OPCIÓNS
+  --packages PAQUETE...
+      Instala directamente un ou máis paquetes, sen consultar PyPI nin pedir
+      confirmación. Debe ser a última opción do wrapper.
+
   -h, --help
       Mostra esta axuda.
 
@@ -197,6 +211,7 @@ EXEMPLOS
   pipx-install
   pipx-install black
   pipx-install yt-dlp
+  pipx-install --packages spotdl
 EOF
       ;;
   esac
@@ -401,6 +416,7 @@ _apps_format_yay_catalog() {
 # de chamar `yay -Si/-S` retírase o prefixo `[ORIXE]` e elimínanse duplicados.
 yay-install() {
   local refresh=false
+  local direct_install=false
   local values=()
   local query catalog selected_output selected_line package_name information
   local selected_packages=()
@@ -408,6 +424,12 @@ yay-install() {
   # Fase 1: separar as opcións do wrapper da consulta inicial do filtro.
   while (($#)); do
     case "$1" in
+      --packages)
+        shift
+        selected_packages=("$@")
+        direct_install=true
+        break
+        ;;
       -r|--refresh)
         refresh=true
         ;;
@@ -431,15 +453,26 @@ yay-install() {
     shift
   done
 
-  if [ ${#values[@]} -gt 1 ]; then
+  if $direct_install && [ ${#selected_packages[@]} -eq 0 ]; then
+    printf 'Falta PAQUETE... para --packages. Usa yay-install --help.\n' >&2
+    return 1
+  fi
+  if ! $direct_install && [ ${#values[@]} -gt 1 ]; then
     printf 'yay-install admite unha única CONSULTA. Usa yay-install --help.\n' >&2
     return 1
   fi
-  if ! _apps_require_public_helpers; then
+  if ! command -v yay &> /dev/null; then
+    printf 'Yay non está dispoñible.\n' >&2
     return 1
   fi
-  if ! command -v yay &> /dev/null; then
-    error "Yay non está dispoñible."
+
+  # O modo directo úsano os instaladores de categorías: a selección xa se
+  # confirmou alí e Yay recibe todos os nomes nunha única operación.
+  if $direct_install; then
+    yay -S --needed -- "${selected_packages[@]}"
+    return
+  fi
+  if ! _apps_require_public_helpers; then
     return 1
   fi
 
@@ -518,6 +551,7 @@ yay-install() {
 # revise os detalles antes dunha única confirmación e instalación.
 flatpak-install() {
   local remote="flathub"
+  local direct_install=false
   local values=()
   local catalog selected_output selected_line package_id package_information
   local information=""
@@ -526,6 +560,12 @@ flatpak-install() {
   # Fase 1: aceptar un remoto alternativo, pero ningún argumento posicional.
   while (($#)); do
     case "$1" in
+      --packages)
+        shift
+        selected_packages=("$@")
+        direct_install=true
+        break
+        ;;
       --remote)
         if [ $# -lt 2 ]; then
           printf 'Falta REMOTO para --remote. Usa flatpak-install --help.\n' >&2
@@ -554,19 +594,30 @@ flatpak-install() {
     shift
   done
 
-  if [ ${#values[@]} -ne 0 ]; then
+  if $direct_install && [ ${#selected_packages[@]} -eq 0 ]; then
+    printf 'Falta ID... para --packages. Usa flatpak-install --help.\n' >&2
+    return 1
+  fi
+  if ! $direct_install && [ ${#values[@]} -ne 0 ]; then
     printf 'flatpak-install non admite parámetros. Usa flatpak-install --help.\n' >&2
     return 1
   fi
-  if ! _apps_require_public_helpers; then
-    return 1
-  fi
   if ! command -v flatpak &> /dev/null; then
-    error "Flatpak non está dispoñible."
+    printf 'Flatpak non está dispoñible.\n' >&2
     return 1
   fi
   if ! flatpak remotes --columns=name | grep -qxF "$remote"; then
-    error "O remoto Flatpak non está configurado: $remote"
+    printf 'O remoto Flatpak non está configurado: %s\n' "$remote" >&2
+    return 1
+  fi
+
+  # O modo directo evita volver preguntar por unha selección xa feita dentro
+  # dunha categoría e instala todos os IDs no mesmo remoto.
+  if $direct_install; then
+    flatpak install -y "$remote" "${selected_packages[@]}"
+    return
+  fi
+  if ! _apps_require_public_helpers; then
     return 1
   fi
 
@@ -638,12 +689,20 @@ flatpak-install() {
 # con Pipx tras confirmar. Non intenta busca parcial porque Pip/Pipx non ofrecen
 # unha API oficial para obter todo PyPI como catálogo filtrable.
 pipx-install() {
+  local direct_install=false
   local values=()
+  local direct_packages=()
   local package_name information
 
   # Fase 1: aceptar como máximo un nome exacto de paquete.
   while (($#)); do
     case "$1" in
+      --packages)
+        shift
+        direct_packages=("$@")
+        direct_install=true
+        break
+        ;;
       -h|--help)
         _apps_help pipx-install
         return 0
@@ -664,15 +723,37 @@ pipx-install() {
     shift
   done
 
-  if [ ${#values[@]} -gt 1 ]; then
+  if $direct_install && [ ${#direct_packages[@]} -eq 0 ]; then
+    printf 'Falta PAQUETE... para --packages. Usa pipx-install --help.\n' >&2
+    return 1
+  fi
+  if ! $direct_install && [ ${#values[@]} -gt 1 ]; then
     printf 'pipx-install admite un único PAQUETE. Usa pipx-install --help.\n' >&2
     return 1
   fi
-  if ! _apps_require_public_helpers; then
+  if ! command -v pipx &> /dev/null; then
+    printf 'Pipx non está dispoñible.\n' >&2
     return 1
   fi
-  if ! command -v pipx &> /dev/null || ! command -v python &> /dev/null; then
-    error "Pipx e Python deben estar dispoñibles."
+
+  # No modo directo omítense os paquetes xa presentes e instálase o resto por
+  # separado, porque Pipx só admite un paquete principal en cada chamada.
+  if $direct_install; then
+    for package_name in "${direct_packages[@]}"; do
+      if has_package --manager pipx "$package_name"; then
+        continue
+      fi
+      if ! pipx install "$package_name"; then
+        return 1
+      fi
+    done
+    return 0
+  fi
+  if ! command -v python &> /dev/null; then
+    error "Python non está dispoñible."
+    return 1
+  fi
+  if ! _apps_require_public_helpers; then
     return 1
   fi
 

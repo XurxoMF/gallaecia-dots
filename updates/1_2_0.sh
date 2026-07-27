@@ -67,8 +67,17 @@ update_ui_colors_template() {
     "$HOME/.local/share/gallaecia-dots/noctalia/ui-colors.sh.template"
 }
 
+# Substitúe a base controlada de Noctalia coa lista de templates limitada ao
+# núcleo do escritorio e ás aplicacións que realmente ofrecen as categorías.
+# `custom.toml` permanece intacto porque pertence á personalización do usuario.
+update_noctalia_config() {
+  replace_file \
+    "$DOTFILES_DIR/.config/noctalia/gallaecia.toml" \
+    "$HOME/.config/noctalia/gallaecia.toml"
+}
+
 # Substitúe `apps.sh`, que expón comprobación e instaladores Yay/Flatpak/Pipx.
-# O catálogo de categorías permanece na libraría interna separada.
+# Os modos `--packages` permiten ás categorías instalar unha selección directa.
 update_apps_module() {
   replace_file \
     "$DOTFILES_DIR/.local/share/gallaecia-dots/scripts/modules/apps.sh" \
@@ -91,8 +100,9 @@ update_system_update_script() {
     "$HOME/.local/share/gallaecia-dots/scripts/system-update.sh"
 }
 
-# Substitúe a árbore `internal` completa co catálogo e versións exclusivas dos
-# instaladores. Deliberadamente deixa de expoñelas na shell diaria.
+# Substitúe a árbore `internal` completa coas funcións autocontidas de
+# categorías e as versións exclusivas dos instaladores. Deliberadamente deixa
+# de expoñelas na shell diaria.
 update_internal_modules() {
   replace_path \
     "$DOTFILES_DIR/.local/share/gallaecia-dots/scripts/internal" \
@@ -133,8 +143,11 @@ show_changelog() {
   info "· Unificadas as cores de Gum nunha paleta semántica reutilizable."
   info "· Engadidos instaladores interactivos para Yay, Flatpak e Pipx."
   info "· Engadido o comando gallaecia para mantemento, categorías e fondos."
-  info "· Centralizado o catálogo de aplicacións e a sincronización do repo."
+  info "· Simplificada cada categoría nun único fluxo de selección, instalación e configuración."
+  info "· Eliminadas as colas e o contexto global compartido entre categorías."
   info "· Unificada a aplicación predeterminada de MIME e Hyprland por categoría."
+  info "· Yazi usa o seu .desktop e o terminal predeterminado de Hyprland."
+  info "· Limitados os templates de Noctalia ao núcleo e ás apps dispoñibles."
   info "· Separadas as librarías internas dos módulos públicos do Bashrc."
   info "· Corrixido o rexistro das updates renomeadas para futuras migracións."
 }
@@ -152,6 +165,9 @@ apply_update() {
     return 1
   fi
   if ! update_ui_colors_template; then
+    return 1
+  fi
+  if ! update_noctalia_config; then
     return 1
   fi
   if ! update_apps_module; then
