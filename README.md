@@ -110,10 +110,12 @@ usuario.
 - Tipografías, iconas e dependencias comúns do escritorio.
 
 > [!IMPORTANT]
-> Para que PAM desbloquee automaticamente o cofre `Login` de GNOME Keyring ao
-> iniciar sesión con greetd e Noctalia Greeter, o cofre debe ter o mesmo
-> contrasinal que a conta do usuario. Podes abrir Seahorse —«Contrasinais e
-> claves»— para revisar o chaveiro ou cambiar o seu contrasinal.
+> PAM crea o chaveiro `Login` no primeiro acceso con greetd e desbloquéao co
+> contrasinal introducido en Noctalia Greeter. `Login` debe conservar o mesmo
+> contrasinal que a conta do usuario e ser o chaveiro predeterminado. PAM non
+> desbloquea directamente outro chaveiro só por marcalo como predeterminado.
+> Podes revisalo ou cambiar o seu contrasinal desde Seahorse —«Contrasinais e
+> claves»—.
 
 ### Categorías e aplicacións
 

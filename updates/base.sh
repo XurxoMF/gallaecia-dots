@@ -205,17 +205,17 @@ install_required_packages() {
   flatpak install -y flathub org.gtk.Gtk3theme.adw-gtk3-dark org.gtk.Gtk3theme.adw-gtk3
 }
 
-# Habilita NetworkManager para Noctalia e o daemon de chaveiros da sesión. O
-# plugin OpenVPN xa se instalou cos paquetes obrigatorios; o chaveiro permite
-# que NetworkManager e outras aplicacións garden segredos cando corresponda.
+# Habilita NetworkManager para Noctalia e restaura o arranque previsto por Arch
+# para GNOME Keyring. O paquete habilita globalmente o socket; non se debe
+# habilitar tamén o servizo no usuario porque `pam_systemd` podería inicializalo
+# antes de que `pam_gnome_keyring` cree e desbloquee `Login` no primeiro acceso.
 configure_required_services() {
   if ! sudo systemctl enable --now NetworkManager.service; then
     return 1
   fi
-  if ! systemctl --user enable gnome-keyring-daemon.service; then
-    return 1
-  fi
-  if ! systemctl --user start gnome-keyring-daemon.service; then
+  # `disable` non detén o daemon da sesión actual. Só retira os symlinks que
+  # Gallaecia puidese crear; o socket global do paquete segue habilitado.
+  if ! systemctl --user disable gnome-keyring-daemon.service; then
     return 1
   fi
 }

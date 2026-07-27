@@ -329,6 +329,11 @@ Non codifiques cores novas directamente nun fluxo se poden formar parte do módu
   Conserva a pila predeterminada de Arch e as dúas regras
   `pam_gnome_keyring.so`; calquera cambio debe revisarse como configuración de
   autenticación sensible.
+- Non habilites nin inicies directamente `gnome-keyring-daemon.service` desde
+  Gallaecia. O paquete de Arch habilita globalmente o seu socket e PAM entrega
+  o contrasinal no login; habilitar tamén o servizo no usuario pode facer que
+  enumere os chaveiros antes de crear `Login` no primeiro acceso. As migracións
+  poden deshabilitar o servizo sen detelo para retirar symlinks antigos.
 - Os overrides de `.local/share/applications/` deben conservar exactamente o
   nome do `.desktop` de `/usr/share/applications/` e conter só `[Desktop Entry]`,
   `Type`, `Name` e `Hidden=true`, o mínimo que valida freedesktop. Instálaos
