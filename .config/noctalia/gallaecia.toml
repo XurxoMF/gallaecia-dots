@@ -133,7 +133,8 @@ wallpaper_scheme = "vibrant"
         "obs",
         "zathura",
         "papirus-icons",
-        "yazi"
+        "yazi",
+        "hyprtoolkit"
     ]
 
         [theme.templates.user.ui-colors]
