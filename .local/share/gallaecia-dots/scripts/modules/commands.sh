@@ -10,6 +10,7 @@
 #   command_path         -> imprime o executable resolto.
 #   package_owns_command -> consulta que paquete fornece un executable.
 #   retry_command        -> repite un comando fallido cun límite.
+#   run-terminal-as      -> abre un comando cun app_id identificable.
 #
 # Usa has_command para ramas opcionais e require_command(s) cando continuar sen
 # a dependencia non teña sentido. A instalación debe facerse explicitamente no
@@ -196,6 +197,47 @@ EXEMPLOS
 COMANDO ORIXINAL
   Todo o situado despois de `--` execútase directamente como comando.
   Usa `retry_command -- COMANDO --help` para consultar a axuda do programa real.
+EOF
+      ;;
+    run-terminal-as)
+      cat <<'EOF'
+USO
+  run-terminal-as [OPCIÓNS] NOME -- COMANDO...
+
+DESCRICIÓN
+  Abre unha terminal nova co comando indicado e asígnalle o `app_id` de
+  Wayland `gallaecia.NOME`. Adapta a opción necesaria ao terminal
+  predeterminado entre Kitty, Alacritty, Foot, Ghostty e WezTerm.
+
+PARÁMETROS
+  NOME
+      Identificador en minúsculas que comeza por letra e pode conter letras,
+      números e guións.
+
+  COMANDO...
+      Comando e argumentos que se executarán dentro da terminal nova.
+
+OPCIÓNS
+  -h, --help
+      Mostra esta axuda.
+
+  --
+      Remata as opcións do helper e introduce o comando.
+
+RESULTADO
+  Abre unha terminal coa clase `gallaecia.NOME` e devolve o código do
+  terminal utilizado para crear a xanela.
+  Devolve 1 se faltan argumentos, `$TERMINAL` non está dispoñible ou o
+  terminal predeterminado non é compatible.
+
+EXEMPLOS
+  run-terminal-as monitor -- btop
+  run-terminal-as system-update -- bash -lc ~/.local/share/gallaecia-dots/scripts/system-update.sh
+
+COMANDO ORIXINAL
+  Todo o situado despois de `--` execútase dentro da terminal nova.
+  Usa `run-terminal-as NOME -- COMANDO --help` para consultar a axuda do
+  programa real dentro desa terminal.
 EOF
       ;;
   esac
@@ -503,4 +545,90 @@ retry_command() {
   done
 
   return "$exit_code"
+}
+
+# Recibe un nome estable e un comando completo tras `--`, comproba o terminal
+# exportado por Hyprland e traduce o identificador común á opción específica de
+# cada terminal ofrecido por Gallaecia. O comando mantense nun array para
+# conservar exactamente os seus argumentos; non usa `eval` nin abre unha shell
+# intermedia. A clase resultante permite aplicar regras de Hyprland sen afectar
+# o resto de xanelas do mesmo terminal.
+run-terminal-as() {
+  local names=()
+  local command_args=()
+  local name terminal terminal_path terminal_name application_id
+
+  while (($#)); do
+    case "$1" in
+      -h|--help)
+        _commands_help run-terminal-as
+        return 0
+        ;;
+      --)
+        shift
+        command_args=("$@")
+        break
+        ;;
+      -*)
+        printf 'Opción descoñecida: %s. Usa run-terminal-as --help.\n' "$1" >&2
+        return 1
+        ;;
+      *)
+        names+=("$1")
+        ;;
+    esac
+    shift
+  done
+
+  if [ ${#names[@]} -ne 1 ]; then
+    printf 'run-terminal-as require un NOME. Usa run-terminal-as --help.\n' >&2
+    return 1
+  fi
+  if [ ${#command_args[@]} -eq 0 ]; then
+    printf 'run-terminal-as require un COMANDO despois de --.\n' >&2
+    return 1
+  fi
+
+  name="${names[0]}"
+  # Este formato produce un compoñente válido e predicible para o app_id.
+  if [[ ! "$name" =~ ^[a-z][a-z0-9-]*$ ]]; then
+    printf 'NOME debe comezar por letra minúscula e conter só letras minúsculas, números ou guións.\n' >&2
+    return 1
+  fi
+
+  terminal="${TERMINAL:-}"
+  if [ -z "$terminal" ]; then
+    printf 'A variable TERMINAL non está definida.\n' >&2
+    return 1
+  fi
+  if ! terminal_path="$(command_path -- "$terminal")"; then
+    printf 'A terminal predeterminada non está dispoñible: %s\n' "$terminal" >&2
+    return 1
+  fi
+
+  terminal_name="${terminal_path##*/}"
+  application_id="gallaecia.$name"
+
+  case "$terminal_name" in
+    kitty)
+      "$terminal_path" --app-id "$application_id" "${command_args[@]}"
+      ;;
+    alacritty)
+      "$terminal_path" --class "$application_id" -e "${command_args[@]}"
+      ;;
+    foot)
+      "$terminal_path" --app-id "$application_id" -e "${command_args[@]}"
+      ;;
+    ghostty)
+      "$terminal_path" --class="$application_id" -e "${command_args[@]}"
+      ;;
+    wezterm)
+      "$terminal_path" start --class "$application_id" -- "${command_args[@]}"
+      ;;
+    *)
+      printf 'Terminal non compatible con run-terminal-as: %s\n' "$terminal_name" >&2
+      printf 'Terminais compatibles: Kitty, Alacritty, Foot, Ghostty e WezTerm.\n' >&2
+      return 1
+      ;;
+  esac
 }

@@ -167,6 +167,6 @@ glyph = "cloud-download"
 type = "custom_button"
 
     [widget.system_update.actions]
-    left = "exec $TERMINAL -e bash -lc ~/.local/share/gallaecia-dots/scripts/system-update.sh"
-    middle = "exec $TERMINAL -e bash -lc ~/.local/share/gallaecia-dots/scripts/system-update.sh"
-    right = "exec $TERMINAL -e bash -lc ~/.local/share/gallaecia-dots/scripts/system-update.sh"
+    left = "exec ~/.local/share/gallaecia-dots/scripts/run-terminal-as.sh system-update -- bash -lc ~/.local/share/gallaecia-dots/scripts/system-update.sh"
+    middle = "exec ~/.local/share/gallaecia-dots/scripts/run-terminal-as.sh system-update -- bash -lc ~/.local/share/gallaecia-dots/scripts/system-update.sh"
+    right = "exec ~/.local/share/gallaecia-dots/scripts/run-terminal-as.sh system-update -- bash -lc ~/.local/share/gallaecia-dots/scripts/system-update.sh"

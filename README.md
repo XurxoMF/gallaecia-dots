@@ -199,14 +199,15 @@ Estes helpers do módulo público `apps.sh` están sempre dispoñibles:
 
 Estes helpers do módulo público `commands.sh` están sempre dispoñibles:
 
-| Comando ou función     | Descrición                                                                     |
-| ---------------------- | ------------------------------------------------------------------------------ |
-| `has_command`          | Indica se un comando existe no `PATH`.                                         |
-| `require_command`      | Esixe un comando e mostra un erro claro cando non está dispoñible.             |
-| `require_commands`     | Esixe varios comandos e informa de todos os que faltan.                        |
-| `command_path`         | Devolve a ruta executable que resolvería a shell.                              |
-| `package_owns_command` | Indica que paquete Yay/Pacman instalado proporciona un executable.             |
-| `retry_command`        | Repite un comando un número configurable de veces e cunha espera configurable. |
+| Comando ou función     | Descrición                                                                                              |
+| ---------------------- | ------------------------------------------------------------------------------------------------------- |
+| `has_command`          | Indica se un comando existe no `PATH`.                                                                  |
+| `require_command`      | Esixe un comando e mostra un erro claro cando non está dispoñible.                                      |
+| `require_commands`     | Esixe varios comandos e informa de todos os que faltan.                                                 |
+| `command_path`         | Devolve a ruta executable que resolvería a shell.                                                       |
+| `package_owns_command` | Indica que paquete Yay/Pacman instalado proporciona un executable.                                      |
+| `retry_command`        | Repite un comando un número configurable de veces e cunha espera configurable.                          |
+| `run-terminal-as`      | Abre un comando nunha terminal nova cun `app_id` estable para poder aplicarlle regras de Hyprland.       |
 
 ### Rede e VPN
 
@@ -421,7 +422,10 @@ Docker tamén se activa `docker.service` e engádese o usuario ao grupo
 ### Actualizar o sistema
 
 Na barra de Noctalia hai un botón de actualización co símbolo de descarga.
-Preme nel e abrirase nun terminal o actualizador interactivo. O fluxo permite:
+Preme nel e o actualizador interactivo abrirase nunha terminal flotante e
+centrada. A xanela recibe o `app_id` común `gallaecia.system-update`
+independentemente de que a terminal predeterminada sexa Kitty, Alacritty, Foot,
+Ghostty ou WezTerm. O fluxo permite:
 
 1. Actualizar Rust e as súas ferramentas, se están instaladas.
 2. Actualizar paquetes oficiais de Arch e AUR con Yay.

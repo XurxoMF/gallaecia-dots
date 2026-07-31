@@ -314,3 +314,12 @@ hl.window_rule({
     move  = "20 monitor_h-120",
     float = true,
 })
+
+-- Mantén flotante o actualizador aberto co identificador común que
+-- `run-terminal-as` adapta ao app_id propio de cada terminal compatible.
+hl.window_rule({
+    name  = "float-system-update",
+    match = { class = "^gallaecia[.]system-update$" },
+    float = true,
+    center = true,
+})
