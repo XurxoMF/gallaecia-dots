@@ -155,6 +155,46 @@ update_internal_apps() {
     "$HOME/.local/share/gallaecia-dots/scripts/internal/apps.sh"
 }
 
+# Instala o esquema Base16 só nas instalacións que xa teñen Neovim. O modo
+# directo conserva `--needed`, polo que tamén é seguro se o paquete xa existe.
+install_neovim_base16() {
+  if ! has_package --manager yay neovim; then
+    return 0
+  fi
+
+  yay-install --packages neovim-base16-git
+}
+
+# Engade a carga de Matugen ao final dun init.lua existente sen alterar o seu
+# contido. Se falta, copia o ficheiro mínimo completo distribuído por Gallaecia.
+configure_neovim_matugen() {
+  local source="$DOTFILES_DIR/optional/.config/nvim/init.lua"
+  local target="$HOME/.config/nvim/init.lua"
+  local setup_line="require('matugen').setup()"
+
+  if ! has_package --manager yay neovim; then
+    return 0
+  fi
+  if path_exists -- "$target"; then
+    if [ ! -f "$target" ]; then
+      error "A configuración de Neovim existe pero non é un ficheiro: $target"
+      return 1
+    fi
+    if grep -qxF "$setup_line" "$target"; then
+      return 0
+    fi
+
+    # Engade primeiro un salto só cando o ficheiro non remata xa en nova liña.
+    if [ -s "$target" ] && [ -n "$(tail -c 1 -- "$target")" ]; then
+      printf '\n' >> "$target" || return 1
+    fi
+    printf '%s\n' "$setup_line" >> "$target"
+    return
+  fi
+
+  copy_file "$source" "$target"
+}
+
 # Actualiza os comandos opcionais de Git só cando a ferramenta está instalada.
 update_git_commands() {
   if ! has_command git; then
@@ -191,6 +231,7 @@ show_changelog() {
   info "· A variante normal de Papirus pasa a ser o tema de iconas predeterminado."
   info "· Engadidos catro novos fondos inspirados en Galicia."
   info "· Engadido git-clone para clonar repositorios mediante un fluxo guiado."
+  info "· Neovim integra o tema Base16 xerado por Noctalia."
 }
 
 # Instala primeiro a API e o seu entrypoint e activa despois os consumidores.
@@ -229,6 +270,12 @@ apply_update() {
     return 1
   fi
   if ! update_internal_apps; then
+    return 1
+  fi
+  if ! install_neovim_base16; then
+    return 1
+  fi
+  if ! configure_neovim_matugen; then
     return 1
   fi
   if ! update_git_commands; then

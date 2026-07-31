@@ -133,7 +133,7 @@ e definir unha predeterminada.
 | Categoría                                | Aplicacións dispoñibles                                                                                                                                                                                                                                                                              |
 | ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Terminal** · obrigatoria               | Kitty — Yay/Pacman (`kitty`)<br>Alacritty — Yay/Pacman (`alacritty`)<br>Foot — Yay/Pacman (`foot`)<br>Ghostty — Yay/Pacman (`ghostty`)<br>WezTerm — Yay/Pacman (`wezterm`)                                                                                                                           |
-| **Editor de terminal** · obrigatoria     | Neovim — Yay/Pacman (`neovim`)<br>Helix — Yay/Pacman (`helix`)<br>Vim — Yay/Pacman (`vim`)<br>Nano — Yay/Pacman (`nano`)<br>Micro — Yay/Pacman (`micro`)                                                                                                                                             |
+| **Editor de terminal** · obrigatoria     | Neovim — Yay/Pacman (`neovim`, `neovim-base16-git`)<br>Helix — Yay/Pacman (`helix`)<br>Vim — Yay/Pacman (`vim`)<br>Nano — Yay/Pacman (`nano`)<br>Micro — Yay/Pacman (`micro`)                                                                                                                        |
 | **IDE ou editor gráfico** · obrigatoria  | Visual Studio Code — Yay/Pacman (`visual-studio-code-bin`)<br>Zed — Yay/Pacman (`zed`)<br>Obsidian — Yay/Pacman (`obsidian`)<br>Geany — Yay/Pacman (`geany`)                                                                                                                                         |
 | **Navegador** · obrigatoria              | Firefox — Yay/Pacman (`firefox`)<br>LibreWolf — Yay/Pacman (`librewolf-bin`)<br>Zen Browser — Yay/Pacman (`zen-browser`)<br>Tor Browser — Yay/Pacman (`tor-browser-bin`)                                                                                                                             |
 | **Explorador de arquivos** · obrigatoria | Dolphin — Yay/Pacman (`dolphin`, `ark`)<br>Nautilus — Yay/Pacman (`nautilus`)<br>Nemo — Yay/Pacman (`nemo`)<br>Yazi — Yay/Pacman (`yazi`)                                                                                                                                                            |
@@ -152,6 +152,13 @@ e definir unha predeterminada.
 | **Descargas e personalización**          | yt-dlp — Yay/Pacman (`yt-dlp`)<br>SpotDL — Pipx (`spotdl`)                                                                                                                                                                                                                                           |
 
 Os paquetes compartidos por varias categorías só se instalan unha vez.
+
+> [!NOTE]
+> Algúns templates de Noctalia, como os de Steam, Firefox ou Visual Studio Code,
+> non poden aplicarse completamente de maneira automática porque necesitan
+> extensións ou configuración manual na propia aplicación. Consulta a
+> [guía de Noctalia v5](https://docs.noctalia.dev/v5/)
+> para coñecer os requisitos e habilitar cada integración.
 
 Gallaecia configura globalmente os wrappers `electronXX` de Arch para usar
 GNOME Keyring mediante `gnome-libsecret`, xa que Electron non recoñece Hyprland
@@ -185,29 +192,29 @@ se deben usar como API persoal.
 
 Estes helpers do módulo público `apps.sh` están sempre dispoñibles:
 
-| Comando ou función  | Descrición                                                                                                                                                                |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `has_package`       | Comproba se un paquete está instalado con Yay/Pacman, Flatpak ou Pipx; permite limitar a comprobación cun xestor.                                                         |
-| `yay-install`       | Explora e filtra o catálogo local de paquetes oficiais e AUR; `--refresh` actualízao e `--packages` instala nomes directamente.                                            |
-| `flatpak-install`   | Explora o catálogo Flatpak e instala a selección confirmada; `--packages` instala directamente os IDs indicados.                                                          |
-| `pipx-install`      | Valida en PyPI e instala unha aplicación Python illada; `--packages` instala directamente un ou máis nomes.                                                               |
-| `yay-uninstall`     | Selecciona paquetes explícitos e elimínaos con `yay -Rns`; `--clean-cache` permite limpar ademais a caché global de paquetes non instalados.                               |
-| `flatpak-uninstall` | Elimina as apps seleccionadas e os runtimes sen uso; `--delete-data` permite borrar tamén datos persistentes tras unha segunda confirmación.                              |
-| `pipx-uninstall`    | Elimina os contornos Pipx seleccionados xunto cos seus comandos e páxinas de manual, tanto do usuario como globais.                                                       |
+| Comando ou función  | Descrición                                                                                                                                   |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `has_package`       | Comproba se un paquete está instalado con Yay/Pacman, Flatpak ou Pipx; permite limitar a comprobación cun xestor.                            |
+| `yay-install`       | Explora e filtra o catálogo local de paquetes oficiais e AUR; `--refresh` actualízao e `--packages` instala nomes directamente.              |
+| `flatpak-install`   | Explora o catálogo Flatpak e instala a selección confirmada; `--packages` instala directamente os IDs indicados.                             |
+| `pipx-install`      | Valida en PyPI e instala unha aplicación Python illada; `--packages` instala directamente un ou máis nomes.                                  |
+| `yay-uninstall`     | Selecciona paquetes explícitos e elimínaos con `yay -Rns`; `--clean-cache` permite limpar ademais a caché global de paquetes non instalados. |
+| `flatpak-uninstall` | Elimina as apps seleccionadas e os runtimes sen uso; `--delete-data` permite borrar tamén datos persistentes tras unha segunda confirmación. |
+| `pipx-uninstall`    | Elimina os contornos Pipx seleccionados xunto cos seus comandos e páxinas de manual, tanto do usuario como globais.                          |
 
 ### Comandos do sistema
 
 Estes helpers do módulo público `commands.sh` están sempre dispoñibles:
 
-| Comando ou función     | Descrición                                                                                              |
-| ---------------------- | ------------------------------------------------------------------------------------------------------- |
-| `has_command`          | Indica se un comando existe no `PATH`.                                                                  |
-| `require_command`      | Esixe un comando e mostra un erro claro cando non está dispoñible.                                      |
-| `require_commands`     | Esixe varios comandos e informa de todos os que faltan.                                                 |
-| `command_path`         | Devolve a ruta executable que resolvería a shell.                                                       |
-| `package_owns_command` | Indica que paquete Yay/Pacman instalado proporciona un executable.                                      |
-| `retry_command`        | Repite un comando un número configurable de veces e cunha espera configurable.                          |
-| `run-terminal-as`      | Abre un comando nunha terminal nova cun `app_id` estable para poder aplicarlle regras de Hyprland.       |
+| Comando ou función     | Descrición                                                                                         |
+| ---------------------- | -------------------------------------------------------------------------------------------------- |
+| `has_command`          | Indica se un comando existe no `PATH`.                                                             |
+| `require_command`      | Esixe un comando e mostra un erro claro cando non está dispoñible.                                 |
+| `require_commands`     | Esixe varios comandos e informa de todos os que faltan.                                            |
+| `command_path`         | Devolve a ruta executable que resolvería a shell.                                                  |
+| `package_owns_command` | Indica que paquete Yay/Pacman instalado proporciona un executable.                                 |
+| `retry_command`        | Repite un comando un número configurable de veces e cunha espera configurable.                     |
+| `run-terminal-as`      | Abre un comando nunha terminal nova cun `app_id` estable para poder aplicarlle regras de Hyprland. |
 
 ### Rede e VPN
 
@@ -215,16 +222,16 @@ Noctalia cobre a conexión diaria, o estado de rede e a activación das VPN. O
 módulo público `network.sh` completa a administración dos perfís de
 NetworkManager:
 
-| Comando           | Descrición                                                                 |
-| ----------------- | -------------------------------------------------------------------------- |
-| `vpn-list`        | Lista VPN e WireGuard con tipo, estado e UUID.                             |
-| `vpn-import`      | Importa `.ovpn`, configuracións WireGuard ou outro tipo indicado.          |
-| `vpn-rename`      | Cambia o nome visible dun perfil sen modificar o UUID.                     |
-| `vpn-clone`       | Duplica unha VPN cun nome e UUID novos.                                    |
-| `vpn-export`      | Exporta unha VPN mediante o plugin de NetworkManager correspondente.       |
-| `vpn-autoconnect` | Asocia unha VPN a unha conexión base para iniciala automaticamente.        |
-| `vpn-edit`        | Abre o editor avanzado e interactivo de `nmcli`.                           |
-| `vpn-delete`      | Elimina un ou varios perfís despois dun selector e unha confirmación.      |
+| Comando           | Descrición                                                            |
+| ----------------- | --------------------------------------------------------------------- |
+| `vpn-list`        | Lista VPN e WireGuard con tipo, estado e UUID.                        |
+| `vpn-import`      | Importa `.ovpn`, configuracións WireGuard ou outro tipo indicado.     |
+| `vpn-rename`      | Cambia o nome visible dun perfil sen modificar o UUID.                |
+| `vpn-clone`       | Duplica unha VPN cun nome e UUID novos.                               |
+| `vpn-export`      | Exporta unha VPN mediante o plugin de NetworkManager correspondente.  |
+| `vpn-autoconnect` | Asocia unha VPN a unha conexión base para iniciala automaticamente.   |
+| `vpn-edit`        | Abre o editor avanzado e interactivo de `nmcli`.                      |
+| `vpn-delete`      | Elimina un ou varios perfís despois dun selector e unha confirmación. |
 
 Os comandos que actúan sobre un perfil permiten indicar o nome ou UUID e abren
 un selector Gum cando se omite. `vpn-list` mostra a colección completa e
@@ -249,15 +256,15 @@ plugin. NetworkManager non permite exportar perfís WireGuard mediante
 O módulo público `gallaecia.sh` ofrece unha única función, `gallaecia`, para
 as operacións propias do proxecto:
 
-| Comando                         | Descrición                                                                    |
-| ------------------------------- | ----------------------------------------------------------------------------- |
-| `gallaecia --help`              | Mostra a referencia xeral e os subcomandos dispoñibles.                       |
-| `gallaecia --version`           | Mostra a versión aplicada que ten rexistrada a instalación.                   |
-| `gallaecia commands`            | Lista os subcomandos públicos cunha descrición breve.                         |
-| `gallaecia update`              | Abre o actualizador completo do sistema e dos dotfiles.                       |
-| `gallaecia reinstall`           | Sincroniza o repositorio e volve executar a instalación base tras confirmar.  |
-| `gallaecia install-category`    | Abre as categorías da versión instalada para engadir aplicacións ata premer Esc. |
-| `gallaecia wallpaper-add`       | Clasifica e copia imaxes ou fondos animados no directorio correspondente.    |
+| Comando                      | Descrición                                                                       |
+| ---------------------------- | -------------------------------------------------------------------------------- |
+| `gallaecia --help`           | Mostra a referencia xeral e os subcomandos dispoñibles.                          |
+| `gallaecia --version`        | Mostra a versión aplicada que ten rexistrada a instalación.                      |
+| `gallaecia commands`         | Lista os subcomandos públicos cunha descrición breve.                            |
+| `gallaecia update`           | Abre o actualizador completo do sistema e dos dotfiles.                          |
+| `gallaecia reinstall`        | Sincroniza o repositorio e volve executar a instalación base tras confirmar.     |
+| `gallaecia install-category` | Abre as categorías da versión instalada para engadir aplicacións ata premer Esc. |
+| `gallaecia wallpaper-add`    | Clasifica e copia imaxes ou fondos animados no directorio correspondente.        |
 
 Cada subcomando dispón da súa propia axuda, por exemplo
 `gallaecia install-category --help`. As operacións internas de instalación
@@ -348,11 +355,11 @@ Estes alias e axustes cárganse sempre:
 Estes comandos só existen se instalas a aplicación correspondente na categoría
 **Descargas e personalización**:
 
-| Aplicación necesaria | Comando         | Descrición                                                      |
-| -------------------- | --------------- | --------------------------------------------------------------- |
-| yt-dlp               | `yt-dlp-video`  | Descarga vídeos coa configuración de YouTube de Gallaecia.      |
-| yt-dlp               | `yt-dlp-music`  | Descarga audio coa configuración de YouTube Music de Gallaecia. |
-| SpotDL               | `spotdl-music`  | Busca e descarga música mediante SpotDL.                        |
+| Aplicación necesaria | Comando        | Descrición                                                      |
+| -------------------- | -------------- | --------------------------------------------------------------- |
+| yt-dlp               | `yt-dlp-video` | Descarga vídeos coa configuración de YouTube de Gallaecia.      |
+| yt-dlp               | `yt-dlp-music` | Descarga audio coa configuración de YouTube Music de Gallaecia. |
+| SpotDL               | `spotdl-music` | Busca e descarga música mediante SpotDL.                        |
 
 Os tres admiten URL, modo dunha soa descarga e argumentos adicionais para o
 programa orixinal. Consulta `COMANDO --help` para ver todas as opcións.
@@ -387,36 +394,36 @@ Estes comandos só existen se instalas **Git + GitHub CLI** na categoría
 Estes comandos só existen se instalas **Docker + Compose** na categoría
 **Desenvolvemento**:
 
-| Comando                    | Descrición                                                     |
-| -------------------------- | -------------------------------------------------------------- |
-| `docker-ps`                | Lista os contedores nunha táboa.                               |
-| `docker-shell`             | Abre unha shell dentro dun contedor en execución seleccionado. |
-| `docker-attach`            | Conecta a terminal ao proceso principal dun contedor.          |
-| `docker-logs`              | Mostra ou segue os rexistros dun contedor seleccionado.        |
-| `docker-container-start`   | Inicia un ou varios contedores seleccionados.                  |
-| `docker-container-stop`    | Detén un ou varios contedores seleccionados.                   |
-| `docker-container-restart` | Reinicia un ou varios contedores seleccionados.                |
-| `docker-container-delete`  | Elimina contedores seleccionados tras confirmar.               |
-| `docker-images`            | Lista as imaxes locais.                                        |
-| `docker-image-delete`      | Elimina imaxes seleccionadas tras confirmar.                   |
-| `docker-tag`               | Crea unha nova etiqueta para unha imaxe.                       |
-| `docker-networks`          | Lista as redes de Docker.                                      |
-| `docker-network-delete`    | Elimina redes seleccionadas tras confirmar.                    |
-| `docker-volumes`           | Lista os volumes de Docker.                                    |
-| `docker-volume-delete`     | Elimina volumes seleccionados con confirmación reforzada.      |
-| `compose-ps`               | Mostra os servizos do proxecto Compose actual.                 |
-| `compose-up`               | Inicia os servizos de Compose.                                 |
-| `compose-down`             | Detén e retira os servizos de Compose.                         |
-| `compose-logs`             | Mostra ou segue os rexistros de Compose.                       |
-| `compose-rebuild`          | Reconstrúe e inicia os servizos de Compose.                    |
-| `compose-update`           | Descarga imaxes novas e actualiza os servizos de Compose.      |
+| Comando                    | Descrición                                                       |
+| -------------------------- | ---------------------------------------------------------------- |
+| `docker-ps`                | Lista os contedores nunha táboa.                                 |
+| `docker-shell`             | Abre unha shell dentro dun contedor en execución seleccionado.   |
+| `docker-attach`            | Conecta a terminal ao proceso principal dun contedor.            |
+| `docker-logs`              | Mostra ou segue os rexistros dun contedor seleccionado.          |
+| `docker-container-start`   | Inicia un ou varios contedores seleccionados.                    |
+| `docker-container-stop`    | Detén un ou varios contedores seleccionados.                     |
+| `docker-container-restart` | Reinicia un ou varios contedores seleccionados.                  |
+| `docker-container-delete`  | Elimina contedores seleccionados tras confirmar.                 |
+| `docker-images`            | Lista as imaxes locais.                                          |
+| `docker-image-delete`      | Elimina imaxes seleccionadas tras confirmar.                     |
+| `docker-tag`               | Crea unha nova etiqueta para unha imaxe.                         |
+| `docker-networks`          | Lista as redes de Docker.                                        |
+| `docker-network-delete`    | Elimina redes seleccionadas tras confirmar.                      |
+| `docker-volumes`           | Lista os volumes de Docker.                                      |
+| `docker-volume-delete`     | Elimina volumes seleccionados con confirmación reforzada.        |
+| `compose-ps`               | Mostra os servizos do proxecto Compose actual.                   |
+| `compose-up`               | Inicia os servizos de Compose.                                   |
+| `compose-down`             | Detén e retira os servizos de Compose.                           |
+| `compose-logs`             | Mostra ou segue os rexistros de Compose.                         |
+| `compose-rebuild`          | Reconstrúe e inicia os servizos de Compose.                      |
+| `compose-update`           | Descarga imaxes novas e actualiza os servizos de Compose.        |
 | `docker-build`             | Constrúe unha imaxe con Buildx e permite seleccionar o contexto. |
-| `docker-clean`             | Limpa recursos Docker non utilizados mediante un fluxo guiado. |
-| `docker-login`             | Inicia sesión nun rexistro de contedores.                      |
-| `docker-logout`            | Pecha a sesión nun rexistro de contedores.                     |
-| `docker-search`            | Busca imaxes nun rexistro.                                     |
-| `docker-pull`              | Descarga unha imaxe.                                           |
-| `docker-push`              | Publica unha imaxe nun rexistro.                               |
+| `docker-clean`             | Limpa recursos Docker non utilizados mediante un fluxo guiado.   |
+| `docker-login`             | Inicia sesión nun rexistro de contedores.                        |
+| `docker-logout`            | Pecha a sesión nun rexistro de contedores.                       |
+| `docker-search`            | Busca imaxes nun rexistro.                                       |
+| `docker-pull`              | Descarga unha imaxe.                                             |
+| `docker-push`              | Publica unha imaxe nun rexistro.                                 |
 
 As operacións de borrado piden confirmación. As accións forzadas ou que poden
 eliminar datos importantes requiren unha segunda confirmación. Ao instalar

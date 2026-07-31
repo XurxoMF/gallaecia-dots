@@ -556,8 +556,37 @@ install-category-terminal() {
   esac
 }
 
+# Garante que Neovim cargue o módulo xerado polo template de Noctalia. Conserva
+# calquera configuración existente e engade unicamente a chamada cando falta;
+# se non existe init.lua, copia o ficheiro mínimo distribuído por Gallaecia.
+_configure_neovim_matugen() {
+  local source="$DOTFILES_DIR/optional/.config/nvim/init.lua"
+  local target="$HOME/.config/nvim/init.lua"
+  local setup_line="require('matugen').setup()"
+
+  if path_exists -- "$target"; then
+    if [ ! -f "$target" ]; then
+      error "A configuración de Neovim existe pero non é un ficheiro: $target"
+      return 1
+    fi
+    if grep -qxF "$setup_line" "$target"; then
+      return 0
+    fi
+
+    # Engade primeiro un salto só cando o ficheiro non remata xa en nova liña.
+    if [ -s "$target" ] && [ -n "$(tail -c 1 -- "$target")" ]; then
+      printf '\n' >> "$target" || return 1
+    fi
+    printf '%s\n' "$setup_line" >> "$target"
+    return
+  fi
+
+  copy_file "$source" "$target"
+}
+
 # Instala editores de terminal e asigna explicitamente o comando da elección
-# predeterminada a `Gallaecia.editor`. Ningún editor desta categoría define MIME.
+# predeterminada a `Gallaecia.editor`. Neovim incorpora o tema Base16 e a carga
+# de Matugen; ningún editor desta categoría define MIME.
 install-category-editor() {
   local required=false
   if [ "${1:-}" = "--required" ]; then required=true; shift; fi
@@ -567,7 +596,7 @@ install-category-editor() {
   fi
 
   local entries=(
-    "pkg|Neovim|neovim|nvim"
+    "pkg|Neovim|neovim neovim-base16-git|nvim"
     "pkg|Helix|helix|hx"
     "pkg|Vim|vim|vim"
     "pkg|Nano|nano|nano"
@@ -591,6 +620,11 @@ install-category-editor() {
     "Escolle o editor de terminal predeterminado:" "${active_entries[@]}")"
 
   _install_selected_packages "${selected_entries[@]}" || return 1
+
+  if _selection_has "Neovim" "${active_entries[@]}"; then
+    _configure_neovim_matugen || return 1
+  fi
+
   [ -n "$default_entry" ] || return 0
 
   case "$(_app_label "$default_entry")" in
