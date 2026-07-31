@@ -366,6 +366,7 @@ Estes comandos só existen se instalas **Git + GitHub CLI** na categoría
 | ------------------- | ----------------------------------------------------------------------------- |
 | `git-credentials`   | Configura o nome e o correo da autoría de Git, no repositorio ou globalmente. |
 | `github-login`      | Inicia sesión en GitHub mediante GitHub CLI.                                  |
+| `git-clone`         | Clona un repositorio solicitando a URL e o directorio de destino.             |
 | `git-add`           | Prepara cambios completos, interactivos ou ficheiros seleccionados.           |
 | `git-commit`        | Crea un commit solicitando título e corpo.                                    |
 | `git-save`          | Prepara os cambios e crea un commit nun único fluxo guiado.                   |

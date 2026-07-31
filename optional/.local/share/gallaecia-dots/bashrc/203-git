@@ -53,6 +53,35 @@ COMANDO ORIXINAL
   Usa `github-login -- --help` para consultar as súas opcións.
 EOF
       ;;
+    git-clone)
+      cat <<'EOF'
+USO
+  git-clone [OPCIÓNS] [-- ARGUMENTOS DE GIT CLONE]
+
+DESCRICIÓN
+  Clona un repositorio solicitando a URL e o directorio de destino cando non
+  se indican mediante opcións. O directorio é a ruta exacta que creará Git.
+
+OPCIÓNS
+  --url URL               URL do repositorio que se vai clonar.
+  --destination RUTA      Directorio de destino da copia local.
+  -h, --help              Mostra esta axuda.
+  --                      Remata as opcións do wrapper.
+
+RESULTADO
+  Crea unha copia local do repositorio no directorio indicado. Devolve o código
+  de saída de `git clone`; cancelar un input non realiza cambios.
+
+EXEMPLOS
+  git-clone
+  git-clone --url https://github.com/usuario/proxecto.git --destination ~/Desarrollo/proxecto
+  git-clone --url https://github.com/usuario/proxecto.git --destination proxecto -- --depth 1
+
+COMANDO ORIXINAL
+  Todo o situado despois de `--` reenvíase a `git clone` antes da URL e do
+  directorio. Usa `git-clone -- --help` para consultar as súas opcións.
+EOF
+      ;;
     git-add)
       cat <<'EOF'
 USO
@@ -512,6 +541,99 @@ github-login() {
   fi
 
   gh auth login --web "${original_args[@]}"
+}
+
+# Recibe ou solicita a URL e o directorio exacto de destino e executa
+# `git clone`. Expande `~` nos valores interactivos ou recibidos por opción,
+# reenvía as opcións posteriores a `--` e conserva o código de saída de Git.
+git-clone() {
+  local repository_url=""
+  local directory=""
+  local suggested_directory
+  local original_arg
+  local original_args=()
+
+  while (($#)); do
+    case "$1" in
+      --url)
+        if [ $# -lt 2 ]; then
+          warning "Falta URL para $1. Usa git-clone --help."
+          return 1
+        fi
+        repository_url="$2"
+        shift
+        ;;
+      --destination)
+        if [ $# -lt 2 ]; then
+          warning "Falta RUTA para $1. Usa git-clone --help."
+          return 1
+        fi
+        directory="$2"
+        shift
+        ;;
+      -h|--help)
+        _git_help git-clone
+        return 0
+        ;;
+      --)
+        shift
+        original_args=("$@")
+        break
+        ;;
+      *)
+        warning "Opción descoñecida: $1. Usa git-clone --help."
+        return 1
+        ;;
+    esac
+    shift
+  done
+
+  # A axuda orixinal non necesita URL nin destino e debe funcionar sen abrir
+  # os inputs do wrapper.
+  for original_arg in "${original_args[@]}"; do
+    case "$original_arg" in
+      -h|--help)
+        git clone "${original_args[@]}"
+        return
+        ;;
+    esac
+  done
+
+  if [ -z "$repository_url" ]; then
+    repository_url="$(gum_input --header "URL do repositorio" -- \
+      --placeholder "https://github.com/usuario/proxecto.git")" || return 0
+  fi
+  if [ -z "$repository_url" ]; then
+    warning "A URL do repositorio non pode quedar baleira."
+    return 1
+  fi
+
+  if [ -z "$directory" ]; then
+    # Admite URL HTTPS, SSH con ruta e a forma abreviada `usuario@host:ruta`.
+    suggested_directory="${repository_url%/}"
+    suggested_directory="${suggested_directory##*/}"
+    suggested_directory="${suggested_directory##*:}"
+    suggested_directory="${suggested_directory%.git}"
+    if [ -z "$suggested_directory" ]; then
+      suggested_directory="repositorio"
+    fi
+
+    directory="$(gum_input --header "Directorio de destino" -- \
+      --value "$suggested_directory")" || return 0
+  fi
+  if [ -z "$directory" ]; then
+    warning "O directorio de destino non pode quedar baleiro."
+    return 1
+  fi
+
+  # As expansións capturadas desde opcións ou Gum non son reinterpretadas pola
+  # shell, polo que `~` e `~/...` se resolven explicitamente.
+  case "$directory" in
+    "~") directory="$HOME" ;;
+    "~/"*) directory="$HOME/${directory:2}" ;;
+  esac
+
+  git clone "${original_args[@]}" -- "$repository_url" "$directory"
 }
 
 # Permite escoller entre engadir todo, seleccionar ficheiros ou usar o modo patch.

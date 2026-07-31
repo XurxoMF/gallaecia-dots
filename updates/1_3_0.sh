@@ -190,6 +190,7 @@ show_changelog() {
   info "· docker-build permite seleccionar visualmente o directorio de contexto."
   info "· A variante normal de Papirus pasa a ser o tema de iconas predeterminado."
   info "· Engadidos catro novos fondos inspirados en Galicia."
+  info "· Engadido git-clone para clonar repositorios mediante un fluxo guiado."
 }
 
 # Instala primeiro a API e o seu entrypoint e activa despois os consumidores.

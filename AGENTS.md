@@ -254,6 +254,9 @@ Mantén o mesmo formato nos módulos compartidos e nos Bashrc:
 - `--` remata as opcións do wrapper. Garda todo o posterior nun array local, normalmente `original_args=("$@")`, e reenvíao ao comando orixinal. Así `wrapper -- --help` mostra a axuda do programa real.
 - Se o helper combina varios comandos ou non pode reenviar argumentos de forma coherente, non inventes passthrough. Documenta esta limitación na súa axuda e ofrece só opcións propias útiles, como `--dry-run`.
 - As opcións descoñecidas antes de `--` deben producir unha mensaxe clara que indique como consultar `--help`.
+- Reutiliza `--url URL` para enderezos remotos e `--destination RUTA` para a
+  ruta de saída, tamén cando sexa un directorio. Non uses `--origin` para a URL
+  dun clon: Git reserva esa opción para cambiar o nome do remoto creado.
 - Prefire repetir un parser curto dentro de cada comando antes que ocultar o fluxo en helpers xenéricos difíciles de seguir. Extrae funcións privadas cando aforren unha cantidade importante de código e sigan sendo evidentes, como os selectores compartidos de contedores ou imaxes.
 - Mantén os helpers específicos no ficheiro da aplicación que os utiliza. Non movas lóxica exclusiva de Git, Docker, yt-dlp ou SpotDL a módulos globais.
 - Os módulos internos de aplicacións e versións deben advertir claramente que
