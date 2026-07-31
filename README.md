@@ -184,6 +184,12 @@ git-log -- --since="1 week ago"
 yt-dlp-video -- --cookies-from-browser firefox
 ```
 
+Cada módulo rexistra tamén o autocompletado Bash dos seus propios comandos.
+`Tab` completa subcomandos, opcións, valores coñecidos e rutas segundo o
+contexto. Os completados de Git, Docker, yt-dlp e SpotDL só se cargan cando o
+Bashrc opcional correspondente está instalado; despois de `--`, Bash recupera
+o seu completado predeterminado.
+
 Os nomes que comezan por `_` son helpers internos e non forman parte da API
 pública. As librarías de `scripts/internal/` pertencen ao instalador e tampouco
 se deben usar como API persoal.

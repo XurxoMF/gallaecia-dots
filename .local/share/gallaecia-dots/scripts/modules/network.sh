@@ -1145,3 +1145,126 @@ vpn-delete() {
   done
   success "Perfís VPN eliminados: ${names[*]}."
 }
+
+# Completa nomes e UUID de VPN a partir das filas seguras do propio módulo.
+# Non mostra segredos nin o contido dos perfís e queda baleiro se nmcli falla.
+_network_completion_vpns() {
+  local current="$1"
+  local name type state uuid
+
+  COMPREPLY=()
+  while IFS=$'\t' read -r name type state uuid; do
+    if [[ "$name" == "$current"* ]]; then
+      COMPREPLY+=("$name")
+    fi
+    if [[ "$uuid" == "$current"* ]]; then
+      COMPREPLY+=("$uuid")
+    fi
+  done < <(_network_vpn_rows false 2> /dev/null)
+}
+
+# Completa nomes e UUID de conexións base para a autoconexión dunha VPN.
+_network_completion_base_connections() {
+  local current="$1"
+  local name type state uuid
+
+  COMPREPLY=()
+  while IFS=$'\t' read -r name type state uuid; do
+    if [[ "$name" == "$current"* ]]; then
+      COMPREPLY+=("$name")
+    fi
+    if [[ "$uuid" == "$current"* ]]; then
+      COMPREPLY+=("$uuid")
+    fi
+  done < <(_network_base_connection_rows 2> /dev/null)
+}
+
+# Completa opcións, ficheiros e identificadores dos comandos públicos de VPN.
+_network_completion() {
+  local command_name="${COMP_WORDS[0]:-}"
+  local current="${COMP_WORDS[COMP_CWORD]:-}"
+  local previous=""
+  local options=""
+
+  COMPREPLY=()
+  if ((COMP_CWORD > 0)); then
+    previous="${COMP_WORDS[COMP_CWORD - 1]}"
+  fi
+
+  case "$previous" in
+    --origin)
+      compopt -o filenames
+      mapfile -t COMPREPLY < <(compgen -f -- "$current")
+      return
+      ;;
+    --type)
+      mapfile -t COMPREPLY < <(
+        compgen -W "openvpn wireguard vpnc openconnect" -- "$current"
+      )
+      return
+      ;;
+    --name)
+      return
+      ;;
+  esac
+
+  case "$command_name" in
+    vpn-list)
+      options="--active --plain -h --help"
+      ;;
+    vpn-import)
+      options="--origin --type --name -h --help --"
+      if [[ "$current" != -* ]]; then
+        compopt -o filenames
+        mapfile -t COMPREPLY < <(compgen -f -- "$current")
+        return
+      fi
+      ;;
+    vpn-rename|vpn-clone)
+      options="-h --help --"
+      if [[ "$current" != -* ]] && [ "$COMP_CWORD" -eq 1 ]; then
+        _network_completion_vpns "$current"
+        return
+      fi
+      ;;
+    vpn-export)
+      options="-h --help --"
+      if [[ "$current" != -* ]]; then
+        if [ "$COMP_CWORD" -eq 1 ]; then
+          _network_completion_vpns "$current"
+        else
+          compopt -o filenames
+          mapfile -t COMPREPLY < <(compgen -f -- "$current")
+        fi
+        return
+      fi
+      ;;
+    vpn-autoconnect)
+      options="--disable -h --help --"
+      if [[ "$current" != -* ]]; then
+        if [ "$COMP_CWORD" -eq 1 ]; then
+          _network_completion_vpns "$current"
+        else
+          _network_completion_base_connections "$current"
+        fi
+        return
+      fi
+      ;;
+    vpn-edit|vpn-delete)
+      options="-h --help --"
+      if [[ "$current" != -* ]]; then
+        _network_completion_vpns "$current"
+        return
+      fi
+      ;;
+  esac
+
+  mapfile -t COMPREPLY < <(compgen -W "$options" -- "$current")
+}
+
+# Rexistra os completados deste módulo unicamente nas shells interactivas.
+if [[ $- == *i* ]]; then
+  complete -F _network_completion \
+    vpn-list vpn-import vpn-rename vpn-clone vpn-export \
+    vpn-autoconnect vpn-edit vpn-delete
+fi

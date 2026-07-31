@@ -1992,3 +1992,122 @@ docker-push() {
 
   docker push "${original_args[@]}" "$reference"
 }
+
+# Completa referencias de imaxes locais sen abrir os selectores interactivos.
+# Se o daemon non está dispoñible, a lista queda simplemente baleira.
+_docker_completion_images() {
+  local current="$1"
+  local reference
+
+  COMPREPLY=()
+  while IFS= read -r reference; do
+    if [ "$reference" = "<none>:<none>" ]; then
+      continue
+    fi
+    if [[ "$reference" == "$current"* ]]; then
+      COMPREPLY+=("$reference")
+    fi
+  done < <(docker image ls --format '{{.Repository}}:{{.Tag}}' 2> /dev/null)
+}
+
+# Completa as opcións propias dos wrappers Docker e algúns valores frecuentes.
+# O situado despois de `--` déixase ao completado predeterminado de Bash.
+_docker_completion() {
+  local command_name="${COMP_WORDS[0]:-}"
+  local current="${COMP_WORDS[COMP_CWORD]:-}"
+  local previous=""
+  local options=""
+  local index
+
+  COMPREPLY=()
+  if ((COMP_CWORD > 0)); then
+    previous="${COMP_WORDS[COMP_CWORD - 1]}"
+  fi
+
+  case "$previous" in
+    --image)
+      case "$command_name" in
+        docker-tag|docker-pull|docker-push)
+          _docker_completion_images "$current"
+          return
+          ;;
+      esac
+      ;;
+    --shell)
+      mapfile -t COMPREPLY < <(compgen -W "bash sh ash zsh fish" -- "$current")
+      return
+      ;;
+    --tail)
+      mapfile -t COMPREPLY < <(compgen -W "50 100 200 500 all" -- "$current")
+      return
+      ;;
+    --context|-C)
+      compopt -o filenames
+      mapfile -t COMPREPLY < <(compgen -d -- "$current")
+      return
+      ;;
+    --destination|--tag|-t|--registry|--query)
+      return
+      ;;
+  esac
+
+  for ((index = 1; index < COMP_CWORD; index++)); do
+    if [ "${COMP_WORDS[index]}" = "--" ]; then
+      compopt -o default
+      return
+    fi
+  done
+
+  case "$command_name" in
+    docker-ps)
+      options="-a --all --id --name --image --status --ports --created --labels -h --help --"
+      ;;
+    docker-shell)
+      options="--shell -h --help --"
+      ;;
+    docker-logs|compose-logs)
+      options="-f --follow --tail -h --help --"
+      ;;
+    docker-container-delete)
+      options="-f --force -h --help --"
+      ;;
+    docker-images)
+      options="-a --all -h --help --"
+      ;;
+    docker-image-delete)
+      options="-f --force -h --help --"
+      ;;
+    docker-tag)
+      options="--image --destination -h --help --"
+      ;;
+    docker-build)
+      options="-t --tag -C --context -h --help --"
+      ;;
+    docker-login|docker-logout)
+      options="--registry -h --help --"
+      ;;
+    docker-search)
+      options="--query -h --help --"
+      ;;
+    docker-pull|docker-push)
+      options="--image -h --help --"
+      ;;
+    docker-attach|docker-container-start|docker-container-stop|docker-container-restart|docker-networks|docker-network-delete|docker-volumes|docker-volume-delete|compose-ps|compose-up|compose-down|compose-rebuild|compose-update|docker-clean)
+      options="-h --help --"
+      ;;
+  esac
+
+  mapfile -t COMPREPLY < <(compgen -W "$options" -- "$current")
+}
+
+# Este rexistro só existe cando o Bashrc opcional de Docker está instalado.
+if [[ $- == *i* ]]; then
+  complete -F _docker_completion \
+    docker-ps docker-shell docker-attach docker-logs \
+    docker-container-start docker-container-stop docker-container-restart \
+    docker-container-delete docker-images docker-image-delete docker-tag \
+    docker-networks docker-network-delete docker-volumes docker-volume-delete \
+    compose-ps compose-up compose-down compose-logs compose-rebuild compose-update \
+    docker-build docker-clean docker-login docker-logout docker-search \
+    docker-pull docker-push
+fi

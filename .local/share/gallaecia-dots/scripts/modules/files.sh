@@ -1598,3 +1598,77 @@ files_equal() {
 
   cmp -s -- "$first_file" "$second_file"
 }
+
+# Completa opcións e rutas dos helpers de ficheiros. Usa `mapfile` para manter
+# nomes con espazos e marca os resultados como ficheiros para que Bash os cite.
+_files_completion() {
+  local command_name="${COMP_WORDS[0]:-}"
+  local current="${COMP_WORDS[COMP_CWORD]:-}"
+  local previous=""
+  local options=""
+  local path_mode="files"
+
+  COMPREPLY=()
+  if ((COMP_CWORD > 0)); then
+    previous="${COMP_WORDS[COMP_CWORD - 1]}"
+  fi
+
+  if [ "$previous" = "--mode" ]; then
+    mapfile -t COMPREPLY < <(compgen -W "700 750 755 775" -- "$current")
+    return
+  fi
+
+  case "$command_name" in
+    replace_path|merge_path|copy_path)
+      options="--origin --destination --dry-run -h --help --"
+      path_mode="directories"
+      ;;
+    replace_file|copy_file)
+      options="--origin --destination --dry-run -h --help --"
+      ;;
+    file_exists|path_exists|symlink_exists|files_equal)
+      options="-h --help --"
+      ;;
+    directory_exists)
+      options="-h --help --"
+      path_mode="directories"
+      ;;
+    ensure_directory)
+      options="--destination --mode --dry-run -h --help --"
+      path_mode="directories"
+      ;;
+    backup_path)
+      options="--origin --destination --dry-run -h --help --"
+      if [ "$previous" = "--destination" ]; then
+        path_mode="directories"
+      fi
+      ;;
+    ensure_symlink)
+      options="--origin --destination --replace --dry-run -h --help --"
+      ;;
+    trash_path)
+      options="--origin --dry-run -h --help --"
+      ;;
+  esac
+
+  if [[ "$current" == -* ]]; then
+    mapfile -t COMPREPLY < <(compgen -W "$options" -- "$current")
+    return
+  fi
+
+  compopt -o filenames
+  if [ "$path_mode" = "directories" ]; then
+    mapfile -t COMPREPLY < <(compgen -d -- "$current")
+  else
+    mapfile -t COMPREPLY < <(compgen -f -- "$current")
+  fi
+}
+
+# Rexistra os completados deste módulo unicamente nas shells interactivas.
+if [[ $- == *i* ]]; then
+  complete -F _files_completion \
+    replace_path merge_path replace_file \
+    file_exists path_exists directory_exists symlink_exists \
+    copy_file copy_path ensure_directory backup_path ensure_symlink \
+    trash_path files_equal
+fi

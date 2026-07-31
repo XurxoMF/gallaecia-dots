@@ -687,3 +687,58 @@ gallaecia() {
       ;;
   esac
 }
+
+# Completa os subcomandos públicos, as categorías instalables e as rutas dos
+# fondos. A lista de categorías replica intencionadamente o `case` do comando.
+_gallaecia_completion() {
+  local current="${COMP_WORDS[COMP_CWORD]:-}"
+  local previous=""
+  local subcommand="${COMP_WORDS[1]:-}"
+  local commands="commands update reinstall install-category wallpaper-add"
+  local categories="terminal editor ide browser file-explorer audio video pdf images mail chat creativity office games utilities development network downloads"
+
+  COMPREPLY=()
+  if ((COMP_CWORD > 0)); then
+    previous="${COMP_WORDS[COMP_CWORD - 1]}"
+  fi
+
+  if [ "$COMP_CWORD" -eq 1 ]; then
+    mapfile -t COMPREPLY < <(
+      compgen -W "$commands -h --help -v --version --" -- "$current"
+    )
+    return
+  fi
+  if [ "$COMP_CWORD" -eq 2 ] && [ "$subcommand" = "--" ]; then
+    mapfile -t COMPREPLY < <(compgen -W "$commands" -- "$current")
+    return
+  fi
+  if [ "$subcommand" = "--" ]; then
+    subcommand="${COMP_WORDS[2]:-}"
+  fi
+
+  case "$subcommand" in
+    install-category)
+      if [[ "$current" == -* ]]; then
+        mapfile -t COMPREPLY < <(compgen -W "-h --help --" -- "$current")
+      else
+        mapfile -t COMPREPLY < <(compgen -W "$categories" -- "$current")
+      fi
+      ;;
+    wallpaper-add)
+      if [[ "$current" == -* ]]; then
+        mapfile -t COMPREPLY < <(compgen -W "--origin -h --help --" -- "$current")
+      else
+        compopt -o filenames
+        mapfile -t COMPREPLY < <(compgen -f -- "$current")
+      fi
+      ;;
+    commands|update|reinstall)
+      mapfile -t COMPREPLY < <(compgen -W "-h --help" -- "$current")
+      ;;
+  esac
+}
+
+# Rexistra o completado do dispatcher só nas shells interactivas.
+if [[ $- == *i* ]]; then
+  complete -F _gallaecia_completion gallaecia
+fi

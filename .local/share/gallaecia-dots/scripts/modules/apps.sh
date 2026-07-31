@@ -1542,3 +1542,72 @@ pipx-uninstall() {
     fi
   done
 }
+
+# Completa as opcións propias dos helpers de paquetes sen consultar catálogos
+# remotos. Despois de `--packages` deixa o completado predeterminado dispoñible.
+_apps_completion() {
+  local command_name="${COMP_WORDS[0]:-}"
+  local current="${COMP_WORDS[COMP_CWORD]:-}"
+  local previous=""
+  local options=""
+  local index
+
+  COMPREPLY=()
+  if ((COMP_CWORD > 0)); then
+    previous="${COMP_WORDS[COMP_CWORD - 1]}"
+  fi
+
+  case "$previous" in
+    --manager)
+      mapfile -t COMPREPLY < <(compgen -W "any yay flatpak pipx" -- "$current")
+      return
+      ;;
+    --remote)
+      mapfile -t COMPREPLY < <(compgen -W "flathub" -- "$current")
+      return
+      ;;
+  esac
+
+  for ((index = 1; index < COMP_CWORD; index++)); do
+    case "${COMP_WORDS[index]}" in
+      --|--packages)
+        compopt -o default
+        return
+        ;;
+    esac
+  done
+
+  case "$command_name" in
+    has_package)
+      options="--manager -h --help --"
+      ;;
+    yay-install)
+      options="--packages -r --refresh -h --help --"
+      ;;
+    flatpak-install)
+      options="--packages --remote -h --help --"
+      ;;
+    pipx-install)
+      options="--packages -h --help --"
+      ;;
+    yay-uninstall)
+      options="--packages --clean-cache -h --help --"
+      ;;
+    flatpak-uninstall)
+      options="--packages --delete-data -h --help --"
+      ;;
+    pipx-uninstall)
+      options="--packages -h --help --"
+      ;;
+  esac
+
+  mapfile -t COMPREPLY < <(compgen -W "$options" -- "$current")
+}
+
+# Rexistra os completados deste módulo unicamente nas shells interactivas.
+if [[ $- == *i* ]]; then
+  complete -F _apps_completion \
+    has_package \
+    yay-install flatpak-install pipx-install \
+    yay-uninstall flatpak-uninstall pipx-uninstall
+fi

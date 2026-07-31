@@ -225,3 +225,27 @@ yt-dlp-music() {
     url=""
   done
 }
+
+# Completa as opcións propias dos dous fluxos de yt-dlp. Tras `--`, Bash aplica
+# o completado predeterminado aos argumentos do programa orixinal.
+_yt_dlp_completion() {
+  local current="${COMP_WORDS[COMP_CWORD]:-}"
+  local index
+
+  COMPREPLY=()
+  for ((index = 1; index < COMP_CWORD; index++)); do
+    if [ "${COMP_WORDS[index]}" = "--" ]; then
+      compopt -o default
+      return
+    fi
+  done
+
+  mapfile -t COMPREPLY < <(
+    compgen -W "--once --url -h --help --" -- "$current"
+  )
+}
+
+# Este rexistro só existe cando o Bashrc opcional de yt-dlp está instalado.
+if [[ $- == *i* ]]; then
+  complete -F _yt_dlp_completion yt-dlp-video yt-dlp-music
+fi

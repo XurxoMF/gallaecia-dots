@@ -1352,3 +1352,72 @@ git-stash-pop() {
   gum_confirm "Aplicar e retirar $stash da lista?" || return 0
   git stash pop "${original_args[@]}" "$stash"
 }
+
+# Completa as opcións propias dos wrappers Git e os valores pechados, como o
+# alcance das credenciais. Os argumentos posteriores a `--` pertencen a Git.
+_git_completion() {
+  local command_name="${COMP_WORDS[0]:-}"
+  local current="${COMP_WORDS[COMP_CWORD]:-}"
+  local previous=""
+  local options=""
+  local index
+
+  COMPREPLY=()
+  if ((COMP_CWORD > 0)); then
+    previous="${COMP_WORDS[COMP_CWORD - 1]}"
+  fi
+
+  case "$previous" in
+    --scope)
+      mapfile -t COMPREPLY < <(compgen -W "local global" -- "$current")
+      return
+      ;;
+    --destination)
+      compopt -o filenames
+      mapfile -t COMPREPLY < <(compgen -d -- "$current")
+      return
+      ;;
+  esac
+
+  for ((index = 1; index < COMP_CWORD; index++)); do
+    if [ "${COMP_WORDS[index]}" = "--" ]; then
+      compopt -o default
+      return
+    fi
+  done
+
+  case "$command_name" in
+    git-credentials)
+      options="--name --email --scope -h --help"
+      ;;
+    git-clone)
+      options="--url --destination -h --help --"
+      ;;
+    git-commit)
+      options="--title --body -h --help --"
+      ;;
+    git-branch-new)
+      options="--branch -h --help --"
+      ;;
+    git-branch-delete)
+      options="-f --force -h --help --"
+      ;;
+    git-stash-save)
+      options="-u --include-untracked --message -h --help --"
+      ;;
+    github-login|git-add|git-save|git-diff|git-pull|git-push|git-branch-switch|git-branch-merge|git-log|git-commit-show|git-stash-pop)
+      options="-h --help --"
+      ;;
+  esac
+
+  mapfile -t COMPREPLY < <(compgen -W "$options" -- "$current")
+}
+
+# Este rexistro só existe cando o Bashrc opcional de Git está instalado.
+if [[ $- == *i* ]]; then
+  complete -F _git_completion \
+    git-credentials github-login git-clone git-add git-commit git-save \
+    git-diff git-pull git-push git-branch-switch git-branch-new \
+    git-branch-delete git-branch-merge git-log git-commit-show \
+    git-stash-save git-stash-pop
+fi

@@ -1625,3 +1625,68 @@ gum_log() {
 	--separator.background="$MUTED_BACKGROUND" \
 	"${original_args[@]}"
 }
+
+# Completa as opcións propias dos wrappers de Gum. Os argumentos posteriores a
+# `--` quedan para Gum; no spinner, o primeiro deles complétase como comando.
+_ui_completion() {
+  local command_name="${COMP_WORDS[0]:-}"
+  local current="${COMP_WORDS[COMP_CWORD]:-}"
+  local options=""
+  local separator_index=-1
+  local index
+
+  COMPREPLY=()
+  for ((index = 1; index < COMP_CWORD; index++)); do
+    if [ "${COMP_WORDS[index]}" = "--" ]; then
+      separator_index="$index"
+      break
+    fi
+  done
+  if [ "$separator_index" -ge 0 ]; then
+    if [ "$command_name" = "gum_spin" ] &&
+      [ "$COMP_CWORD" -eq $((separator_index + 1)) ]; then
+      mapfile -t COMPREPLY < <(compgen -c -- "$current")
+    else
+      compopt -o default
+    fi
+    return
+  fi
+
+  case "$command_name" in
+    gum_confirm|gum_choose|gum_input|gum_filter|gum_write)
+      options="--header -h --help --"
+      ;;
+    gum_file)
+      options="--header -h --help --"
+      if [[ "$current" != -* ]]; then
+        compopt -o filenames
+        mapfile -t COMPREPLY < <(compgen -f -- "$current")
+        return
+      fi
+      ;;
+    gum_folder)
+      options="--header -h --help --"
+      if [[ "$current" != -* ]]; then
+        compopt -o filenames
+        mapfile -t COMPREPLY < <(compgen -d -- "$current")
+        return
+      fi
+      ;;
+    gum_spin)
+      options="--title --spinner --timeout --show-error -h --help --"
+      ;;
+    gum_style|info|title|warning|error|success|fail|gum_pager|gum_table|gum_format|gum_join|gum_log)
+      options="-h --help --"
+      ;;
+  esac
+
+  mapfile -t COMPREPLY < <(compgen -W "$options" -- "$current")
+}
+
+# Rexistra os completados deste módulo unicamente nas shells interactivas.
+if [[ $- == *i* ]]; then
+  complete -F _ui_completion \
+    gum_style info title warning error success fail \
+    gum_confirm gum_choose gum_input gum_filter gum_write gum_file gum_folder \
+    gum_spin gum_pager gum_table gum_format gum_join gum_log
+fi

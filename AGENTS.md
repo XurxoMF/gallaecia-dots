@@ -270,6 +270,14 @@ Mantén o mesmo formato nos módulos compartidos e nos Bashrc:
   As opcións explícitas permiten saltar cada paso interactivo. Non forces unha
   TUI en predicados, helpers de estilo nin composición de comandos que require
   necesariamente os seus argumentos.
+- Cada módulo público e Bashrc opcional mantén ao final o seu bloque de
+  completado, cun dispatcher privado `_nome_completion` e, cando fagan falta,
+  helpers co mesmo prefixo. Rexistra con `complete -F` os comandos que lle
+  pertencen só cando `[[ $- == *i* ]]`. Mantén as opcións sincronizadas co
+  parser e coa axuda do mesmo ficheiro. Usa `mapfile` para conservar espazos,
+  `compopt -o filenames` para rutas e devolve o completado predeterminado
+  despois de `--`. Os Bashrc opcionais non deben rexistrar completados desde
+  outro módulo: a súa ausencia debe retirar tamén as súas suxestións.
 - Prefire repetir un parser curto dentro de cada comando antes que ocultar o fluxo en helpers xenéricos difíciles de seguir. Extrae funcións privadas cando aforren unha cantidade importante de código e sigan sendo evidentes, como os selectores compartidos de contedores ou imaxes.
 - Mantén os helpers específicos no ficheiro da aplicación que os utiliza. Non movas lóxica exclusiva de Git, Docker, yt-dlp ou SpotDL a módulos globais.
 - Os módulos internos de aplicacións e versións deben advertir claramente que

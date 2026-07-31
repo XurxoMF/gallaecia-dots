@@ -211,10 +211,43 @@ configure_neovim_matugen() {
   copy_file "$source" "$target"
 }
 
+# Actualiza os comandos opcionais de yt-dlp, incluído o seu completado, só
+# cando a aplicación está instalada. Non instala paquetes nesta migración.
+update_ytdlp_commands() {
+  if ! has_command yt-dlp; then
+    return 0
+  fi
+  if ! ensure_directory "$HOME/.local/share/gallaecia-dots/bashrc"; then
+    return 1
+  fi
+
+  replace_file \
+    "$DOTFILES_DIR/optional/.local/share/gallaecia-dots/bashrc/201-yt-dlp" \
+    "$HOME/.local/share/gallaecia-dots/bashrc/201-yt-dlp"
+}
+
+# Actualiza o comando opcional de SpotDL e o seu completado unicamente nas
+# instalacións que xa teñen dispoñible a aplicación.
+update_spotdl_commands() {
+  if ! has_command spotdl; then
+    return 0
+  fi
+  if ! ensure_directory "$HOME/.local/share/gallaecia-dots/bashrc"; then
+    return 1
+  fi
+
+  replace_file \
+    "$DOTFILES_DIR/optional/.local/share/gallaecia-dots/bashrc/202-spotdl" \
+    "$HOME/.local/share/gallaecia-dots/bashrc/202-spotdl"
+}
+
 # Actualiza os comandos opcionais de Git só cando a ferramenta está instalada.
 update_git_commands() {
   if ! has_command git; then
     return 0
+  fi
+  if ! ensure_directory "$HOME/.local/share/gallaecia-dots/bashrc"; then
+    return 1
   fi
 
   replace_file \
@@ -227,6 +260,9 @@ update_git_commands() {
 update_docker_commands() {
   if ! has_command docker; then
     return 0
+  fi
+  if ! ensure_directory "$HOME/.local/share/gallaecia-dots/bashrc"; then
+    return 1
   fi
 
   replace_file \
@@ -246,6 +282,7 @@ show_changelog() {
   info "· Os wrappers compatibles aceptan --header como opción propia."
   info "· Os comandos completan con Gum os datos que se omitan cando procede."
   info "· Axudas e nomes de opcións revisados para ser máis consistentes."
+  info "· Engadido autocompletado Bash modular a todos os comandos públicos."
   info "· docker-build permite seleccionar visualmente o directorio de contexto."
   info "· A variante normal de Papirus pasa a ser o tema de iconas predeterminado."
   info "· Engadidos catro novos fondos inspirados en Galicia."
@@ -301,6 +338,12 @@ apply_update() {
     return 1
   fi
   if ! configure_neovim_matugen; then
+    return 1
+  fi
+  if ! update_ytdlp_commands; then
+    return 1
+  fi
+  if ! update_spotdl_commands; then
     return 1
   fi
   if ! update_git_commands; then

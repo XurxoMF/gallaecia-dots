@@ -671,3 +671,71 @@ run-terminal-as() {
       ;;
   esac
 }
+
+# Completa nomes de executables e as opcións propias dos helpers de comandos.
+# Os argumentos posteriores ao comando envolto usan o completado predeterminado.
+_commands_completion() {
+  local command_name="${COMP_WORDS[0]:-}"
+  local current="${COMP_WORDS[COMP_CWORD]:-}"
+  local previous=""
+  local options=""
+  local separator_index=-1
+  local index
+
+  COMPREPLY=()
+  if ((COMP_CWORD > 0)); then
+    previous="${COMP_WORDS[COMP_CWORD - 1]}"
+  fi
+
+  if [ "$previous" = "--command" ]; then
+    mapfile -t COMPREPLY < <(compgen -c -- "$current")
+    return
+  fi
+
+  for ((index = 1; index < COMP_CWORD; index++)); do
+    if [ "${COMP_WORDS[index]}" = "--" ]; then
+      separator_index="$index"
+      break
+    fi
+  done
+  if [ "$separator_index" -ge 0 ]; then
+    if [ "$COMP_CWORD" -eq $((separator_index + 1)) ]; then
+      mapfile -t COMPREPLY < <(compgen -c -- "$current")
+    else
+      compopt -o default
+    fi
+    return
+  fi
+
+  case "$command_name" in
+    has_command|require_command|require_commands)
+      if [[ "$current" != -* ]]; then
+        mapfile -t COMPREPLY < <(compgen -c -- "$current")
+        return
+      fi
+      options="-h --help --"
+      ;;
+    command_path|package_owns_command)
+      if [[ "$current" != -* ]]; then
+        mapfile -t COMPREPLY < <(compgen -c -- "$current")
+        return
+      fi
+      options="--command -h --help --"
+      ;;
+    retry_command)
+      options="--attempts --delay -h --help --"
+      ;;
+    run-terminal-as)
+      options="-h --help --"
+      ;;
+  esac
+
+  mapfile -t COMPREPLY < <(compgen -W "$options" -- "$current")
+}
+
+# Rexistra os completados deste módulo unicamente nas shells interactivas.
+if [[ $- == *i* ]]; then
+  complete -F _commands_completion \
+    has_command require_command require_commands \
+    command_path package_owns_command retry_command run-terminal-as
+fi
