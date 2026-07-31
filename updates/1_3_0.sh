@@ -66,6 +66,47 @@ update_hyprland_base() {
     "$HOME/.local/share/gallaecia-dots/hypr/gallaecia.lua"
 }
 
+# Substitúe as configuracións GTK controladas para usar a variante normal de
+# Papirus tanto nas aplicacións GTK 3 como nas GTK 4.
+update_gtk_icon_theme() {
+  if ! replace_path \
+    "$DOTFILES_DIR/.config/gtk-3.0" \
+    "$HOME/.config/gtk-3.0"; then
+    return 1
+  fi
+
+  replace_path \
+    "$DOTFILES_DIR/.config/gtk-4.0" \
+    "$HOME/.config/gtk-4.0"
+}
+
+# Substitúe as configuracións Qt controladas para usar Papirus en Qt 5, Qt 6 e
+# nas aplicacións que consultan kdeglobals.
+update_qt_icon_theme() {
+  if ! replace_path \
+    "$DOTFILES_DIR/.config/qt5ct" \
+    "$HOME/.config/qt5ct"; then
+    return 1
+  fi
+  if ! replace_path \
+    "$DOTFILES_DIR/.config/qt6ct" \
+    "$HOME/.config/qt6ct"; then
+    return 1
+  fi
+
+  replace_file \
+    "$DOTFILES_DIR/.config/kdeglobals" \
+    "$HOME/.config/kdeglobals"
+}
+
+# Substitúe a configuración controlada de xsettingsd para que as aplicacións
+# X11 reciban tamén a variante normal de Papirus.
+update_xsettingsd_icon_theme() {
+  replace_path \
+    "$DOTFILES_DIR/.config/xsettingsd" \
+    "$HOME/.config/xsettingsd"
+}
+
 # Substitúe a configuración base de Noctalia para que o botón chame directamente
 # o lanzador, sen crear antes unha terminal intermedia. Non toca custom.toml.
 update_noctalia_config() {
@@ -139,6 +180,7 @@ show_changelog() {
   info "· Engadido gum_folder para seleccionar directorios con Gum."
   info "· Os wrappers compatibles aceptan --header como opción propia."
   info "· docker-build permite seleccionar visualmente o directorio de contexto."
+  info "· A variante normal de Papirus pasa a ser o tema de iconas predeterminado."
 }
 
 # Instala primeiro a API e o seu entrypoint e activa despois os consumidores.
@@ -150,6 +192,15 @@ apply_update() {
     return 1
   fi
   if ! update_hyprland_base; then
+    return 1
+  fi
+  if ! update_gtk_icon_theme; then
+    return 1
+  fi
+  if ! update_qt_icon_theme; then
+    return 1
+  fi
+  if ! update_xsettingsd_icon_theme; then
     return 1
   fi
   if ! update_noctalia_config; then

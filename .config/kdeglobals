@@ -4,7 +4,7 @@ ColorScheme=Noctalia
 Name=noctalia
 
 [Icons]
-Theme=Papirus-Dark
+Theme=Papirus
 
 [KDE]
 ShowDeleteCommand=true

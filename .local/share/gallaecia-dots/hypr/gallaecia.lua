@@ -82,7 +82,7 @@ hl.on("hyprland.start", function ()
     hl.exec_cmd("xsettingsd")
 
     -- Set GTK themes
-    hl.exec_cmd("gsettings set org.gnome.desktop.interface icon-theme 'Papirus-Dark'")
+    hl.exec_cmd("gsettings set org.gnome.desktop.interface icon-theme 'Papirus'")
 
     -- Start Noctalia
     hl.exec_cmd("noctalia")
