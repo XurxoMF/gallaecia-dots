@@ -438,7 +438,7 @@ _network_choose_base_uuid() {
     return 2
   fi
   selected_row="$(printf '%s\n' "$rows" |
-    gum_filter -- --header "Escolle a conexión que debe iniciar a VPN:")" ||
+    gum_filter --header "Escolle a conexión que debe iniciar a VPN:")" ||
     return 2
   if [ -z "$selected_row" ]; then
     return 2
@@ -483,10 +483,10 @@ _network_select_vpns() {
 
   if [ "$mode" = "multiple" ]; then
     selection="$(printf '%s\n' "$rows" |
-      gum_filter -- --header "$header" --no-limit)" || return 2
+      gum_filter --header "$header" -- --no-limit)" || return 2
   else
     selection="$(printf '%s\n' "$rows" |
-      gum_filter -- --header "$header")" || return 2
+      gum_filter --header "$header")" || return 2
   fi
 
   if [ -z "$selection" ]; then
@@ -658,7 +658,7 @@ vpn-import() {
       *.ovpn) vpn_type="openvpn" ;;
       *.conf) vpn_type="wireguard" ;;
       *)
-        vpn_type="$(gum_input -- --header "Tipo de VPN para NetworkManager:")" ||
+        vpn_type="$(gum_input --header "Tipo de VPN para NetworkManager:")" ||
           return 0
         ;;
     esac
@@ -754,7 +754,7 @@ vpn-rename() {
   old_name="$(_network_vpn_name "$uuid")" || return 1
 
   if [ -z "$new_name" ]; then
-    new_name="$(gum_input -- --header "Novo nome da VPN:" --value "$old_name")" ||
+    new_name="$(gum_input --header "Novo nome da VPN:" -- --value "$old_name")" ||
       return 0
   fi
   if [ -z "$new_name" ]; then
@@ -810,8 +810,8 @@ vpn-clone() {
   old_name="$(_network_vpn_name "$uuid")" || return 1
 
   if [ -z "$new_name" ]; then
-    new_name="$(gum_input -- \
-      --header "Nome da copia:" --value "$old_name - copia")" || return 0
+    new_name="$(gum_input --header "Nome da copia:" -- \
+      --value "$old_name - copia")" || return 0
   fi
   if [ -z "$new_name" ]; then
     warning "O nome non pode quedar baleiro."
@@ -874,8 +874,7 @@ vpn-export() {
   if [ -z "$output_file" ]; then
     safe_name="${name// /-}"
     safe_name="${safe_name//\//-}"
-    output_file="$(gum_input -- \
-      --header "Ficheiro de saída:" \
+    output_file="$(gum_input --header "Ficheiro de saída:" -- \
       --value "$HOME/Descargas/$safe_name.conf")" || return 0
   fi
   if [ -z "$output_file" ]; then

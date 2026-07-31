@@ -604,7 +604,8 @@ _docker_select_containers() {
   [ "$multiple" = true ] && filter_args+=(--no-limit)
 
   selection="$(printf '%s\n' "${options[@]}" |
-    gum_filter "${filter_args[@]}" --header "$header" --placeholder "Filtrar contedores...")" || return 1
+    gum_filter --header "$header" -- \
+      "${filter_args[@]}" --placeholder "Filtrar contedores...")" || return 1
   [ -n "$selection" ] || return 1
 
   # `%%` retira desde o primeiro tabulador e deixa só o ID do contedor.
@@ -630,7 +631,8 @@ _docker_select_images() {
   [ "$multiple" = true ] && filter_args+=(--no-limit)
 
   selection="$(printf '%s\n' "${options[@]}" |
-    gum_filter "${filter_args[@]}" --header "$header" --placeholder "Filtrar imaxes...")" || return 1
+    gum_filter --header "$header" -- \
+      "${filter_args[@]}" --placeholder "Filtrar imaxes...")" || return 1
   [ -n "$selection" ] || return 1
 
   # As expansións arredor de `$'\t'` extraen campos separados por tabuladores.
@@ -1110,7 +1112,8 @@ docker-tag() {
     info "Non hai imaxes dispoñibles."
     return 0
   fi
-  destination="$(gum_input --header "Nova referencia da imaxe" --placeholder "usuario/imaxe:etiqueta")" || return 0
+  destination="$(gum_input --header "Nova referencia da imaxe" -- \
+    --placeholder "usuario/imaxe:etiqueta")" || return 0
   [ -n "$destination" ] || return 0
 
   docker image tag "${original_args[@]}" "$image" "$destination"
@@ -1184,7 +1187,8 @@ docker-network-delete() {
   fi
 
   selection="$(printf '%s\n' "${networks[@]}" |
-    gum_filter --no-limit --header "Selecciona redes para borrar:" --placeholder "Filtrar redes...")" || return 0
+    gum_filter --header "Selecciona redes para borrar:" -- \
+      --no-limit --placeholder "Filtrar redes...")" || return 0
   [ -n "$selection" ] || return 0
   # Cada liña visible leva máis datos; para borrar consérvase só o primeiro ID.
   while IFS= read -r line; do
@@ -1258,7 +1262,8 @@ docker-volume-delete() {
   fi
 
   selection="$(printf '%s\n' "${volumes[@]}" |
-    gum_filter --no-limit --header "Selecciona volumes para borrar:" --placeholder "Filtrar volumes...")" || return 0
+    gum_filter --header "Selecciona volumes para borrar:" -- \
+      --no-limit --placeholder "Filtrar volumes...")" || return 0
   [ -n "$selection" ] || return 0
   # O nome do volume é o campo anterior ao primeiro tabulador.
   while IFS= read -r line; do
@@ -1408,7 +1413,8 @@ compose-logs() {
     {
       printf '%s\n' "Todos os servizos"
       printf '%s\n' "${services[@]}"
-    } | gum_filter --no-limit --header "Selecciona servizos:" --placeholder "Filtrar servizos..."
+    } | gum_filter --header "Selecciona servizos:" -- \
+      --no-limit --placeholder "Filtrar servizos..."
   )" || return 0
   [ -n "$selection" ] || return 0
 
@@ -1527,9 +1533,10 @@ docker-build() {
 
   _docker_require || return 1
   # `${valor:-alternativa}` abre o input só cando non se pasou a opción.
-  tag="${tag:-$(gum_input --header "Etiqueta da imaxe" --placeholder "usuario/imaxe:latest")}" || return 0
+  tag="${tag:-$(gum_input --header "Etiqueta da imaxe" -- \
+    --placeholder "usuario/imaxe:latest")}" || return 0
   [ -n "$tag" ] || return 0
-  context="${context:-$(gum_folder . -- --header "Contexto do build")}" || return 0
+  context="${context:-$(gum_folder --header "Contexto do build" .)}" || return 0
   [ -n "$context" ] || return 0
 
   docker buildx build --load --tag "$tag" "${original_args[@]}" "$context"
@@ -1708,7 +1715,8 @@ docker-search() {
   done
 
   _docker_require || return 1
-  term="${term:-$(gum_input --header "Buscar en Docker Hub" --placeholder "Nome da imaxe")}" || return 0
+  term="${term:-$(gum_input --header "Buscar en Docker Hub" -- \
+    --placeholder "Nome da imaxe")}" || return 0
   [ -n "$term" ] || return 0
   docker search "${original_args[@]}" "$term"
 }
@@ -1748,7 +1756,8 @@ docker-pull() {
   done
 
   _docker_require || return 1
-  image="${image:-$(gum_input --header "Imaxe para descargar" --placeholder "usuario/imaxe:etiqueta")}" || return 0
+  image="${image:-$(gum_input --header "Imaxe para descargar" -- \
+    --placeholder "usuario/imaxe:etiqueta")}" || return 0
   [ -n "$image" ] || return 0
   docker pull "${original_args[@]}" "$image"
 }
@@ -1792,7 +1801,8 @@ docker-push() {
   fi
 
   selection="$(printf '%s\n' "${images[@]}" |
-    gum_filter --header "Selecciona unha imaxe para subir:" --placeholder "Filtrar imaxes...")" || return 0
+    gum_filter --header "Selecciona unha imaxe para subir:" -- \
+      --placeholder "Filtrar imaxes...")" || return 0
   [ -n "$selection" ] || return 0
   # A referencia que necesita push é o campo anterior ao primeiro tabulador.
   reference="${selection%%$'\t'*}"

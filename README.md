@@ -315,6 +315,10 @@ as cores xeradas por Noctalia:
 | `gum_join`         | Combina bloques de texto en horizontal ou vertical.            |
 | `gum_log`          | Mostra unha mensaxe de rexistro cun nivel determinado.         |
 
+`gum_choose`, `gum_input`, `gum_filter`, `gum_write`, `gum_file` e
+`gum_folder` aceptan directamente `--header TEXTO`; as demais opcións do
+subcomando orixinal continúan situándose despois de `--`.
+
 Todos estes wrappers comparten unha paleta por roles visuais: texto principal
 e secundario, bordo, acento, estados, prompt, cursor, cabeceira, elemento e
 selección. As variables correspondentes expórtanse desde o template de

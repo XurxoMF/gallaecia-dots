@@ -82,6 +82,41 @@ update_ui_module() {
     "$HOME/.local/share/gallaecia-dots/scripts/modules/ui.sh"
 }
 
+# Substitúe os helpers públicos de selección de aplicacións para que pasen
+# `--header` como opción propia dos wrappers de interface.
+update_apps_module() {
+  replace_file \
+    "$DOTFILES_DIR/.local/share/gallaecia-dots/scripts/modules/apps.sh" \
+    "$HOME/.local/share/gallaecia-dots/scripts/modules/apps.sh"
+}
+
+# Substitúe o módulo público de rede coa mesma separación entre as opcións
+# propias dos wrappers e as reenviadas aos subcomandos orixinais de Gum.
+update_network_module() {
+  replace_file \
+    "$DOTFILES_DIR/.local/share/gallaecia-dots/scripts/modules/network.sh" \
+    "$HOME/.local/share/gallaecia-dots/scripts/modules/network.sh"
+}
+
+# Actualiza os selectores internos usados polas categorías de aplicacións.
+# Esta libraría segue sen formar parte da API cargada polo Bashrc.
+update_internal_apps() {
+  replace_file \
+    "$DOTFILES_DIR/.local/share/gallaecia-dots/scripts/internal/apps.sh" \
+    "$HOME/.local/share/gallaecia-dots/scripts/internal/apps.sh"
+}
+
+# Actualiza os comandos opcionais de Git só cando a ferramenta está instalada.
+update_git_commands() {
+  if ! has_command git; then
+    return 0
+  fi
+
+  replace_file \
+    "$DOTFILES_DIR/optional/.local/share/gallaecia-dots/bashrc/203-git" \
+    "$HOME/.local/share/gallaecia-dots/bashrc/203-git"
+}
+
 # Actualiza os comandos opcionais de Docker só cando a ferramenta está
 # instalada. Non engade Docker nin activa o seu servizo nesta migración.
 update_docker_commands() {
@@ -102,6 +137,7 @@ show_changelog() {
   info "· O actualizador ábrese nunha única terminal flotante e centrada."
   info "· Kitty, Alacritty, Foot, Ghostty e WezTerm usan o mesmo identificador."
   info "· Engadido gum_folder para seleccionar directorios con Gum."
+  info "· Os wrappers compatibles aceptan --header como opción propia."
   info "· docker-build permite seleccionar visualmente o directorio de contexto."
 }
 
@@ -120,6 +156,18 @@ apply_update() {
     return 1
   fi
   if ! update_ui_module; then
+    return 1
+  fi
+  if ! update_apps_module; then
+    return 1
+  fi
+  if ! update_network_module; then
+    return 1
+  fi
+  if ! update_internal_apps; then
+    return 1
+  fi
+  if ! update_git_commands; then
     return 1
   fi
   if ! update_docker_commands; then

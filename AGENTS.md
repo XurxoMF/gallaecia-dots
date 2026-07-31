@@ -307,6 +307,10 @@ A interface interactiva está centralizada en `modules/ui.sh` e usa `gum`. Empre
   forma parte da interface e Gum elimínao ao pechala, mentres que un `echo`
   deixa liñas baleiras permanentes. Non engadas un `echo` antes destes helpers
   só para crear espazo.
+- `gum_choose`, `gum_input`, `gum_filter`, `gum_write`, `gum_file` e
+  `gum_folder` expoñen `--header TEXTO` como opción propia. Nos consumidores,
+  sitúa esta opción antes de `--` e deixa despois de `--` unicamente os
+  argumentos reenviados ao subcomando orixinal de Gum.
 - Define as cores de Gum mediante roles semánticos xenéricos compartidos por
   todos os wrappers, non con variables específicas para cada subcomando. Se
   engades un rol novo en `ui.sh`, expórtao tamén en

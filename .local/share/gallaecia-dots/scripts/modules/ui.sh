@@ -179,6 +179,9 @@ PARÁMETROS
       Unha ou máis opcións que se mostrarán no selector.
 
 OPCIÓNS
+  --header TEXTO
+      Cabeceira mostrada sobre as opcións.
+
   -h, --help
       Mostra esta axuda.
 
@@ -202,8 +205,8 @@ RESULTADO
 
 EXEMPLOS
   gum_choose "Git" "Docker" "Bruno"
-  gum_choose "Git" "Docker" -- --header "Escolle unha ferramenta:"
-  gum_choose "Git" "Docker" -- --header "Escolle varias:" --no-limit
+  gum_choose --header "Escolle unha ferramenta:" "Git" "Docker"
+  gum_choose --header "Escolle varias:" "Git" "Docker" -- --no-limit
 
 COMANDO ORIXINAL
   Os argumentos de Gum tamén se aceptan directamente por compatibilidade,
@@ -221,6 +224,9 @@ DESCRICIÓN
   Mostra unha entrada de texto coa paleta de Gallaecia.
 
 OPCIÓNS
+  --header TEXTO
+      Cabeceira mostrada sobre a entrada.
+
   -h, --help
       Mostra esta axuda.
 
@@ -233,8 +239,8 @@ RESULTADO
 
 EXEMPLOS
   gum_input
-  gum_input -- --header "Nome" --placeholder "Escribe o teu nome"
-  gum_input -- --password --header "Contrasinal"
+  gum_input --header "Nome" -- --placeholder "Escribe o teu nome"
+  gum_input --header "Contrasinal" -- --password
 
 COMANDO ORIXINAL
   Os argumentos de Gum tamén se aceptan directamente por compatibilidade,
@@ -252,6 +258,9 @@ DESCRICIÓN
   Filtra interactivamente as opcións recibidas por stdin.
 
 OPCIÓNS
+  --header TEXTO
+      Cabeceira mostrada sobre o filtro.
+
   -h, --help
       Mostra esta axuda.
 
@@ -278,7 +287,7 @@ RESULTADO
 
 EXEMPLOS
   printf '%s\n' A B C | gum_filter
-  printf '%s\n' A B C | gum_filter -- --no-limit --header "Escolle:"
+  printf '%s\n' A B C | gum_filter --header "Escolle:" -- --no-limit
 
 COMANDO ORIXINAL
   Os argumentos de Gum tamén se aceptan directamente por compatibilidade,
@@ -296,6 +305,9 @@ DESCRICIÓN
   Mostra un editor de texto multilínea coa paleta de Gallaecia.
 
 OPCIÓNS
+  --header TEXTO
+      Cabeceira mostrada sobre o editor.
+
   -h, --help
       Mostra esta axuda.
 
@@ -308,7 +320,7 @@ RESULTADO
 
 EXEMPLOS
   gum_write
-  gum_write -- --height 10 --show-line-numbers
+  gum_write --header "Descrición" -- --height 10 --show-line-numbers
 
 COMANDO ORIXINAL
   Os argumentos de Gum tamén se aceptan directamente por compatibilidade,
@@ -331,6 +343,9 @@ PARÁMETROS
       Directorio desde o que comezará a navegación.
 
 OPCIÓNS
+  --header TEXTO
+      Cabeceira mostrada sobre o selector.
+
   -h, --help
       Mostra esta axuda.
 
@@ -353,7 +368,7 @@ RESULTADO
 
 EXEMPLOS
   gum_file ~/.config
-  gum_file "$HOME" -- --file --all --header "Escolle un ficheiro:"
+  gum_file --header "Escolle un ficheiro:" "$HOME" -- --file --all
   gum_file "$HOME" -- --directory
 
 COMANDO ORIXINAL
@@ -377,6 +392,9 @@ PARÁMETROS
       Directorio desde o que comezará a navegación.
 
 OPCIÓNS
+  --header TEXTO
+      Cabeceira mostrada sobre o selector.
+
   -h, --help
       Mostra esta axuda.
 
@@ -399,7 +417,7 @@ RESULTADO
 
 EXEMPLOS
   gum_folder
-  gum_folder "$HOME" -- --all --header "Escolle un directorio:"
+  gum_folder --header "Escolle un directorio:" "$HOME" -- --all
 
 COMANDO ORIXINAL
   Os argumentos de Gum tamén se aceptan directamente por compatibilidade,
@@ -896,10 +914,19 @@ gum_confirm() {
 # padding superior. Imprime en stdout a selección de Gum —unha ou varias liñas
 # se se activa selección múltiple— e conserva o seu código de cancelación.
 gum_choose() {
+  local header=""
   local original_args=()
 
   while (($#)); do
     case "$1" in
+      --header)
+        if [ $# -lt 2 ]; then
+          printf 'Falta TEXTO para --header. Usa gum_choose --help.\n' >&2
+          return 1
+        fi
+        header="$2"
+        shift
+        ;;
       -h|--help)
         _ui_help gum_choose
         return 0
@@ -917,6 +944,7 @@ gum_choose() {
   done
 
   gum choose \
+	--header="$header" \
 	--show-help \
 	--cursor.foreground="$CURSOR_FOREGROUND" \
 	--cursor.background="$CURSOR_BACKGROUND" \
@@ -934,10 +962,19 @@ gum_choose() {
 # engade padding superior. Escribe en stdout o texto introducido e conserva o
 # código de saída, polo que unha substitución de comando pode detectar cancelacións.
 gum_input() {
+  local header=""
   local original_args=()
 
   while (($#)); do
     case "$1" in
+      --header)
+        if [ $# -lt 2 ]; then
+          printf 'Falta TEXTO para --header. Usa gum_input --help.\n' >&2
+          return 1
+        fi
+        header="$2"
+        shift
+        ;;
       -h|--help)
         _ui_help gum_input
         return 0
@@ -955,6 +992,7 @@ gum_input() {
   done
 
   gum input \
+	--header="$header" \
 	--prompt.foreground="$PROMPT_FOREGROUND" \
 	--prompt.background="$PROMPT_BACKGROUND" \
 	--placeholder.foreground="$MUTED_FOREGROUND" \
@@ -971,10 +1009,19 @@ gum_input() {
 # a procura, cursor e selección. Imprime as entradas escollidas e conserva o
 # código de Gum. Non engade padding porque o filtro ocupa a pantalla completa.
 gum_filter() {
+  local header=""
   local original_args=()
 
   while (($#)); do
     case "$1" in
+      --header)
+        if [ $# -lt 2 ]; then
+          printf 'Falta TEXTO para --header. Usa gum_filter --help.\n' >&2
+          return 1
+        fi
+        header="$2"
+        shift
+        ;;
       -h|--help)
         _ui_help gum_filter
         return 0
@@ -996,6 +1043,7 @@ gum_filter() {
   # dentro do estilo da fila e o seu reset cortaría o fondo do cursor xusto
   # despois do primeiro tramo coincidente.
   gum filter \
+	--header="$header" \
 	--show-help \
 	--indicator.foreground="$CURSOR_FOREGROUND" \
 	--indicator.background="$CURSOR_BACKGROUND" \
@@ -1022,10 +1070,19 @@ gum_filter() {
 # paleta do proxecto. A saída editada escríbese en stdout e o código de Gum
 # permite distinguir unha confirmación dunha cancelación.
 gum_write() {
+  local header=""
   local original_args=()
 
   while (($#)); do
     case "$1" in
+      --header)
+        if [ $# -lt 2 ]; then
+          printf 'Falta TEXTO para --header. Usa gum_write --help.\n' >&2
+          return 1
+        fi
+        header="$2"
+        shift
+        ;;
       -h|--help)
         _ui_help gum_write
         return 0
@@ -1043,6 +1100,7 @@ gum_write() {
   done
 
   gum write \
+	--header="$header" \
 	--base.foreground="$FOREGROUND" \
 	--base.background="$BACKGROUND" \
 	--cursor-line-number.foreground="$MUTED_FOREGROUND" \
@@ -1069,10 +1127,19 @@ gum_write() {
 # ficheiros, directorios, enlaces e metadatos, e engade padding superior.
 # Imprime a ruta escollida e devolve o código de Gum sen copiar nin alterar nada.
 gum_file() {
+  local header=""
   local original_args=()
 
   while (($#)); do
     case "$1" in
+      --header)
+        if [ $# -lt 2 ]; then
+          printf 'Falta TEXTO para --header. Usa gum_file --help.\n' >&2
+          return 1
+        fi
+        header="$2"
+        shift
+        ;;
       -h|--help)
         _ui_help gum_file
         return 0
@@ -1090,6 +1157,7 @@ gum_file() {
   done
 
   gum file \
+	--header="$header" \
 	--cursor.foreground="$CURSOR_FOREGROUND" \
 	--cursor.background="$CURSOR_BACKGROUND" \
 	--symlink.foreground="$WARNING_FOREGROUND" \
@@ -1114,10 +1182,19 @@ gum_file() {
 # permiten confirmar directorios e impiden escoller ficheiros, e delega en
 # `gum_file` para conservar a mesma paleta, padding e código de cancelación.
 gum_folder() {
+  local header=""
   local original_args=()
 
   while (($#)); do
     case "$1" in
+      --header)
+        if [ $# -lt 2 ]; then
+          printf 'Falta TEXTO para --header. Usa gum_folder --help.\n' >&2
+          return 1
+        fi
+        header="$2"
+        shift
+        ;;
       -h|--help)
         _ui_help gum_folder
         return 0
@@ -1134,7 +1211,10 @@ gum_folder() {
     shift
   done
 
-  gum_file -- --directory --file=false "${original_args[@]}"
+  gum_file --header "$header" -- \
+	--directory \
+	--file=false \
+	"${original_args[@]}"
 }
 
 # Recibe opcións propias do spinner e, obrigatoriamente tras `--`, un comando.

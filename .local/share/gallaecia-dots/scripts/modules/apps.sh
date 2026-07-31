@@ -538,9 +538,8 @@ _apps_filter_catalog() {
   local initial_value="${3:-}"
 
   printf '%s\n' "$catalog" |
-    gum_filter -- \
+    gum_filter --header "$header" -- \
       --no-limit \
-      --header "$header" \
       --value "$initial_value"
 }
 
@@ -560,8 +559,7 @@ _apps_request_query() {
   local header="$1"
   local placeholder="$2"
 
-  gum_input -- \
-    --header "$header" \
+  gum_input --header "$header" -- \
     --placeholder "$placeholder"
 }
 

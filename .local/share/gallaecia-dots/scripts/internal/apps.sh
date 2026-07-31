@@ -96,9 +96,8 @@ _select_category_apps() {
 
   while true; do
     if ! selection="$(gum_choose \
-      --no-limit \
       --header "$header" \
-      "${labels[@]}")"; then
+      "${labels[@]}" -- --no-limit)"; then
       if $required; then
         warning "Tes que escoller polo menos unha aplicación." >&2
         continue
