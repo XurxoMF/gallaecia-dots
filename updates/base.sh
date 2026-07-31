@@ -248,15 +248,15 @@ install_greetd_pam_config() {
     "/etc/pam.d/greetd"
 }
 
-# Instala os ficheiros controlados por Gallaecia en ~/.local/share.
-# Estes son actualizables porque non son configs directas do usuario.
+# Instala os ficheiros controlados por Gallaecia en ~/.local/share e combina os
+# fondos distribuídos cos persoais sen eliminar imaxes adicionais do usuario.
 install_gallaecia_config() {
   rm -f "$HOME/.local/share/gallaecia-dots/scripts/modules/versions.sh" &&
   merge_path "$DOTFILES_DIR/.local/share/gallaecia-dots" "$HOME/.local/share/gallaecia-dots" &&
   replace_file "$DOTFILES_DIR/.config/mimeapps.list" "$HOME/.config/mimeapps.list" &&
   sudo chmod +x -R "$HOME/.local/share/gallaecia-dots/scripts" &&
-  mkdir -p "$HOME/.wallpapers" "$HOME/.wallpaper-videos" &&
-  cp -rf "$DOTFILES_DIR/.wallpapers/." "$HOME/.wallpapers/"
+  mkdir -p "$HOME/.wallpaper-videos" &&
+  merge_path "$DOTFILES_DIR/.wallpapers" "$HOME/.wallpapers"
 }
 
 # Fixa `Login` como chaveiro predeterminado para Secret Service sen substituír

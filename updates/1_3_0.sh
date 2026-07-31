@@ -58,6 +58,14 @@ install_terminal_runner() {
   chmod +x "$HOME/.local/share/gallaecia-dots/scripts/run-terminal-as.sh"
 }
 
+# Combina os novos fondos distribuídos cos que xa teña o usuario. As imaxes
+# persoais con outros nomes consérvanse no destino.
+update_wallpapers() {
+  merge_path \
+    "$DOTFILES_DIR/.wallpapers" \
+    "$HOME/.wallpapers"
+}
+
 # Actualiza unicamente a base compartida e controlada de Hyprland. O wrapper
 # persoal de ~/.config/hypr permanece intacto.
 update_hyprland_base() {
@@ -181,6 +189,7 @@ show_changelog() {
   info "· Os wrappers compatibles aceptan --header como opción propia."
   info "· docker-build permite seleccionar visualmente o directorio de contexto."
   info "· A variante normal de Papirus pasa a ser o tema de iconas predeterminado."
+  info "· Engadidos catro novos fondos inspirados en Galicia."
 }
 
 # Instala primeiro a API e o seu entrypoint e activa despois os consumidores.
@@ -189,6 +198,9 @@ apply_update() {
     return 1
   fi
   if ! install_terminal_runner; then
+    return 1
+  fi
+  if ! update_wallpapers; then
     return 1
   fi
   if ! update_hyprland_base; then

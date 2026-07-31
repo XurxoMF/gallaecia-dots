@@ -101,7 +101,7 @@ network_poll_seconds = 2
 [theme]
 builtin = "Tokyo-Night"
 community_palette = "Neon Surf"
-mode = "dark"
+mode = "light"
 source = "wallpaper"
 wallpaper_scheme = "vibrant"
 
@@ -147,10 +147,10 @@ transition = [ "disc" ]
 transition_on_startup = true
 
     [wallpaper.default]
-    path = "~/.wallpapers/Gallaecia - Torre de Hércules.jpg"
+    path = "~/.wallpapers/Gallaecia - Bandeira.png"
 
     [wallpaper.last]
-    path = "~/.wallpapers/Gallaecia - Torre de Hércules.jpg"
+    path = "~/.wallpapers/Gallaecia - Bandeira.png"
 
 [widget.media]
 hide_when_no_media = true

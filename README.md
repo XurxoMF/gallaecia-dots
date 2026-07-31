@@ -495,6 +495,11 @@ gallaecia install-category development
 
 Gallaecia separa os fondos estáticos dos animados:
 
+> [!NOTE]
+> Algúns dos fondos incluídos foron xerados con intelixencia artificial debido
+> á escaseza de imaxes de Galicia con boa calidade e licenzas compatibles coa
+> súa redistribución.
+
 | Tipo             | Directorio persoal     |
 | ---------------- | ---------------------- |
 | Imaxes estáticas | `~/.wallpapers/`       |
