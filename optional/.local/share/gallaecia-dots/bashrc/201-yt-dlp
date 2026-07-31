@@ -84,7 +84,7 @@ EOF
 
 # Recibe unha URL opcional, o modo dunha soa descarga e argumentos para yt-dlp.
 # Usa sempre a configuración de vídeo de Gallaecia; sen URL abre repetidamente
-# `gum_input` ata cancelar. Executa os argumentos reenviados sen reinterpretalos
+# `input` ata cancelar. Executa os argumentos reenviados sen reinterpretalos
 # e devolve o estado da descarga cando se usa `--once` ou `--url`.
 yt-dlp-video() {
   local once=false
@@ -138,7 +138,7 @@ yt-dlp-video() {
 
   while true; do
     if [ -z "$url" ]; then
-      url="$(gum_input --prompt "URL do vídeo: " --placeholder "Pega unha URL")" || return 0
+      url="$(input --prompt "URL do vídeo: " --placeholder "Pega unha URL")" || return 0
     fi
 
     [ -z "$url" ] && continue
@@ -156,7 +156,7 @@ yt-dlp-video() {
 
 # Recibe unha URL opcional, o modo dunha soa descarga e argumentos para yt-dlp.
 # Usa a configuración musical de Gallaecia, que decide formato e destino; sen
-# URL mantén un bucle de `gum_input` ata cancelar. A axuda/versión do programa
+# URL mantén un bucle de `input` ata cancelar. A axuda/versión do programa
 # real evita o prompt e o modo dunha soa execución conserva o seu código de saída.
 yt-dlp-music() {
   local once=false
@@ -210,7 +210,7 @@ yt-dlp-music() {
 
   while true; do
     if [ -z "$url" ]; then
-      url="$(gum_input --prompt "URL da canción: " --placeholder "Pega unha URL")" || return 0
+      url="$(input --prompt "URL da canción: " --placeholder "Pega unha URL")" || return 0
     fi
 
     [ -z "$url" ] && continue

@@ -583,7 +583,7 @@ main() {
   info "Con este script poderás instalar os dotfiles paso por paso para que poidas personalizar algunhas cousas e gardar copias de seguridade antes de que se sobreescriban polos dotfiles."
   info "Simplemente responde as preguntas que irán aparecendo en pantalla deixa que ocurra a maxia pagana."
 
-  if ! gum_confirm "Queres instalar Gallaecia Dots agora?"; then
+  if ! confirm "Queres instalar Gallaecia Dots agora?"; then
     info "Instalación cancelada."
     exit 0
   fi
@@ -595,7 +595,7 @@ main() {
   title "Reiniciar o sistema"
   info "Recoméndase reiniciar o sistema para aplicar correctamente todos os cambios."
   
-  if gum_confirm "Reiniciar o sistema agora?"; then
+  if confirm "Reiniciar o sistema agora?"; then
     systemctl reboot
   fi
 }

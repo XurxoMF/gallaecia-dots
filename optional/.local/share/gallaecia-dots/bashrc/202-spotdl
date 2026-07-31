@@ -105,7 +105,7 @@ spotdl-music() {
 
   while true; do
     if [ -z "$url" ]; then
-      url="$(gum_input --prompt "URL de Spotify (ou youtube|spotify): " --placeholder "Pega unha URL")" || return 0
+      url="$(input --prompt "URL de Spotify (ou youtube|spotify): " --placeholder "Pega unha URL")" || return 0
     fi
 
     [ -z "$url" ] && continue

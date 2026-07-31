@@ -304,7 +304,7 @@ _network_require_helpers() {
   fi
 
   for helper in \
-    gum_choose gum_confirm gum_filter gum_input gum_table \
+    choose confirm filter input table \
     error info success warning; do
     if ! declare -F "$helper" &> /dev/null; then
       printf 'Falta o helper público %s; carga todos os módulos de Gallaecia.\n' \
@@ -442,7 +442,7 @@ _network_choose_base_uuid() {
     return 2
   fi
   selected_row="$(printf '%s\n' "$rows" |
-    gum_filter --header "Escolle a conexión que debe iniciar a VPN:")" ||
+    filter --header "Escolle a conexión que debe iniciar a VPN:")" ||
     return 2
   if [ -z "$selected_row" ]; then
     return 2
@@ -487,10 +487,10 @@ _network_select_vpns() {
 
   if [ "$mode" = "multiple" ]; then
     selection="$(printf '%s\n' "$rows" |
-      gum_filter --header "$header" -- --no-limit)" || return 2
+      filter --header "$header" -- --no-limit)" || return 2
   else
     selection="$(printf '%s\n' "$rows" |
-      gum_filter --header "$header")" || return 2
+      filter --header "$header")" || return 2
   fi
 
   if [ -z "$selection" ]; then
@@ -594,7 +594,7 @@ vpn-list() {
     printf 'NOME\tTIPO\tESTADO\tUUID\n%s\n' "$rows"
   else
     printf '%s\n' "$rows" |
-      gum_table -- --separator $'\t' \
+      table -- --separator $'\t' \
         --columns "Nome,Tipo,Estado,UUID" --print
   fi
 }
@@ -666,7 +666,7 @@ vpn-import() {
 
   _network_require_helpers || return 1
   if [ -z "$file_path" ]; then
-    file_path="$(gum_file --header "Selecciona a configuración da VPN" -- \
+    file_path="$(select_file --header "Selecciona a configuración da VPN" -- \
       "$HOME/Descargas")" || return 0
   fi
   if [ ! -f "$file_path" ]; then
@@ -679,7 +679,7 @@ vpn-import() {
       *.ovpn) vpn_type="openvpn" ;;
       *.conf) vpn_type="wireguard" ;;
       *)
-        vpn_type="$(gum_input --header "Tipo de VPN para NetworkManager:")" ||
+        vpn_type="$(input --header "Tipo de VPN para NetworkManager:")" ||
           return 0
         ;;
     esac
@@ -775,7 +775,7 @@ vpn-rename() {
   old_name="$(_network_vpn_name "$uuid")" || return 1
 
   if [ -z "$new_name" ]; then
-    new_name="$(gum_input --header "Novo nome da VPN:" -- --value "$old_name")" ||
+    new_name="$(input --header "Novo nome da VPN:" -- --value "$old_name")" ||
       return 0
   fi
   if [ -z "$new_name" ]; then
@@ -831,7 +831,7 @@ vpn-clone() {
   old_name="$(_network_vpn_name "$uuid")" || return 1
 
   if [ -z "$new_name" ]; then
-    new_name="$(gum_input --header "Nome da copia:" -- \
+    new_name="$(input --header "Nome da copia:" -- \
       --value "$old_name - copia")" || return 0
   fi
   if [ -z "$new_name" ]; then
@@ -895,7 +895,7 @@ vpn-export() {
   if [ -z "$output_file" ]; then
     safe_name="${name// /-}"
     safe_name="${safe_name//\//-}"
-    output_file="$(gum_input --header "Ficheiro de saída:" -- \
+    output_file="$(input --header "Ficheiro de saída:" -- \
       --value "$HOME/Descargas/$safe_name.conf")" || return 0
   fi
   if [ -z "$output_file" ]; then
@@ -903,7 +903,7 @@ vpn-export() {
     return 0
   fi
   if [ -e "$output_file" ] &&
-    ! gum_confirm "Sobrescribir $output_file?" -- --default=false; then
+    ! confirm "Sobrescribir $output_file?" -- --default=false; then
     info "Exportación cancelada."
     return 0
   fi
@@ -1134,7 +1134,7 @@ vpn-delete() {
   if [ ${#uuids[@]} -eq 0 ]; then
     return 0
   fi
-  if ! gum_confirm \
+  if ! confirm \
     "Eliminar definitivamente estes perfís: ${names[*]}?" -- --default=false; then
     info "Eliminación cancelada."
     return 0

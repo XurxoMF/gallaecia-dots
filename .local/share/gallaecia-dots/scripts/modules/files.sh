@@ -610,11 +610,11 @@ replace_path() {
   fi
 
   if [ -z "$source" ]; then
-    source="$(gum_folder --header "Selecciona o directorio de orixe")" || return 0
+    source="$(select_folder --header "Selecciona o directorio de orixe")" || return 0
     interactive=true
   fi
   if [ -z "$target" ]; then
-    target="$(gum_input --header "Directorio de destino" -- \
+    target="$(input --header "Directorio de destino" -- \
       --placeholder "$HOME/.config/aplicacion")" || return 0
     interactive=true
   fi
@@ -636,7 +636,7 @@ replace_path() {
   fi
 
   if $interactive && path_exists -- "$target"; then
-    gum_confirm "Substituír todo o contido de $target?" || return 0
+    confirm "Substituír todo o contido de $target?" || return 0
   fi
 
   rm -rf -- "$target" && cp -r -- "$source" "$target"
@@ -708,10 +708,10 @@ merge_path() {
   fi
 
   if [ -z "$source" ]; then
-    source="$(gum_folder --header "Selecciona o directorio de orixe")" || return 0
+    source="$(select_folder --header "Selecciona o directorio de orixe")" || return 0
   fi
   if [ -z "$target" ]; then
-    target="$(gum_input --header "Directorio de destino" -- \
+    target="$(input --header "Directorio de destino" -- \
       --placeholder "$HOME/.config/aplicacion")" || return 0
   fi
   [ -n "$target" ] || return 0
@@ -802,11 +802,11 @@ replace_file() {
   fi
 
   if [ -z "$source" ]; then
-    source="$(gum_file --header "Selecciona o ficheiro de orixe")" || return 0
+    source="$(select_file --header "Selecciona o ficheiro de orixe")" || return 0
     interactive=true
   fi
   if [ -z "$target" ]; then
-    target="$(gum_input --header "Ficheiro de destino" -- \
+    target="$(input --header "Ficheiro de destino" -- \
       --placeholder "$HOME/.config/aplicacion/config.toml")" || return 0
     interactive=true
   fi
@@ -828,7 +828,7 @@ replace_file() {
   fi
 
   if $interactive && path_exists -- "$target"; then
-    gum_confirm "Substituír o ficheiro $target?" || return 0
+    confirm "Substituír o ficheiro $target?" || return 0
   fi
 
   rm -f -- "$target" && cp -- "$source" "$target"
@@ -1050,10 +1050,10 @@ copy_file() {
     return 1
   fi
   if [ -z "$source" ]; then
-    source="$(gum_file --header "Selecciona o ficheiro de orixe")" || return 0
+    source="$(select_file --header "Selecciona o ficheiro de orixe")" || return 0
   fi
   if [ -z "$target" ]; then
-    target="$(gum_input --header "Novo ficheiro de destino" -- \
+    target="$(input --header "Novo ficheiro de destino" -- \
       --placeholder "$HOME/.config/aplicacion/config.toml")" || return 0
   fi
   [ -n "$target" ] || return 0
@@ -1143,10 +1143,10 @@ copy_path() {
     return 1
   fi
   if [ -z "$source" ]; then
-    source="$(gum_folder --header "Selecciona o directorio de orixe")" || return 0
+    source="$(select_folder --header "Selecciona o directorio de orixe")" || return 0
   fi
   if [ -z "$target" ]; then
-    target="$(gum_input --header "Novo directorio de destino" -- \
+    target="$(input --header "Novo directorio de destino" -- \
       --placeholder "$HOME/.config/aplicacion")" || return 0
   fi
   [ -n "$target" ] || return 0
@@ -1231,7 +1231,7 @@ ensure_directory() {
     return 1
   fi
   if [ -z "$directory_path" ]; then
-    directory_path="$(gum_input --header "Directorio que se creará" -- \
+    directory_path="$(input --header "Directorio que se creará" -- \
       --placeholder "$HOME/.config/aplicacion")" || return 0
   fi
   [ -n "$directory_path" ] || return 0
@@ -1324,7 +1324,7 @@ backup_path() {
     return 1
   fi
   if [ -z "$source" ]; then
-    source="$(gum_file --header "Selecciona a ruta da que crear unha copia")" || return 0
+    source="$(select_file --header "Selecciona a ruta da que crear unha copia")" || return 0
   fi
 
   if ! path_exists -- "$source"; then
@@ -1433,10 +1433,10 @@ ensure_symlink() {
     return 1
   fi
   if [ -z "$source" ]; then
-    source="$(gum_file --header "Selecciona a orixe da ligazón")" || return 0
+    source="$(select_file --header "Selecciona a orixe da ligazón")" || return 0
   fi
   if [ -z "$target" ]; then
-    target="$(gum_input --header "Destino da ligazón" -- \
+    target="$(input --header "Destino da ligazón" -- \
       --placeholder "$HOME/.config/aplicacion/config.toml")" || return 0
   fi
   [ -n "$target" ] || return 0
@@ -1523,7 +1523,7 @@ trash_path() {
   done
 
   if [ ${#paths[@]} -eq 0 ]; then
-    file_path="$(gum_file --header "Selecciona a ruta que enviar ao lixo")" || return 0
+    file_path="$(select_file --header "Selecciona a ruta que enviar ao lixo")" || return 0
     [ -n "$file_path" ] || return 0
     paths+=("$file_path")
   fi
@@ -1547,7 +1547,7 @@ trash_path() {
     return 0
   fi
 
-  gum_confirm "Enviar ${#paths[@]} ruta(s) ao lixo?" || return 0
+  confirm "Enviar ${#paths[@]} ruta(s) ao lixo?" || return 0
   trash-put -- "${paths[@]}"
 }
 

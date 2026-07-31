@@ -6,15 +6,17 @@
 # Este ficheiro é a única capa que debe chamar directamente a Gum nos fluxos de
 # Gallaecia. Agrupa:
 #
-#   Mensaxes: gum_style, info, title, warning, error, success, fail
-#   Interacción: gum_confirm, gum_choose, gum_input, gum_filter, gum_write
-#   Ferramentas: gum_file, gum_folder, gum_spin, gum_pager, gum_table,
-#                gum_format, gum_join, gum_log
+#   Mensaxes: style, info, title, warning, error, success, fail
+#   Interacción: confirm, choose, input, filter, textarea
+#   Ferramentas: select_file, select_folder, spinner, pager, table,
+#                format, combine, log
 #
 # A paleta pode xerala Noctalia en UI_COLORS_FILE. Se non existe, os valores
 # seguintes actúan como fallback. Os roles son semánticos e compartidos: cambia
-# PROMPT_FOREGROUND para todos os prompts, SELECTED_BACKGROUND para todas as
-# seleccións, etc.; non engadas cores soltas dentro dun comando consumidor.
+# PROMPT_FOREGROUND para todos os prompts, CURSOR_FOREGROUND para todos os
+# cursores, etc.; non engadas cores soltas dentro dun comando consumidor.
+# As listas e mensaxes non empregan fondos: estes resérvanse para as zonas
+# editables de `gum input` e `gum write` e para os botóns de confirmación.
 #
 # Cada wrapper analiza só as súas opcións ata `--` e reenvía o resto ao comando
 # Gum orixinal. O padding visual tamén se decide aquí para que os chamadores non
@@ -38,14 +40,17 @@ BORDER_BACKGROUND="${BORDER_BACKGROUND:-}"
 ACCENT_FOREGROUND="${ACCENT_FOREGROUND:-#90CDFF}"
 SUCCESS_FOREGROUND="${SUCCESS_FOREGROUND:-#2baf03}"
 ERROR_FOREGROUND="${ERROR_FOREGROUND:-#cc2508}"
-WARNING_FOREGROUND="${WARNING_FOREGROUND:-#D6C104}"
+# O amarelo ANSI adáptase á paleta do terminal e mantén as advertencias
+# recoñecibles con temas claros e escuros.
+WARNING_FOREGROUND="3"
 
 # Os roles xenéricos reutilízanse en todos os comandos de Gum.
 PROMPT_FOREGROUND="${PROMPT_FOREGROUND:-#90cdff}"
 PROMPT_BACKGROUND="${PROMPT_BACKGROUND:-}"
 CURSOR_FOREGROUND="${CURSOR_FOREGROUND:-#90cdff}"
 CURSOR_BACKGROUND="${CURSOR_BACKGROUND:-}"
-HEADER_FOREGROUND="${HEADER_FOREGROUND:-#dbe3ed}"
+# As cabeceiras comparten sempre a cor de acento dos títulos de sección.
+HEADER_FOREGROUND="$ACCENT_FOREGROUND"
 HEADER_BACKGROUND="${HEADER_BACKGROUND:-}"
 ITEM_FOREGROUND="${ITEM_FOREGROUND:-#dbe3ed}"
 ITEM_BACKGROUND="${ITEM_BACKGROUND:-$BACKGROUND}"
@@ -63,10 +68,10 @@ UNSELECTED_BACKGROUND="${UNSELECTED_BACKGROUND:-#004b72}"
 # si mesma; cada wrapper chámaa ao procesar `-h|--help`.
 _ui_help() {
   case "$1" in
-    gum_style)
+    style)
       cat <<'EOF'
 USO
-  gum_style [OPCIÓNS] TEXTO... [-- ARGUMENTOS DE GUM STYLE]
+  style [OPCIÓNS] TEXTO... [-- ARGUMENTOS DE GUM STYLE]
 
 DESCRICIÓN
   Mostra un ou máis textos usando `gum style` e a paleta de Gallaecia.
@@ -86,14 +91,14 @@ RESULTADO
   Escribe o texto formatado en stdout e devolve o código de `gum style`.
 
 EXEMPLOS
-  gum_style "Texto normal"
-  gum_style "Título" -- --border rounded --bold
+  style "Texto normal"
+  style "Título" -- --border rounded --bold
 
 COMANDO ORIXINAL
   Os argumentos de Gum tamén se aceptan directamente por compatibilidade,
   pero recoméndase escribilos despois de `--`.
 
-  gum_style "Axuda" -- --help
+  style "Axuda" -- --help
 EOF
       ;;
     info)
@@ -226,7 +231,7 @@ USO
   success [OPCIÓNS] MENSAXE [-- ARGUMENTOS DE GUM STYLE]
 
 DESCRICIÓN
-  Mostra unha mensaxe de operación completada coa cor de éxito e separación.
+  Mostra unha mensaxe de operación completada coa cor de éxito.
 
 PARÁMETROS
   MENSAXE
@@ -240,7 +245,7 @@ OPCIÓNS
       Remata as opcións do helper. Todo o posterior reenvíase a `gum style`.
 
 RESULTADO
-  Escribe a mensaxe con padding superior e inferior.
+  Escribe a mensaxe sen engadir separación vertical.
 
 EXEMPLOS
   success "Instalación completada."
@@ -271,7 +276,7 @@ OPCIÓNS
       Remata as opcións do helper. Todo o posterior reenvíase a `gum style`.
 
 RESULTADO
-  Escribe a mensaxe con padding superior e finaliza co código 1.
+  Escribe a mensaxe sen engadir separación vertical e finaliza co código 1.
 
 EXEMPLOS
   fail "Non se pode continuar."
@@ -283,10 +288,10 @@ COMANDO ORIXINAL
 
 EOF
       ;;
-    gum_confirm)
+    confirm)
       cat <<'EOF'
 USO
-  gum_confirm [OPCIÓNS] PREGUNTA [-- ARGUMENTOS DE GUM CONFIRM]
+  confirm [OPCIÓNS] PREGUNTA [-- ARGUMENTOS DE GUM CONFIRM]
 
 DESCRICIÓN
   Mostra unha pregunta de confirmación coa paleta de Gallaecia e as opcións
@@ -308,21 +313,21 @@ RESULTADO
   Devolve un código distinto de 0 se escolle «No» ou cancela.
 
 EXEMPLOS
-  gum_confirm "Continuar coa instalación?"
-  gum_confirm "Eliminar o ficheiro?" -- --default=false
-  gum_confirm "Publicar?" -- --affirmative "Publicar" --negative "Cancelar"
+  confirm "Continuar coa instalación?"
+  confirm "Eliminar o ficheiro?" -- --default=false
+  confirm "Publicar?" -- --affirmative "Publicar" --negative "Cancelar"
 
 COMANDO ORIXINAL
   Os argumentos de Gum tamén se aceptan directamente por compatibilidade,
   pero recoméndase escribilos despois de `--`.
 
-  gum_confirm "Axuda" -- --help
+  confirm "Axuda" -- --help
 EOF
       ;;
-    gum_choose)
+    choose)
       cat <<'EOF'
 USO
-  gum_choose [OPCIÓNS] OPCIÓN... [-- ARGUMENTOS DE GUM CHOOSE]
+  choose [OPCIÓNS] OPCIÓN... [-- ARGUMENTOS DE GUM CHOOSE]
 
 DESCRICIÓN
   Mostra un selector coa paleta de Gallaecia.
@@ -357,21 +362,21 @@ RESULTADO
   Devolve un código distinto de 0 se o usuario cancela.
 
 EXEMPLOS
-  gum_choose "Git" "Docker" "Bruno"
-  gum_choose --header "Escolle unha ferramenta:" "Git" "Docker"
-  gum_choose --header "Escolle varias:" "Git" "Docker" -- --no-limit
+  choose "Git" "Docker" "Bruno"
+  choose --header "Escolle unha ferramenta:" "Git" "Docker"
+  choose --header "Escolle varias:" "Git" "Docker" -- --no-limit
 
 COMANDO ORIXINAL
   Os argumentos de Gum tamén se aceptan directamente por compatibilidade,
   pero recoméndase escribilos despois de `--`.
 
-  gum_choose "Exemplo" -- --help
+  choose "Exemplo" -- --help
 EOF
       ;;
-    gum_input)
+    input)
       cat <<'EOF'
 USO
-  gum_input [OPCIÓNS] [-- ARGUMENTOS DE GUM INPUT]
+  input [OPCIÓNS] [-- ARGUMENTOS DE GUM INPUT]
 
 DESCRICIÓN
   Mostra unha entrada de texto coa paleta de Gallaecia.
@@ -391,21 +396,21 @@ RESULTADO
   Devolve un código distinto de 0 se o usuario cancela.
 
 EXEMPLOS
-  gum_input
-  gum_input --header "Nome" -- --placeholder "Escribe o teu nome"
-  gum_input --header "Contrasinal" -- --password
+  input
+  input --header "Nome" -- --placeholder "Escribe o teu nome"
+  input --header "Contrasinal" -- --password
 
 COMANDO ORIXINAL
   Os argumentos de Gum tamén se aceptan directamente por compatibilidade,
   pero recoméndase escribilos despois de `--`.
 
-  gum_input -- --help
+  input -- --help
 EOF
       ;;
-    gum_filter)
+    filter)
       cat <<'EOF'
 USO
-  gum_filter [OPCIÓNS] [-- ARGUMENTOS DE GUM FILTER]
+  filter [OPCIÓNS] [-- ARGUMENTOS DE GUM FILTER]
 
 DESCRICIÓN
   Filtra interactivamente as opcións recibidas por stdin.
@@ -439,20 +444,20 @@ RESULTADO
   Devolve un código distinto de 0 se o usuario cancela.
 
 EXEMPLOS
-  printf '%s\n' A B C | gum_filter
-  printf '%s\n' A B C | gum_filter --header "Escolle:" -- --no-limit
+  printf '%s\n' A B C | filter
+  printf '%s\n' A B C | filter --header "Escolle:" -- --no-limit
 
 COMANDO ORIXINAL
   Os argumentos de Gum tamén se aceptan directamente por compatibilidade,
   pero recoméndase escribilos despois de `--`.
 
-  printf '%s\n' exemplo | gum_filter -- --help
+  printf '%s\n' exemplo | filter -- --help
 EOF
       ;;
-    gum_write)
+    textarea)
       cat <<'EOF'
 USO
-  gum_write [OPCIÓNS] [-- ARGUMENTOS DE GUM WRITE]
+  textarea [OPCIÓNS] [-- ARGUMENTOS DE GUM WRITE]
 
 DESCRICIÓN
   Mostra un editor de texto multilínea coa paleta de Gallaecia.
@@ -472,20 +477,20 @@ RESULTADO
   Devolve un código distinto de 0 se o usuario cancela.
 
 EXEMPLOS
-  gum_write
-  gum_write --header "Descrición" -- --height 10 --show-line-numbers
+  textarea
+  textarea --header "Descrición" -- --height 10 --show-line-numbers
 
 COMANDO ORIXINAL
   Os argumentos de Gum tamén se aceptan directamente por compatibilidade,
   pero recoméndase escribilos despois de `--`.
 
-  gum_write -- --help
+  textarea -- --help
 EOF
       ;;
-    gum_file)
+    select_file)
       cat <<'EOF'
 USO
-  gum_file [OPCIÓNS] [RUTA] [-- ARGUMENTOS DE GUM FILE]
+  select_file [OPCIÓNS] [RUTA] [-- ARGUMENTOS DE GUM FILE]
 
 DESCRICIÓN
   Permite navegar e seleccionar un ficheiro ou directorio coa paleta de
@@ -520,25 +525,25 @@ RESULTADO
   Devolve un código distinto de 0 se o usuario cancela.
 
 EXEMPLOS
-  gum_file ~/.config
-  gum_file --header "Escolle un ficheiro:" "$HOME" -- --file --all
-  gum_file "$HOME" -- --directory
+  select_file ~/.config
+  select_file --header "Escolle un ficheiro:" "$HOME" -- --file --all
+  select_file "$HOME" -- --directory
 
 COMANDO ORIXINAL
   Os argumentos de Gum tamén se aceptan directamente por compatibilidade,
   pero recoméndase escribilos despois de `--`.
 
-  gum_file . -- --help
+  select_file . -- --help
 EOF
       ;;
-    gum_folder)
+    select_folder)
       cat <<'EOF'
 USO
-  gum_folder [OPCIÓNS] [RUTA] [-- ARGUMENTOS DE GUM FILE]
+  select_folder [OPCIÓNS] [RUTA] [-- ARGUMENTOS DE GUM FILE]
 
 DESCRICIÓN
   Permite navegar e seleccionar unicamente un directorio coa paleta de
-  Gallaecia. Reutiliza `gum_file` con `--directory --file=false` por defecto.
+  Gallaecia. Reutiliza `select_file` con `--directory --file=false` por defecto.
 
 PARÁMETROS
   [RUTA]
@@ -569,20 +574,20 @@ RESULTADO
   Devolve un código distinto de 0 se o usuario cancela.
 
 EXEMPLOS
-  gum_folder
-  gum_folder --header "Escolle un directorio:" "$HOME" -- --all
+  select_folder
+  select_folder --header "Escolle un directorio:" "$HOME" -- --all
 
 COMANDO ORIXINAL
   Os argumentos de Gum tamén se aceptan directamente por compatibilidade,
   pero recoméndase escribilos despois de `--`.
 
-  gum_folder . -- --help
+  select_folder . -- --help
 EOF
       ;;
-    gum_spin)
+    spinner)
       cat <<'EOF'
 USO
-  gum_spin [OPCIÓNS] -- COMANDO...
+  spinner [OPCIÓNS] -- COMANDO...
 
 DESCRICIÓN
   Mostra un indicador de progreso mentres executa un comando.
@@ -614,8 +619,8 @@ RESULTADO
   Devolve o código de saída do comando ou un código distinto de 0 se Gum falla.
 
 EXEMPLOS
-  gum_spin --title "Actualizando..." -- git pull
-  gum_spin --show-error --timeout 30s -- curl -fLO URL
+  spinner --title "Actualizando..." -- git pull
+  spinner --show-error --timeout 30s -- curl -fLO URL
 
 COMANDO ORIXINAL
   Todo o situado despois de `--` execútase directamente como comando.
@@ -623,10 +628,10 @@ COMANDO ORIXINAL
   mesturalas cos argumentos do comando.
 EOF
       ;;
-    gum_pager)
+    pager)
       cat <<'EOF'
 USO
-  gum_pager [OPCIÓNS] [CONTIDO] [-- ARGUMENTOS DE GUM PAGER]
+  pager [OPCIÓNS] [CONTIDO] [-- ARGUMENTOS DE GUM PAGER]
 
 DESCRICIÓN
   Mostra contido longo nun visor interactivo coa paleta de Gallaecia.
@@ -656,20 +661,20 @@ RESULTADO
   Mostra o contido e devolve o código de saída de `gum pager`.
 
 EXEMPLOS
-  gum_pager < README.md
-  git diff | gum_pager -- --show-line-numbers
+  pager < README.md
+  git diff | pager -- --show-line-numbers
 
 COMANDO ORIXINAL
   Os argumentos de Gum tamén se aceptan directamente por compatibilidade,
   pero recoméndase escribilos despois de `--`.
 
-  printf '%s\n' exemplo | gum_pager -- --help
+  printf '%s\n' exemplo | pager -- --help
 EOF
       ;;
-    gum_table)
+    table)
       cat <<'EOF'
 USO
-  gum_table [OPCIÓNS] [-- ARGUMENTOS DE GUM TABLE]
+  table [OPCIÓNS] [-- ARGUMENTOS DE GUM TABLE]
 
 DESCRICIÓN
   Presenta datos CSV recibidos por stdin ou desde un ficheiro como unha táboa.
@@ -696,20 +701,20 @@ RESULTADO
   Devolve un código distinto de 0 se o usuario cancela.
 
 EXEMPLOS
-  printf '%s\n' 'Nome,Estado' 'Git,OK' | gum_table -- --print
-  gum_table -- --file datos.csv --return-column 1
+  printf '%s\n' 'Nome,Estado' 'Git,OK' | table -- --print
+  table -- --file datos.csv --return-column 1
 
 COMANDO ORIXINAL
   Os argumentos de Gum tamén se aceptan directamente por compatibilidade,
   pero recoméndase escribilos despois de `--`.
 
-  gum_table -- --help
+  table -- --help
 EOF
       ;;
-    gum_format)
+    format)
       cat <<'EOF'
 USO
-  gum_format [OPCIÓNS] [TEXTO...] [-- ARGUMENTOS DE GUM FORMAT]
+  format [OPCIÓNS] [TEXTO...] [-- ARGUMENTOS DE GUM FORMAT]
 
 DESCRICIÓN
   Renderiza Markdown, código, templates ou emoji mediante `gum format`.
@@ -729,20 +734,20 @@ RESULTADO
   Escribe en stdout o contido formatado e devolve o código de `gum format`.
 
 EXEMPLOS
-  gum_format '# Título'
-  printf '%s\n' 'print("Ola")' | gum_format -- --type code --language python
+  format '# Título'
+  printf '%s\n' 'print("Ola")' | format -- --type code --language python
 
 COMANDO ORIXINAL
   Os argumentos de Gum tamén se aceptan directamente por compatibilidade,
   pero recoméndase escribilos despois de `--`.
 
-  gum_format exemplo -- --help
+  format exemplo -- --help
 EOF
       ;;
-    gum_join)
+    combine)
       cat <<'EOF'
 USO
-  gum_join [OPCIÓNS] TEXTO... [-- ARGUMENTOS DE GUM JOIN]
+  combine [OPCIÓNS] TEXTO... [-- ARGUMENTOS DE GUM JOIN]
 
 DESCRICIÓN
   Une bloques de texto, mesmo multilínea, en horizontal ou vertical.
@@ -762,20 +767,20 @@ RESULTADO
   Escribe en stdout os bloques unidos e devolve o código de `gum join`.
 
 EXEMPLOS
-  gum_join "Un" "Dous" -- --horizontal
-  gum_join "Cabeceira" "Contido" -- --vertical --align center
+  combine "Un" "Dous" -- --horizontal
+  combine "Cabeceira" "Contido" -- --vertical --align center
 
 COMANDO ORIXINAL
   Os argumentos de Gum tamén se aceptan directamente por compatibilidade,
   pero recoméndase escribilos despois de `--`.
 
-  gum_join exemplo -- --help
+  combine exemplo -- --help
 EOF
       ;;
-    gum_log)
+    log)
       cat <<'EOF'
 USO
-  gum_log [OPCIÓNS] MENSAXE... [-- ARGUMENTOS DE GUM LOG]
+  log [OPCIÓNS] MENSAXE... [-- ARGUMENTOS DE GUM LOG]
 
 DESCRICIÓN
   Escribe mensaxes con nivel, hora ou campos estruturados mediante `gum log`.
@@ -796,14 +801,14 @@ RESULTADO
   `gum log`.
 
 EXEMPLOS
-  gum_log "Instalación iniciada" -- --level info --time kitchen
-  gum_log "Paquete ausente" -- --level warn --prefix gallaecia
+  log "Instalación iniciada" -- --level info --time kitchen
+  log "Paquete ausente" -- --level warn --prefix gallaecia
 
 COMANDO ORIXINAL
   Os argumentos de Gum tamén se aceptan directamente por compatibilidade,
   pero recoméndase escribilos despois de `--`.
 
-  gum_log exemplo -- --help
+  log exemplo -- --help
 EOF
       ;;
   esac
@@ -812,13 +817,13 @@ EOF
 # Recibe texto e opcións compatibles con `gum style`, aplica a paleta base e
 # reenvía os argumentos sen reinterpretalos. É a capa común usada polas mensaxes
 # seguintes; imprime o renderizado e conserva o código de saída de Gum.
-gum_style() {
+style() {
   local original_args=()
 
   while (($#)); do
     case "$1" in
       -h|--help)
-        _ui_help gum_style
+        _ui_help style
         return 0
         ;;
       --)
@@ -835,8 +840,8 @@ gum_style() {
   done
 
   gum style \
-	--background="$BACKGROUND" \
-	--border-background="$BORDER_BACKGROUND" \
+	--background="" \
+	--border-background="" \
 	--border-foreground="$BORDER_FOREGROUND" \
 	--margin="0 0" \
 	--padding="0 0" \
@@ -844,7 +849,7 @@ gum_style() {
 }
 
 # Recibe texto e opcións de estilo e mostra unha mensaxe informativa coa cor
-# principal do tema. Reutiliza `gum_style`, non engade separación vertical e
+# principal do tema. Reutiliza `style`, non engade separación vertical e
 # conserva a saída e o código devoltos por Gum.
 info() {
   local original_args=()
@@ -867,7 +872,7 @@ info() {
     shift
   done
 
-  gum_style -- \
+  style -- \
 	--foreground="$FOREGROUND" \
 	"${original_args[@]}"
 }
@@ -896,7 +901,7 @@ title() {
     shift
   done
 
-  gum_style -- \
+  style -- \
 	--foreground="$ACCENT_FOREGROUND" \
 	--bold \
 	--padding="1 0 1 0" \
@@ -927,7 +932,7 @@ warning() {
     shift
   done
 
-  gum_style -- \
+  style -- \
 	--foreground="$WARNING_FOREGROUND" \
 	--bold \
 	"${original_args[@]}"
@@ -957,14 +962,14 @@ error() {
     shift
   done
 
-  gum_style -- \
+  style -- \
 	--foreground="$ERROR_FOREGROUND" \
 	--bold \
 	"${original_args[@]}"
 }
 
 # Recibe unha mensaxe final ou de paso completado e móstraa coa cor de éxito.
-# Engade padding vertical para delimitar o bloque e conserva o código de Gum.
+# Como o resto das mensaxes de estado, non engade separación vertical.
 success() {
   local original_args=()
 
@@ -986,16 +991,15 @@ success() {
     shift
   done
 
-  gum_style -- \
+  style -- \
 	--foreground="$SUCCESS_FOREGROUND" \
 	--bold \
-	--padding="1 0 1 0" \
 	"${original_args[@]}"
 }
 
-# Recibe unha mensaxe fatal, móstraa coa cor de erro e padding superior e remata
-# o proceso completo con código 1. Debe reservarse para puntos de entrada onde
-# xa non sexa posible recuperar; non se pode tratar como un simple `return`.
+# Recibe unha mensaxe fatal, móstraa coa cor de erro sen padding e remata o
+# proceso completo con código 1. Debe reservarse para puntos de entrada onde xa
+# non sexa posible recuperar; non se pode tratar como un simple `return`.
 fail() {
   local original_args=()
 
@@ -1017,10 +1021,9 @@ fail() {
     shift
   done
 
-  gum_style -- \
+  style -- \
 	--foreground="$ERROR_FOREGROUND" \
 	--bold \
-	--padding="1 0 0 0" \
 	"${original_args[@]}"
   exit 1
 }
@@ -1029,13 +1032,13 @@ fail() {
 # etiquetas galegas e a paleta común e mostra a interacción con padding superior.
 # Devolve 0 para «Si» e un código distinto para «No» ou cancelación, sen imprimir
 # unha resposta que o chamador teña que analizar.
-gum_confirm() {
+confirm() {
   local original_args=()
 
   while (($#)); do
     case "$1" in
       -h|--help)
-        _ui_help gum_confirm
+        _ui_help confirm
         return 0
         ;;
       --)
@@ -1054,7 +1057,7 @@ gum_confirm() {
 	--affirmative="Si" \
 	--negative="No" \
 	--prompt.foreground="$PROMPT_FOREGROUND" \
-	--prompt.background="$PROMPT_BACKGROUND" \
+	--prompt.background="" \
 	--selected.foreground="$SELECTED_FOREGROUND" \
 	--selected.background="$SELECTED_BACKGROUND" \
 	--unselected.foreground="$UNSELECTED_FOREGROUND" \
@@ -1066,7 +1069,7 @@ gum_confirm() {
 # Recibe as opcións que entende `gum choose`, aplica cores, axuda de controis e
 # padding superior. Imprime en stdout a selección de Gum —unha ou varias liñas
 # se se activa selección múltiple— e conserva o seu código de cancelación.
-gum_choose() {
+choose() {
   local header=""
   local original_args=()
 
@@ -1074,14 +1077,14 @@ gum_choose() {
     case "$1" in
       --header)
         if [ $# -lt 2 ]; then
-          printf 'Falta TEXTO para --header. Usa gum_choose --help.\n' >&2
+          printf 'Falta TEXTO para --header. Usa choose --help.\n' >&2
           return 1
         fi
         header="$2"
         shift
         ;;
       -h|--help)
-        _ui_help gum_choose
+        _ui_help choose
         return 0
         ;;
       --)
@@ -1099,14 +1102,18 @@ gum_choose() {
   gum choose \
 	--header="$header" \
 	--show-help \
+	--cursor="› " \
+	--cursor-prefix="○ " \
+	--selected-prefix="● " \
+	--unselected-prefix="○ " \
 	--cursor.foreground="$CURSOR_FOREGROUND" \
-	--cursor.background="$CURSOR_BACKGROUND" \
+	--cursor.background="" \
 	--header.foreground="$HEADER_FOREGROUND" \
-	--header.background="$HEADER_BACKGROUND" \
+	--header.background="" \
 	--item.foreground="$ITEM_FOREGROUND" \
-	--item.background="$ITEM_BACKGROUND" \
-	--selected.foreground="$SELECTED_FOREGROUND" \
-	--selected.background="$SELECTED_BACKGROUND" \
+	--item.background="" \
+	--selected.foreground="$SUCCESS_FOREGROUND" \
+	--selected.background="" \
 	--padding="1 0 0 0" \
 	"${original_args[@]}"
 }
@@ -1114,7 +1121,7 @@ gum_choose() {
 # Recibe o prompt e as opcións propias de `gum input`, aplica a paleta común e
 # engade padding superior. Escribe en stdout o texto introducido e conserva o
 # código de saída, polo que unha substitución de comando pode detectar cancelacións.
-gum_input() {
+input() {
   local header=""
   local original_args=()
 
@@ -1122,14 +1129,14 @@ gum_input() {
     case "$1" in
       --header)
         if [ $# -lt 2 ]; then
-          printf 'Falta TEXTO para --header. Usa gum_input --help.\n' >&2
+          printf 'Falta TEXTO para --header. Usa input --help.\n' >&2
           return 1
         fi
         header="$2"
         shift
         ;;
       -h|--help)
-        _ui_help gum_input
+        _ui_help input
         return 0
         ;;
       --)
@@ -1149,11 +1156,11 @@ gum_input() {
 	--prompt.foreground="$PROMPT_FOREGROUND" \
 	--prompt.background="$PROMPT_BACKGROUND" \
 	--placeholder.foreground="$MUTED_FOREGROUND" \
-	--placeholder.background="$MUTED_BACKGROUND" \
+	--placeholder.background="$PROMPT_BACKGROUND" \
 	--cursor.foreground="$CURSOR_FOREGROUND" \
-	--cursor.background="$CURSOR_BACKGROUND" \
+	--cursor.background="$PROMPT_BACKGROUND" \
 	--header.foreground="$HEADER_FOREGROUND" \
-	--header.background="$HEADER_BACKGROUND" \
+	--header.background="" \
 	--padding="1 0 0 0" \
 	"${original_args[@]}"
 }
@@ -1161,7 +1168,7 @@ gum_input() {
 # Recibe por stdin ou por argumentos unha lista para `gum filter` e aplica cores
 # a procura, cursor e selección. Imprime as entradas escollidas e conserva o
 # código de Gum. Non engade padding porque o filtro ocupa a pantalla completa.
-gum_filter() {
+filter() {
   local header=""
   local original_args=()
 
@@ -1169,14 +1176,14 @@ gum_filter() {
     case "$1" in
       --header)
         if [ $# -lt 2 ]; then
-          printf 'Falta TEXTO para --header. Usa gum_filter --help.\n' >&2
+          printf 'Falta TEXTO para --header. Usa filter --help.\n' >&2
           return 1
         fi
         header="$2"
         shift
         ;;
       -h|--help)
-        _ui_help gum_filter
+        _ui_help filter
         return 0
         ;;
       --)
@@ -1191,38 +1198,40 @@ gum_filter() {
     shift
   done
 
-  # Os fondos baleiros evitan estilos herdados. A coincidencia conserva o seu
-  # primeiro plano, pero non pode fixar un fondo propio: Lip Gloss insíreo
-  # dentro do estilo da fila e o seu reset cortaría o fondo do cursor xusto
-  # despois do primeiro tramo coincidente.
+  # As filas non usan fondos: o foco indícase coa frecha e as seleccións cos
+  # marcadores. Así a coincidencia pode cambiar de cor sen cortar visualmente
+  # o estilo da fila ao inserir Lip Gloss o seu reset interno.
   gum filter \
 	--header="$header" \
 	--show-help \
+	--indicator="›" \
+	--selected-prefix=" ● " \
+	--unselected-prefix=" ○ " \
 	--indicator.foreground="$CURSOR_FOREGROUND" \
-	--indicator.background="$CURSOR_BACKGROUND" \
-	--selected-indicator.foreground="$SELECTED_FOREGROUND" \
-	--selected-indicator.background="$SELECTED_BACKGROUND" \
-	--unselected-prefix.foreground="$UNSELECTED_FOREGROUND" \
+	--indicator.background="" \
+	--selected-indicator.foreground="$SUCCESS_FOREGROUND" \
+	--selected-indicator.background="" \
+	--unselected-prefix.foreground="$MUTED_FOREGROUND" \
 	--unselected-prefix.background="" \
 	--header.foreground="$HEADER_FOREGROUND" \
-	--header.background="$HEADER_BACKGROUND" \
+	--header.background="" \
 	--text.foreground="$ITEM_FOREGROUND" \
-	--text.background="$ITEM_BACKGROUND" \
-	--cursor-text.foreground="$SELECTED_FOREGROUND" \
-	--cursor-text.background="$SELECTED_BACKGROUND" \
+	--text.background="" \
+	--cursor-text.foreground="$ITEM_FOREGROUND" \
+	--cursor-text.background="" \
 	--match.foreground="$ACCENT_FOREGROUND" \
 	--match.background="" \
 	--prompt.foreground="$PROMPT_FOREGROUND" \
-	--prompt.background="$PROMPT_BACKGROUND" \
+	--prompt.background="" \
 	--placeholder.foreground="$MUTED_FOREGROUND" \
-	--placeholder.background="$MUTED_BACKGROUND" \
+	--placeholder.background="" \
 	"${original_args[@]}"
 }
 
 # Recibe as opcións de `gum write` e abre un editor de texto multilínea coa
 # paleta do proxecto. A saída editada escríbese en stdout e o código de Gum
 # permite distinguir unha confirmación dunha cancelación.
-gum_write() {
+textarea() {
   local header=""
   local original_args=()
 
@@ -1230,14 +1239,14 @@ gum_write() {
     case "$1" in
       --header)
         if [ $# -lt 2 ]; then
-          printf 'Falta TEXTO para --header. Usa gum_write --help.\n' >&2
+          printf 'Falta TEXTO para --header. Usa textarea --help.\n' >&2
           return 1
         fi
         header="$2"
         shift
         ;;
       -h|--help)
-        _ui_help gum_write
+        _ui_help textarea
         return 0
         ;;
       --)
@@ -1255,21 +1264,21 @@ gum_write() {
   gum write \
 	--header="$header" \
 	--base.foreground="$FOREGROUND" \
-	--base.background="$BACKGROUND" \
+	--base.background="$PROMPT_BACKGROUND" \
 	--cursor-line-number.foreground="$MUTED_FOREGROUND" \
-	--cursor-line-number.background="$MUTED_BACKGROUND" \
-	--cursor-line.foreground="$SELECTED_FOREGROUND" \
-	--cursor-line.background="$SELECTED_BACKGROUND" \
+	--cursor-line-number.background="$PROMPT_BACKGROUND" \
+	--cursor-line.foreground="$FOREGROUND" \
+	--cursor-line.background="$PROMPT_BACKGROUND" \
 	--cursor.foreground="$CURSOR_FOREGROUND" \
-	--cursor.background="$CURSOR_BACKGROUND" \
+	--cursor.background="$PROMPT_BACKGROUND" \
 	--end-of-buffer.foreground="$MUTED_FOREGROUND" \
-	--end-of-buffer.background="$MUTED_BACKGROUND" \
+	--end-of-buffer.background="$PROMPT_BACKGROUND" \
 	--line-number.foreground="$MUTED_FOREGROUND" \
-	--line-number.background="$MUTED_BACKGROUND" \
+	--line-number.background="$PROMPT_BACKGROUND" \
 	--header.foreground="$HEADER_FOREGROUND" \
-	--header.background="$HEADER_BACKGROUND" \
+	--header.background="" \
 	--placeholder.foreground="$MUTED_FOREGROUND" \
-	--placeholder.background="$MUTED_BACKGROUND" \
+	--placeholder.background="$PROMPT_BACKGROUND" \
 	--prompt.foreground="$PROMPT_FOREGROUND" \
 	--prompt.background="$PROMPT_BACKGROUND" \
 	--padding="1 0 0 0" \
@@ -1279,7 +1288,7 @@ gum_write() {
 # Recibe unha ruta inicial e opcións de `gum file`, aplica cores distintas a
 # ficheiros, directorios, enlaces e metadatos, e engade padding superior.
 # Imprime a ruta escollida e devolve o código de Gum sen copiar nin alterar nada.
-gum_file() {
+select_file() {
   local header=""
   local original_args=()
 
@@ -1287,14 +1296,14 @@ gum_file() {
     case "$1" in
       --header)
         if [ $# -lt 2 ]; then
-          printf 'Falta TEXTO para --header. Usa gum_file --help.\n' >&2
+          printf 'Falta TEXTO para --header. Usa select_file --help.\n' >&2
           return 1
         fi
         header="$2"
         shift
         ;;
       -h|--help)
-        _ui_help gum_file
+        _ui_help select_file
         return 0
         ;;
       --)
@@ -1311,30 +1320,31 @@ gum_file() {
 
   gum file \
 	--header="$header" \
+	--cursor="›" \
 	--cursor.foreground="$CURSOR_FOREGROUND" \
-	--cursor.background="$CURSOR_BACKGROUND" \
+	--cursor.background="" \
 	--symlink.foreground="$WARNING_FOREGROUND" \
-	--symlink.background="$BACKGROUND" \
+	--symlink.background="" \
 	--directory.foreground="$ACCENT_FOREGROUND" \
-	--directory.background="$BACKGROUND" \
+	--directory.background="" \
 	--file.foreground="$ITEM_FOREGROUND" \
-	--file.background="$ITEM_BACKGROUND" \
+	--file.background="" \
 	--permissions.foreground="$MUTED_FOREGROUND" \
-	--permissions.background="$MUTED_BACKGROUND" \
-	--selected.foreground="$SELECTED_FOREGROUND" \
-	--selected.background="$SELECTED_BACKGROUND" \
+	--permissions.background="" \
+	--selected.foreground="$ITEM_FOREGROUND" \
+	--selected.background="" \
 	--file-size.foreground="$MUTED_FOREGROUND" \
-	--file-size.background="$MUTED_BACKGROUND" \
+	--file-size.background="" \
 	--header.foreground="$HEADER_FOREGROUND" \
-	--header.background="$HEADER_BACKGROUND" \
+	--header.background="" \
 	--padding="1 0 0 0" \
 	"${original_args[@]}"
 }
 
 # Recibe unha ruta inicial e opcións de `gum file`, antepón os modos que
 # permiten confirmar directorios e impiden escoller ficheiros, e delega en
-# `gum_file` para conservar a mesma paleta, padding e código de cancelación.
-gum_folder() {
+# `select_file` para conservar a mesma paleta, padding e código de cancelación.
+select_folder() {
   local header=""
   local original_args=()
 
@@ -1342,14 +1352,14 @@ gum_folder() {
     case "$1" in
       --header)
         if [ $# -lt 2 ]; then
-          printf 'Falta TEXTO para --header. Usa gum_folder --help.\n' >&2
+          printf 'Falta TEXTO para --header. Usa select_folder --help.\n' >&2
           return 1
         fi
         header="$2"
         shift
         ;;
       -h|--help)
-        _ui_help gum_folder
+        _ui_help select_folder
         return 0
         ;;
       --)
@@ -1364,7 +1374,7 @@ gum_folder() {
     shift
   done
 
-  gum_file --header "$header" -- \
+  select_file --header "$header" -- \
 	--directory \
 	--file=false \
 	"${original_args[@]}"
@@ -1374,7 +1384,7 @@ gum_folder() {
 # Constrúe o indicador coa paleta común, executa os argumentos sen `eval` e
 # conserva o código do comando envolto. `--show-error` e `--timeout` pásanse
 # de forma controlada a Gum; esta función non interpreta a saída do proceso.
-gum_spin() {
+spinner() {
   local title_text="Procesando..."
   local spinner="dot"
   local timeout=""
@@ -1386,7 +1396,7 @@ gum_spin() {
     case "$1" in
       --title)
         if [ $# -lt 2 ]; then
-          printf 'Falta TEXTO para --title. Usa gum_spin --help.\n' >&2
+          printf 'Falta TEXTO para --title. Usa spinner --help.\n' >&2
           return 1
         fi
         title_text="$2"
@@ -1394,7 +1404,7 @@ gum_spin() {
         ;;
       --spinner)
         if [ $# -lt 2 ]; then
-          printf 'Falta VALOR para --spinner. Usa gum_spin --help.\n' >&2
+          printf 'Falta VALOR para --spinner. Usa spinner --help.\n' >&2
           return 1
         fi
         spinner="$2"
@@ -1402,7 +1412,7 @@ gum_spin() {
         ;;
       --timeout)
         if [ $# -lt 2 ]; then
-          printf 'Falta VALOR para --timeout. Usa gum_spin --help.\n' >&2
+          printf 'Falta VALOR para --timeout. Usa spinner --help.\n' >&2
           return 1
         fi
         timeout="$2"
@@ -1412,7 +1422,7 @@ gum_spin() {
         show_error=true
         ;;
       -h|--help)
-        _ui_help gum_spin
+        _ui_help spinner
         return 0
         ;;
       --)
@@ -1421,11 +1431,11 @@ gum_spin() {
         break
         ;;
       -*)
-        printf 'Opción descoñecida: %s. Usa gum_spin --help.\n' "$1" >&2
+        printf 'Opción descoñecida: %s. Usa spinner --help.\n' "$1" >&2
         return 1
         ;;
       *)
-        printf 'O comando debe ir despois de --. Usa gum_spin --help.\n' >&2
+        printf 'O comando debe ir despois de --. Usa spinner --help.\n' >&2
         return 1
         ;;
     esac
@@ -1433,7 +1443,7 @@ gum_spin() {
   done
 
   if [ ${#command_args[@]} -eq 0 ]; then
-    printf 'gum_spin require un COMANDO despois de --.\n' >&2
+    printf 'spinner require un COMANDO despois de --.\n' >&2
     return 1
   fi
 
@@ -1448,9 +1458,9 @@ gum_spin() {
 	--title="$title_text" \
 	--spinner="$spinner" \
 	--spinner.foreground="$ACCENT_FOREGROUND" \
-	--spinner.background="$BACKGROUND" \
+	--spinner.background="" \
 	--title.foreground="$FOREGROUND" \
-	--title.background="$BACKGROUND" \
+	--title.background="" \
 	--padding="1 0 0 0" \
 	"${gum_args[@]}" \
 	-- "${command_args[@]}"
@@ -1459,13 +1469,13 @@ gum_spin() {
 # Recibe texto por stdin e opcións de `gum pager`, abre un visor coa paleta común
 # e reenvía todos os controis ao comando orixinal. Non transforma o contido e
 # conserva o código de saída ou cancelación do paginador.
-gum_pager() {
+pager() {
   local original_args=()
 
   while (($#)); do
     case "$1" in
       -h|--help)
-        _ui_help gum_pager
+        _ui_help pager
         return 0
         ;;
       --)
@@ -1482,28 +1492,28 @@ gum_pager() {
 
   gum pager \
 	--foreground="$FOREGROUND" \
-	--background="$BACKGROUND" \
+	--background="" \
 	--line-number.foreground="$MUTED_FOREGROUND" \
-	--line-number.background="$MUTED_BACKGROUND" \
+	--line-number.background="" \
 	--match.foreground="$ACCENT_FOREGROUND" \
-	--match.background="$BACKGROUND" \
-	--match-highlight.foreground="$SELECTED_FOREGROUND" \
-	--match-highlight.background="$SELECTED_BACKGROUND" \
+	--match.background="" \
+	--match-highlight.foreground="$ACCENT_FOREGROUND" \
+	--match-highlight.background="" \
 	--help.foreground="$MUTED_FOREGROUND" \
-	--help.background="$MUTED_BACKGROUND" \
+	--help.background="" \
 	"${original_args[@]}"
 }
 
 # Recibe datos e opcións compatibles con `gum table`, engade as cores de bordos,
 # cabeceiras, celas e selección e imprime a fila que Gum devolva. Pode funcionar
 # como táboa estática ou selector segundo as opcións reenviadas.
-gum_table() {
+table() {
   local original_args=()
 
   while (($#)); do
     case "$1" in
       -h|--help)
-        _ui_help gum_table
+        _ui_help table
         return 0
         ;;
       --)
@@ -1520,26 +1530,26 @@ gum_table() {
 
   gum table \
 	--border.foreground="$BORDER_FOREGROUND" \
-	--border.background="$BORDER_BACKGROUND" \
+	--border.background="" \
 	--cell.foreground="$ITEM_FOREGROUND" \
-	--cell.background="$ITEM_BACKGROUND" \
+	--cell.background="" \
 	--header.foreground="$HEADER_FOREGROUND" \
-	--header.background="$HEADER_BACKGROUND" \
-	--selected.foreground="$SELECTED_FOREGROUND" \
-	--selected.background="$SELECTED_BACKGROUND" \
+	--header.background="" \
+	--selected.foreground="$ACCENT_FOREGROUND" \
+	--selected.background="" \
 	"${original_args[@]}"
 }
 
 # Recibe directamente o tipo de formato, o contido e as opcións de `gum format`.
 # Non impón cores porque cada formato controla o seu propio renderizado; limita
 # o wrapper a ofrecer axuda uniforme e conservar stdout e o código de Gum.
-gum_format() {
+format() {
   local original_args=()
 
   while (($#)); do
     case "$1" in
       -h|--help)
-        _ui_help gum_format
+        _ui_help format
         return 0
         ;;
       --)
@@ -1560,13 +1570,13 @@ gum_format() {
 # Recibe bloques e opcións de `gum join` e reenvíaos literalmente.
 # Imprime a composición final en stdout sen engadir estilo propio, para que os
 # bloques xa renderizados conserven as súas cores e dimensións.
-gum_join() {
+combine() {
   local original_args=()
 
   while (($#)); do
     case "$1" in
       -h|--help)
-        _ui_help gum_join
+        _ui_help combine
         return 0
         ;;
       --)
@@ -1587,13 +1597,13 @@ gum_join() {
 # Recibe unha mensaxe e opcións de `gum log`, aplica a paleta aos distintos
 # compoñentes do rexistro e deixa que Gum decida o destino final. Conserva o
 # código de saída e admite niveis, prefixos e pares chave-valor sen interpretalos.
-gum_log() {
+log() {
   local original_args=()
 
   while (($#)); do
     case "$1" in
       -h|--help)
-        _ui_help gum_log
+        _ui_help log
         return 0
         ;;
       --)
@@ -1610,20 +1620,90 @@ gum_log() {
 
   gum log \
 	--level.foreground="$ACCENT_FOREGROUND" \
-	--level.background="$BACKGROUND" \
+	--level.background="" \
 	--time.foreground="$MUTED_FOREGROUND" \
-	--time.background="$MUTED_BACKGROUND" \
+	--time.background="" \
 	--prefix.foreground="$WARNING_FOREGROUND" \
-	--prefix.background="$BACKGROUND" \
+	--prefix.background="" \
 	--message.foreground="$FOREGROUND" \
-	--message.background="$BACKGROUND" \
+	--message.background="" \
 	--key.foreground="$ACCENT_FOREGROUND" \
-	--key.background="$BACKGROUND" \
+	--key.background="" \
 	--value.foreground="$FOREGROUND" \
-	--value.background="$BACKGROUND" \
+	--value.background="" \
 	--separator.foreground="$MUTED_FOREGROUND" \
-	--separator.background="$MUTED_BACKGROUND" \
+	--separator.background="" \
 	"${original_args[@]}"
+}
+
+# Conserva temporalmente o nome anterior de `style` para scripts da serie 1.x.
+gum_style() {
+  style "$@"
+}
+
+# Conserva temporalmente o nome anterior de `confirm` para scripts da serie 1.x.
+gum_confirm() {
+  confirm "$@"
+}
+
+# Conserva temporalmente o nome anterior de `choose` para scripts da serie 1.x.
+gum_choose() {
+  choose "$@"
+}
+
+# Conserva temporalmente o nome anterior de `input` para scripts da serie 1.x.
+gum_input() {
+  input "$@"
+}
+
+# Conserva temporalmente o nome anterior de `filter` para scripts da serie 1.x.
+gum_filter() {
+  filter "$@"
+}
+
+# Conserva temporalmente o nome anterior de `textarea` para scripts da serie 1.x.
+gum_write() {
+  textarea "$@"
+}
+
+# Conserva temporalmente o nome anterior de `select_file` para scripts 1.x.
+gum_file() {
+  select_file "$@"
+}
+
+# Conserva temporalmente o nome anterior de `select_folder` para scripts 1.x.
+gum_folder() {
+  select_folder "$@"
+}
+
+# Conserva temporalmente o nome anterior de `spinner` para scripts da serie 1.x.
+gum_spin() {
+  spinner "$@"
+}
+
+# Conserva temporalmente o nome anterior de `pager` para scripts da serie 1.x.
+gum_pager() {
+  pager "$@"
+}
+
+# Conserva temporalmente o nome anterior de `table` para scripts da serie 1.x.
+gum_table() {
+  table "$@"
+}
+
+# Conserva temporalmente o nome anterior de `format` para scripts da serie 1.x.
+gum_format() {
+  format "$@"
+}
+
+# Conserva temporalmente o nome anterior de `combine` para scripts da serie 1.x.
+gum_join() {
+  combine "$@"
+}
+
+# Conserva temporalmente o nome anterior de `log` para scripts da serie 1.x.
+gum_log() {
+  log "$@"
 }
 
 # Completa as opcións propias dos wrappers de Gum. Os argumentos posteriores a
@@ -1643,7 +1723,7 @@ _ui_completion() {
     fi
   done
   if [ "$separator_index" -ge 0 ]; then
-    if [ "$command_name" = "gum_spin" ] &&
+    if [ "$command_name" = "spinner" ] &&
       [ "$COMP_CWORD" -eq $((separator_index + 1)) ]; then
       mapfile -t COMPREPLY < <(compgen -c -- "$current")
     else
@@ -1653,10 +1733,10 @@ _ui_completion() {
   fi
 
   case "$command_name" in
-    gum_confirm|gum_choose|gum_input|gum_filter|gum_write)
+    choose|input|filter|textarea)
       options="--header -h --help --"
       ;;
-    gum_file)
+    select_file)
       options="--header -h --help --"
       if [[ "$current" != -* ]]; then
         compopt -o filenames
@@ -1664,7 +1744,7 @@ _ui_completion() {
         return
       fi
       ;;
-    gum_folder)
+    select_folder)
       options="--header -h --help --"
       if [[ "$current" != -* ]]; then
         compopt -o filenames
@@ -1672,10 +1752,10 @@ _ui_completion() {
         return
       fi
       ;;
-    gum_spin)
+    spinner)
       options="--title --spinner --timeout --show-error -h --help --"
       ;;
-    gum_style|info|title|warning|error|success|fail|gum_pager|gum_table|gum_format|gum_join|gum_log)
+    style|info|title|warning|error|success|fail|confirm|pager|table|format|combine|log)
       options="-h --help --"
       ;;
   esac
@@ -1686,7 +1766,7 @@ _ui_completion() {
 # Rexistra os completados deste módulo unicamente nas shells interactivas.
 if [[ $- == *i* ]]; then
   complete -F _ui_completion \
-    gum_style info title warning error success fail \
-    gum_confirm gum_choose gum_input gum_filter gum_write gum_file gum_folder \
-    gum_spin gum_pager gum_table gum_format gum_join gum_log
+    style info title warning error success fail \
+    confirm choose input filter textarea select_file select_folder \
+    spinner pager table format combine log
 fi

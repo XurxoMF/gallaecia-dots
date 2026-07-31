@@ -311,7 +311,7 @@ _gallaecia_sync_repo() {
   fi
 
   if $confirm_update &&
-    ! gum_confirm "Hai cambios novos nos dotfiles. Queres descargalos?"; then
+    ! confirm "Hai cambios novos nos dotfiles. Queres descargalos?"; then
     info "Sincronización dos dotfiles cancelada."
     return 2
   fi
@@ -381,7 +381,7 @@ _gallaecia_reinstall() {
     shift
   done
 
-  if ! gum_confirm "Queres reinstalar Gallaecia Dots desde a base actual?"; then
+  if ! confirm "Queres reinstalar Gallaecia Dots desde a base actual?"; then
     info "Reinstalación cancelada."
     return 0
   fi
@@ -499,7 +499,7 @@ _gallaecia_install_category() (
   fi
 
   while true; do
-    if ! selected_category="$(gum_choose --header "Escolle unha categoría; preme Esc para saír:" \
+    if ! selected_category="$(choose --header "Escolle unha categoría; preme Esc para saír:" \
       "Terminal" \
       "Editor de terminal" \
       "IDE ou editor gráfico" \
@@ -571,7 +571,7 @@ _gallaecia_add_wallpapers() {
   done
 
   if [ ${#files[@]} -eq 0 ]; then
-    source_file="$(gum_file --header "Selecciona o fondo que queres engadir")" ||
+    source_file="$(select_file --header "Selecciona o fondo que queres engadir")" ||
       return 0
     [ -n "$source_file" ] || return 0
     files+=("$source_file")

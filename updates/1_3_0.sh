@@ -123,12 +123,20 @@ update_noctalia_config() {
     "$HOME/.config/noctalia/gallaecia.toml"
 }
 
-# Substitúe o módulo público de interface que incorpora `gum_folder` como
-# selector específico de directorios coa paleta común de Gallaecia.
+# Substitúe o módulo público de interface que incorpora `select_folder`, os
+# indicadores de selección e o estilo sen fondos nos controis non editables.
 update_ui_module() {
   replace_file \
     "$DOTFILES_DIR/.local/share/gallaecia-dots/scripts/modules/ui.sh" \
     "$HOME/.local/share/gallaecia-dots/scripts/modules/ui.sh"
+}
+
+# Substitúe o template de cores controlado para que as advertencias empreguen
+# amarelo ANSI e as cabeceiras compartan o acento dos títulos.
+update_ui_colors_template() {
+  replace_file \
+    "$DOTFILES_DIR/.local/share/gallaecia-dots/noctalia/ui-colors.sh.template" \
+    "$HOME/.local/share/gallaecia-dots/noctalia/ui-colors.sh.template"
 }
 
 # Substitúe os helpers públicos de ficheiros para engadir os selectores Gum e
@@ -278,7 +286,7 @@ show_changelog() {
   info "· O actualizador ábrese nunha única terminal flotante e centrada."
   info "· Kitty, Alacritty, Foot, Ghostty e WezTerm usan o mesmo identificador."
   info "· Engadida transparencia ás xanelas e aos paneis de Noctalia."
-  info "· Engadido gum_folder para seleccionar directorios con Gum."
+  info "· Engadido select_folder para seleccionar directorios con Gum."
   info "· Os wrappers compatibles aceptan --header como opción propia."
   info "· Os comandos completan con Gum os datos que se omitan cando procede."
   info "· Axudas e nomes de opcións revisados para ser máis consistentes."
@@ -288,6 +296,8 @@ show_changelog() {
   info "· Engadidos catro novos fondos inspirados en Galicia."
   info "· Engadido git-clone para clonar repositorios mediante un fluxo guiado."
   info "· Neovim integra o tema Base16 xerado por Noctalia."
+  info "· A interface de Gum unifica indicadores, cabeceiras e espazado visual."
+  info "· Os wrappers de interface pasan a usar nomes curtos e coherentes."
 }
 
 # Instala primeiro a API e o seu entrypoint e activa despois os consumidores.
@@ -317,6 +327,9 @@ apply_update() {
     return 1
   fi
   if ! update_ui_module; then
+    return 1
+  fi
+  if ! update_ui_colors_template; then
     return 1
   fi
   if ! update_files_module; then
@@ -359,7 +372,7 @@ apply_update() {
 main() {
   show_changelog
 
-  if ! gum_confirm "Instalar update $VERSION?"; then
+  if ! confirm "Instalar update $VERSION?"; then
     warning "Update $VERSION cancelada."
     exit 1
   fi

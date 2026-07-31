@@ -86,7 +86,7 @@ update_yt_dlp_bash_module() {
 show_changelog() {
   title "Update $VERSION"
   info "Cambios que se van aplicar:"
-  info "· Corrixido gum_input para usar só opcións soportadas por gum."
+  info "· Corrixido input para usar só opcións soportadas por gum."
   info "· Actualizado o template de cores de Noctalia para gum input."
   info "· Actualizados os comandos interactivos de yt-dlp."
 }
@@ -110,7 +110,7 @@ apply_update() {
 main() {
   show_changelog
 
-  if ! gum_confirm "Instalar update $VERSION?"; then
+  if ! confirm "Instalar update $VERSION?"; then
     warning "Update $VERSION cancelada."
     exit 1
   fi

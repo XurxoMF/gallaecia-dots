@@ -444,7 +444,7 @@ _git_require_repo() {
   fi
 }
 
-# Obtén un historial compacto, móstrao en `gum_choose` e imprime só o hash curto
+# Obtén un historial compacto, móstrao en `choose` e imprime só o hash curto
 # da liña seleccionada. Non altera HEAD; a saída está deseñada para capturarse
 # desde comandos como `git-diff` e `git-commit-show`.
 _git_select_commit() {
@@ -453,7 +453,7 @@ _git_select_commit() {
   # O tabulador separa hash, data e asunto sen confundilos cos espazos do texto.
   selection="$(
     git log --date=short --pretty=format:'%h	%ad	%s' --all |
-      gum_filter --header "Selecciona un commit:" -- --placeholder "Filtrar commits..."
+      filter --header "Selecciona un commit:" -- --placeholder "Filtrar commits..."
   )" || return 1
 
   [ -n "$selection" ] || return 1
@@ -517,7 +517,7 @@ git-credentials() {
   done
 
   if [ -z "$scope" ]; then
-    scope="$(gum_choose --header "Onde queres gardar as credenciais?" \
+    scope="$(choose --header "Onde queres gardar as credenciais?" \
       "Neste repositorio" "Globalmente")" || return 0
   fi
 
@@ -537,7 +537,7 @@ git-credentials() {
 
   if [ -z "$name" ]; then
     current_name="$(git config "$scope_flag" --get user.name 2> /dev/null || true)"
-    name="$(gum_input --header "Nome" -- --value "$current_name")" || return 0
+    name="$(input --header "Nome" -- --value "$current_name")" || return 0
   fi
 
   if [ -z "$name" ]; then
@@ -547,7 +547,7 @@ git-credentials() {
 
   if [ -z "$email" ]; then
     current_email="$(git config "$scope_flag" --get user.email 2> /dev/null || true)"
-    email="$(gum_input --header "Email" -- --value "$current_email")" || return 0
+    email="$(input --header "Email" -- --value "$current_email")" || return 0
   fi
   if [ -z "$email" ]; then
     warning "O correo non pode quedar baleiro."
@@ -649,7 +649,7 @@ git-clone() {
   done
 
   if [ -z "$repository_url" ]; then
-    repository_url="$(gum_input --header "URL do repositorio" -- \
+    repository_url="$(input --header "URL do repositorio" -- \
       --placeholder "https://github.com/usuario/proxecto.git")" || return 0
   fi
   if [ -z "$repository_url" ]; then
@@ -667,7 +667,7 @@ git-clone() {
       suggested_directory="repositorio"
     fi
 
-    directory="$(gum_input --header "Directorio de destino" -- \
+    directory="$(input --header "Directorio de destino" -- \
       --value "$suggested_directory")" || return 0
   fi
   if [ -z "$directory" ]; then
@@ -716,7 +716,7 @@ git-add() {
   done
   _git_require_repo || return 1
 
-  mode="$(gum_choose --header "Como queres preparar os cambios?" \
+  mode="$(choose --header "Como queres preparar os cambios?" \
     "Todos os cambios" "Seleccionar por parches" "Seleccionar ficheiros")" || return 0
 
   case "$mode" in
@@ -745,7 +745,7 @@ git-add() {
       fi
 
       selection="$(printf '%s\n' "${files[@]}" |
-        gum_filter --header "Selecciona ficheiros:" -- \
+        filter --header "Selecciona ficheiros:" -- \
           --no-limit --placeholder "Filtrar ficheiros...")" || return 0
       [ -n "$selection" ] || return 0
       # Cada liña seleccionada convértese nun elemento independente do array.
@@ -803,7 +803,7 @@ git-commit() {
   _git_require_repo || return 1
 
   if [ -z "$title" ]; then
-    title="$(gum_input --header "Título do commit" -- \
+    title="$(input --header "Título do commit" -- \
       --placeholder "Describe o cambio brevemente")" || return 0
   fi
   if [ -z "$title" ]; then
@@ -812,7 +812,7 @@ git-commit() {
   fi
 
   if ! $body_provided; then
-    body="$(gum_write --header "Corpo opcional do commit" -- \
+    body="$(textarea --header "Corpo opcional do commit" -- \
       --placeholder "Detalles adicionais...")" || return 0
   fi
 
@@ -886,7 +886,7 @@ git-diff() {
   done
   _git_require_repo || return 1
 
-  mode="$(gum_choose --header "Que cambios queres ver?" \
+  mode="$(choose --header "Que cambios queres ver?" \
     "Sen preparar" "Preparados" "Dun commit")" || return 0
 
   case "$mode" in
@@ -986,7 +986,7 @@ git-push() {
   fi
 
   selection="$(printf '%s\n' "${remotes[@]}" |
-    gum_filter --header "Selecciona o remoto:" -- \
+    filter --header "Selecciona o remoto:" -- \
       --placeholder "Filtrar remotos...")" || return 0
   [ -n "$selection" ] || return 0
   remote="$selection"
@@ -1029,7 +1029,7 @@ git-branch-switch() {
   fi
 
   selection="$(printf '%s\n' "${branches[@]}" |
-    gum_filter --header "Selecciona unha rama:" -- \
+    filter --header "Selecciona unha rama:" -- \
       --placeholder "Filtrar ramas...")" || return 0
   [ -n "$selection" ] || return 0
 
@@ -1072,7 +1072,7 @@ git-branch-new() {
   _git_require_repo || return 1
 
   if [ -z "$branch" ]; then
-    branch="$(gum_input --header "Nome da rama nova" -- \
+    branch="$(input --header "Nome da rama nova" -- \
       --placeholder "feature/nome-da-rama")" || return 0
   fi
   [ -n "$branch" ] || return 0
@@ -1129,15 +1129,15 @@ git-branch-delete() {
   fi
 
   selection="$(printf '%s\n' "${branches[@]}" |
-    gum_filter --header "Selecciona ramas para borrar:" -- \
+    filter --header "Selecciona ramas para borrar:" -- \
       --no-limit --placeholder "Filtrar ramas...")" || return 0
   [ -n "$selection" ] || return 0
   mapfile -t selected_branches <<< "$selection"
 
-  gum_confirm "Borrar ${#selected_branches[@]} rama(s) seleccionada(s)?" || return 0
+  confirm "Borrar ${#selected_branches[@]} rama(s) seleccionada(s)?" || return 0
 
   if $force; then
-    gum_confirm "Confirmas o borrado forzado? Pódense perder commits non fusionados." || return 0
+    confirm "Confirmas o borrado forzado? Pódense perder commits non fusionados." || return 0
     git branch "${original_args[@]}" -D -- "${selected_branches[@]}"
   else
     git branch "${original_args[@]}" -d -- "${selected_branches[@]}"
@@ -1186,11 +1186,11 @@ git-branch-merge() {
   fi
 
   selection="$(printf '%s\n' "${branches[@]}" |
-    gum_filter --header "Selecciona a rama para integrar:" -- \
+    filter --header "Selecciona a rama para integrar:" -- \
       --placeholder "Filtrar ramas...")" || return 0
   [ -n "$selection" ] || return 0
 
-  gum_confirm "Integrar $selection en $current?" || return 0
+  confirm "Integrar $selection en $current?" || return 0
   git merge "${original_args[@]}" "$selection"
 }
 
@@ -1296,7 +1296,7 @@ git-stash-save() {
 
   _git_require_repo || return 1
   if ! $message_provided; then
-    message="$(gum_input --header "Descrición opcional do stash" -- \
+    message="$(input --header "Descrición opcional do stash" -- \
       --placeholder "Traballo en progreso")" || return 0
   fi
 
@@ -1343,13 +1343,13 @@ git-stash-pop() {
   fi
 
   selection="$(printf '%s\n' "${stashes[@]}" |
-    gum_filter --header "Selecciona un stash:" -- \
+    filter --header "Selecciona un stash:" -- \
       --placeholder "Filtrar stashes...")" || return 0
   [ -n "$selection" ] || return 0
   # Conserva só a referencia anterior ao primeiro tabulador.
   stash="${selection%%$'\t'*}"
 
-  gum_confirm "Aplicar e retirar $stash da lista?" || return 0
+  confirm "Aplicar e retirar $stash da lista?" || return 0
   git stash pop "${original_args[@]}" "$stash"
 }
 

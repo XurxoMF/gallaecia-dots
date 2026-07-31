@@ -157,7 +157,7 @@ resolve_install_mode() {
     auto)
       if [ -s "$INSTALLED_VERSIONS_FILE" ]; then
         local install_mode
-        install_mode=$(gum_choose \
+        install_mode=$(choose \
           --header "Xa hai unha instalación de Gallaecia Dots. Que queres facer?" \
           "Actualizar" \
           "Reinstalar")

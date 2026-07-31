@@ -422,7 +422,7 @@ command_path() {
     return 1
   fi
   if [ -z "$command_name" ]; then
-    command_name="$(gum_input --header "Comando que queres localizar" -- \
+    command_name="$(input --header "Comando que queres localizar" -- \
       --placeholder "git")" || return 0
   fi
   [ -n "$command_name" ] || return 0
@@ -478,7 +478,7 @@ package_owns_command() {
     return 1
   fi
   if [ -z "$command_name" ]; then
-    command_name="$(gum_input --header "Comando ou executable que queres consultar" -- \
+    command_name="$(input --header "Comando ou executable que queres consultar" -- \
       --placeholder "git")" || return 0
   fi
   [ -n "$command_name" ] || return 0

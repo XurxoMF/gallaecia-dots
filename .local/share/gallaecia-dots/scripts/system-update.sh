@@ -116,7 +116,7 @@ update_yazi_plugins() {
 main() {
   show_logo
 
-  if gum_confirm "Actualizar Rust?"; then
+  if confirm "Actualizar Rust?"; then
     if update_rust; then
       success "Rust actualizado con éxito!"
     else
@@ -124,7 +124,7 @@ main() {
     fi
   fi
 
-  if gum_confirm "Actualizar pacman e AUR?"; then
+  if confirm "Actualizar pacman e AUR?"; then
     if update_arch; then
       success "Pacman e AUR actualizados con éxito!"
     else
@@ -132,7 +132,7 @@ main() {
     fi
   fi
 
-  if gum_confirm "Actualizar Flatpak?"; then
+  if confirm "Actualizar Flatpak?"; then
     if update_flatpak; then
       success "Flatpak actualizado con éxito!"
     else
@@ -140,7 +140,7 @@ main() {
     fi
   fi
 
-  if gum_confirm "Actualizar plugins de Yazi?"; then
+  if confirm "Actualizar plugins de Yazi?"; then
     if update_yazi_plugins; then
       success "Plugins de Yazi actualizados con éxito!"
     else
@@ -153,7 +153,7 @@ main() {
     return 1
   fi
 
-  if gum_confirm "Reiniciar sistema? (Recomendado se se actualizaron paquetes)"; then
+  if confirm "Reiniciar sistema? (Recomendado se se actualizaron paquetes)"; then
     systemctl reboot
   fi
 }

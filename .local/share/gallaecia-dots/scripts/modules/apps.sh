@@ -521,7 +521,7 @@ has_package() {
 _apps_require_public_helpers() {
   local helper
 
-  for helper in gum_input gum_filter gum_pager gum_confirm info warning error; do
+  for helper in input filter pager confirm info warning error; do
     if ! declare -F "$helper" &> /dev/null; then
       printf 'Helper público non cargado: %s\n' "$helper" >&2
       printf 'Carga todos os módulos de Gallaecia antes de usar estes comandos.\n' >&2
@@ -531,14 +531,14 @@ _apps_require_public_helpers() {
 }
 
 # Recibe o catálogo xa formatado, a cabeceira e un filtro inicial opcional.
-# Envía as filas a gum_filter e devolve por stdout exactamente as seleccionadas.
+# Envía as filas a filter e devolve por stdout exactamente as seleccionadas.
 _apps_filter_catalog() {
   local catalog="$1"
   local header="$2"
   local initial_value="${3:-}"
 
   printf '%s\n' "$catalog" |
-    gum_filter --header "$header" -- \
+    filter --header "$header" -- \
       --no-limit \
       --value "$initial_value"
 }
@@ -549,17 +549,17 @@ _apps_show_information() {
   local information="$1"
 
   printf '%s\n' "$information" |
-    gum_pager -- --soft-wrap
+    pager -- --soft-wrap
 }
 
-# Recibe unha cabeceira e un placeholder, abre `gum_input` coa mensaxe común e
+# Recibe unha cabeceira e un placeholder, abre `input` coa mensaxe común e
 # imprime en stdout o texto introducido. Non valida o significado da consulta:
 # o xestor correspondente faino no fluxo que captura esta saída.
 _apps_request_query() {
   local header="$1"
   local placeholder="$2"
 
-  gum_input --header "$header" -- \
+  input --header "$header" -- \
     --placeholder "$placeholder"
 }
 
@@ -702,7 +702,7 @@ yay-install() {
     return 0
   fi
 
-  if ! gum_confirm "Instalar ${#selected_packages[@]} paquete(s) con Yay?"; then
+  if ! confirm "Instalar ${#selected_packages[@]} paquete(s) con Yay?"; then
     info "Instalación cancelada."
     return 0
   fi
@@ -841,7 +841,7 @@ flatpak-install() {
     info "Instalación cancelada."
     return 0
   fi
-  if ! gum_confirm \
+  if ! confirm \
     "Instalar ${#selected_packages[@]} aplicación(s) desde $remote?"; then
     info "Instalación cancelada."
     return 0
@@ -956,7 +956,7 @@ pipx-install() {
     return 0
   fi
 
-  if ! gum_confirm "Instalar $package_name con Pipx?"; then
+  if ! confirm "Instalar $package_name con Pipx?"; then
     info "Instalación cancelada."
     return 0
   fi
@@ -1155,7 +1155,7 @@ yay-uninstall() {
   if $clean_cache; then
     confirm_message="Desinstalar ${#selected_packages[@]} paquete(s) e limpar a caché global?"
   fi
-  if ! gum_confirm "$confirm_message"; then
+  if ! confirm "$confirm_message"; then
     info "Desinstalación cancelada."
     return 0
   fi
@@ -1335,13 +1335,13 @@ flatpak-uninstall() {
     info "Desinstalación cancelada."
     return 0
   fi
-  if ! gum_confirm \
+  if ! confirm \
     "Desinstalar ${#selected_records[@]} aplicación(s) Flatpak?"; then
     info "Desinstalación cancelada."
     return 0
   fi
   if $delete_data; then
-    if ! gum_confirm \
+    if ! confirm \
       "Eliminar tamén os datos persistentes e permisos destas aplicacións?"; then
       info "Desinstalación cancelada."
       return 0
@@ -1516,7 +1516,7 @@ pipx-uninstall() {
     info "Desinstalación cancelada."
     return 0
   fi
-  if ! gum_confirm \
+  if ! confirm \
     "Desinstalar ${#selected_records[@]} contorno(s) de Pipx?"; then
     info "Desinstalación cancelada."
     return 0

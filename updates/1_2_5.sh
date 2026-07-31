@@ -65,7 +65,7 @@ apply_update() {
 main() {
   show_changelog
 
-  if ! gum_confirm "Instalar update $VERSION?"; then
+  if ! confirm "Instalar update $VERSION?"; then
     warning "Update $VERSION cancelada."
     exit 1
   fi

@@ -95,7 +95,7 @@ _select_category_apps() {
   done
 
   while true; do
-    if ! selection="$(gum_choose \
+    if ! selection="$(choose \
       --header "$header" \
       "${labels[@]}" -- --no-limit)"; then
       if $required; then
@@ -234,7 +234,7 @@ _select_default_app() {
   done
 
   while true; do
-    if ! selection="$(gum_choose --header "$header" "${labels[@]}")"; then
+    if ! selection="$(choose --header "$header" "${labels[@]}")"; then
       if $required; then
         warning "Tes que escoller unha aplicación predeterminada." >&2
         continue

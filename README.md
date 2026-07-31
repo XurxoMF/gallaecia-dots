@@ -303,8 +303,8 @@ Estes helpers do módulo público `files.sh` están sempre dispoñibles:
 | `trash_path`       | Envía unha ruta ao lixo para que a eliminación sexa recuperable.         |
 | `files_equal`      | Compara dous ficheiros e indica se teñen o mesmo contido.                |
 
-As operacións que necesitan unha orixe ou un destino abren `gum_file`,
-`gum_folder` ou un input cando se omiten. Para saltar o fluxo interactivo usan
+As operacións que necesitan unha orixe ou un destino abren `select_file`,
+`select_folder` ou un input cando se omiten. Para saltar o fluxo interactivo usan
 de forma consistente `--origin RUTA` e `--destination RUTA`; os argumentos
 posicionais anteriores seguen admitidos. As operacións que modificarían
 ficheiros ofrecen tamén `--dry-run` cando corresponde para revisar previamente
@@ -323,36 +323,49 @@ as cores xeradas por Noctalia:
 
 | Comando ou función | Descrición                                                     |
 | ------------------ | -------------------------------------------------------------- |
-| `gum_style`        | Aplica o estilo visual común a un texto.                       |
+| `style`            | Aplica o estilo visual común a un texto.                       |
 | `info`             | Mostra unha mensaxe informativa.                               |
 | `title`            | Mostra un título de sección co espazado común.                 |
 | `warning`          | Mostra unha advertencia.                                       |
 | `error`            | Mostra un erro sen finalizar automaticamente o proceso.        |
 | `success`          | Mostra unha mensaxe de éxito.                                  |
 | `fail`             | Mostra un erro e finaliza o proceso con código `1`.            |
-| `gum_confirm`      | Pide unha confirmación Si/Non.                                 |
-| `gum_choose`       | Permite escoller unha ou varias opcións dunha lista.           |
-| `gum_input`        | Solicita unha liña de texto.                                   |
-| `gum_filter`       | Filtra e selecciona elementos dunha lista a pantalla completa. |
-| `gum_write`        | Abre un editor de texto multilínea.                            |
-| `gum_file`         | Permite seleccionar un ficheiro ou directorio.                 |
-| `gum_folder`       | Permite seleccionar unicamente un directorio.                  |
-| `gum_spin`         | Mostra un indicador de progreso mentres se executa un comando. |
-| `gum_pager`        | Presenta texto nun visor desprazable.                          |
-| `gum_table`        | Formata datos como unha táboa interactiva.                     |
-| `gum_format`       | Renderiza texto cun formato compatible con Gum.                |
-| `gum_join`         | Combina bloques de texto en horizontal ou vertical.            |
-| `gum_log`          | Mostra unha mensaxe de rexistro cun nivel determinado.         |
+| `confirm`          | Pide unha confirmación Si/Non.                                 |
+| `choose`           | Permite escoller unha ou varias opcións dunha lista.           |
+| `input`            | Solicita unha liña de texto.                                   |
+| `filter`           | Filtra e selecciona elementos dunha lista a pantalla completa. |
+| `textarea`         | Abre un editor de texto multilínea.                            |
+| `select_file`      | Permite seleccionar un ficheiro ou directorio.                 |
+| `select_folder`    | Permite seleccionar unicamente un directorio.                  |
+| `spinner`          | Mostra un indicador de progreso mentres se executa un comando. |
+| `pager`            | Presenta texto nun visor desprazable.                          |
+| `table`            | Formata datos como unha táboa interactiva.                     |
+| `format`           | Renderiza texto cun formato compatible con Gum.                |
+| `combine`          | Combina bloques de texto en horizontal ou vertical.            |
+| `log`              | Mostra unha mensaxe de rexistro cun nivel determinado.         |
 
-`gum_choose`, `gum_input`, `gum_filter`, `gum_write`, `gum_file` e
-`gum_folder` aceptan directamente `--header TEXTO`; as demais opcións do
+`choose`, `input`, `filter`, `textarea`, `select_file` e
+`select_folder` aceptan directamente `--header TEXTO`; as demais opcións do
 subcomando orixinal continúan situándose despois de `--`.
+
+Os nomes anteriores co prefixo `gum_` mantéñense temporalmente como wrappers
+de compatibilidade para scripts da serie 1.x, pero os comandos novos e a
+documentación empregan os nomes curtos. `select_file`, `textarea` e `combine`
+evitan ocultar respectivamente os comandos do sistema `file`, `write` e `join`.
 
 Todos estes wrappers comparten unha paleta por roles visuais: texto principal
 e secundario, bordo, acento, estados, prompt, cursor, cabeceira, elemento e
 selección. As variables correspondentes expórtanse desde o template de
 Noctalia, polo que un cambio de tema mantén unha aparencia coherente en todos
 os comandos sen configurar cada un por separado.
+
+As listas indican o foco cunha frecha `›` e, cando admiten varias seleccións,
+empregan `●` para os elementos marcados e `○` para os desmarcados. Os títulos,
+filas e demais elementos informativos non teñen fondo; este resérvase para as
+zonas editables de `input` e `textarea` e para distinguir os botóns de
+`confirm`. As cabeceiras comparten a cor de acento de `title`, as
+advertencias usan o amarelo ANSI do terminal e todas as mensaxes de estado se
+mostran sen separación vertical propia.
 
 Os roles exportados son `FOREGROUND`, `BACKGROUND`, `MUTED_FOREGROUND`,
 `MUTED_BACKGROUND`, `BORDER_FOREGROUND`, `BORDER_BACKGROUND`,

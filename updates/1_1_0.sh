@@ -185,13 +185,13 @@ apply_update() {
     return 1
   fi
 
-  if gum_confirm "Queres instalar e configurar Git + GitHub CLI?"; then
+  if confirm "Queres instalar e configurar Git + GitHub CLI?"; then
     if ! install_git_tools; then
       return 1
     fi
   fi
 
-  if gum_confirm "Queres instalar e configurar Docker, Docker Compose e Docker Buildx? (Non elimina contedores existentes)"; then
+  if confirm "Queres instalar e configurar Docker, Docker Compose e Docker Buildx? (Non elimina contedores existentes)"; then
     if ! install_docker_tools; then
       return 1
     fi
@@ -203,7 +203,7 @@ apply_update() {
 main() {
   show_changelog
 
-  if ! gum_confirm "Instalar update $VERSION?"; then
+  if ! confirm "Instalar update $VERSION?"; then
     warning "Update $VERSION cancelada."
     exit 1
   fi

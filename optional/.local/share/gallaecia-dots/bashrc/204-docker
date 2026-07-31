@@ -753,7 +753,7 @@ _docker_select_containers() {
   [ "$multiple" = true ] && filter_args+=(--no-limit)
 
   selection="$(printf '%s\n' "${options[@]}" |
-    gum_filter --header "$header" -- \
+    filter --header "$header" -- \
       "${filter_args[@]}" --placeholder "Filtrar contedores...")" || return 1
   [ -n "$selection" ] || return 1
 
@@ -780,7 +780,7 @@ _docker_select_images() {
   [ "$multiple" = true ] && filter_args+=(--no-limit)
 
   selection="$(printf '%s\n' "${options[@]}" |
-    gum_filter --header "$header" -- \
+    filter --header "$header" -- \
       "${filter_args[@]}" --placeholder "Filtrar imaxes...")" || return 1
   [ -n "$selection" ] || return 1
 
@@ -1144,9 +1144,9 @@ docker-container-delete() {
     return 0
   fi
 
-  gum_confirm "Borrar ${#containers[@]} contedor(es) seleccionado(s)?" || return 0
+  confirm "Borrar ${#containers[@]} contedor(es) seleccionado(s)?" || return 0
   if $force; then
-    gum_confirm "Confirmas o borrado forzado? Os procesos activos deteranse." || return 0
+    confirm "Confirmas o borrado forzado? Os procesos activos deteranse." || return 0
     docker container rm --force "${original_args[@]}" "${containers[@]}"
   else
     docker container rm "${original_args[@]}" "${containers[@]}"
@@ -1221,9 +1221,9 @@ docker-image-delete() {
     return 0
   fi
 
-  gum_confirm "Borrar ${#images[@]} imaxe(s) seleccionada(s)?" || return 0
+  confirm "Borrar ${#images[@]} imaxe(s) seleccionada(s)?" || return 0
   if $force; then
-    gum_confirm "Confirmas o borrado forzado das imaxes?" || return 0
+    confirm "Confirmas o borrado forzado das imaxes?" || return 0
     docker image rm --force "${original_args[@]}" "${images[@]}"
   else
     docker image rm "${original_args[@]}" "${images[@]}"
@@ -1281,7 +1281,7 @@ docker-tag() {
     fi
   fi
   if [ -z "$destination" ]; then
-    destination="$(gum_input --header "Nova referencia da imaxe" -- \
+    destination="$(input --header "Nova referencia da imaxe" -- \
       --placeholder "usuario/imaxe:etiqueta")" || return 0
   fi
   [ -n "$destination" ] || return 0
@@ -1357,7 +1357,7 @@ docker-network-delete() {
   fi
 
   selection="$(printf '%s\n' "${networks[@]}" |
-    gum_filter --header "Selecciona redes para borrar:" -- \
+    filter --header "Selecciona redes para borrar:" -- \
       --no-limit --placeholder "Filtrar redes...")" || return 0
   [ -n "$selection" ] || return 0
   # Cada liña visible leva máis datos; para borrar consérvase só o primeiro ID.
@@ -1365,7 +1365,7 @@ docker-network-delete() {
     selected_networks+=("${line%%$'\t'*}")
   done <<< "$selection"
 
-  gum_confirm "Borrar ${#selected_networks[@]} rede(s) seleccionada(s)?" || return 0
+  confirm "Borrar ${#selected_networks[@]} rede(s) seleccionada(s)?" || return 0
   docker network rm "${original_args[@]}" "${selected_networks[@]}"
 }
 
@@ -1432,7 +1432,7 @@ docker-volume-delete() {
   fi
 
   selection="$(printf '%s\n' "${volumes[@]}" |
-    gum_filter --header "Selecciona volumes para borrar:" -- \
+    filter --header "Selecciona volumes para borrar:" -- \
       --no-limit --placeholder "Filtrar volumes...")" || return 0
   [ -n "$selection" ] || return 0
   # O nome do volume é o campo anterior ao primeiro tabulador.
@@ -1440,8 +1440,8 @@ docker-volume-delete() {
     selected_volumes+=("${line%%$'\t'*}")
   done <<< "$selection"
 
-  gum_confirm "Borrar ${#selected_volumes[@]} volume(s) seleccionado(s)?" || return 0
-  gum_confirm "Confirmas que os datos destes volumes xa non son necesarios?" || return 0
+  confirm "Borrar ${#selected_volumes[@]} volume(s) seleccionado(s)?" || return 0
+  confirm "Confirmas que os datos destes volumes xa non son necesarios?" || return 0
   docker volume rm "${original_args[@]}" "${selected_volumes[@]}"
 }
 
@@ -1526,7 +1526,7 @@ compose-down() {
     shift
   done
   _docker_require_compose_project || return 1
-  gum_confirm "Baixar o proxecto de Compose actual? Non se borrarán os volumes." || return 0
+  confirm "Baixar o proxecto de Compose actual? Non se borrarán os volumes." || return 0
   docker compose down "${original_args[@]}"
 }
 
@@ -1583,7 +1583,7 @@ compose-logs() {
     {
       printf '%s\n' "Todos os servizos"
       printf '%s\n' "${services[@]}"
-    } | gum_filter --header "Selecciona servizos:" -- \
+    } | filter --header "Selecciona servizos:" -- \
       --no-limit --placeholder "Filtrar servizos..."
   )" || return 0
   [ -n "$selection" ] || return 0
@@ -1657,7 +1657,7 @@ compose-update() {
 }
 
 # Recibe ou solicita unha etiqueta e un contexto de construción, valida Buildx
-# e executa `docker buildx build --load`. Cando falta o contexto, `gum_folder`
+# e executa `docker buildx build --load`. Cando falta o contexto, `select_folder`
 # permite escoller un directorio desde a ruta actual. A imaxe resultante queda
 # dispoñible no almacén local; os argumentos posteriores a `--` permiten engadir
 # build args.
@@ -1703,10 +1703,10 @@ docker-build() {
 
   _docker_require || return 1
   # `${valor:-alternativa}` abre o input só cando non se pasou a opción.
-  tag="${tag:-$(gum_input --header "Etiqueta da imaxe" -- \
+  tag="${tag:-$(input --header "Etiqueta da imaxe" -- \
     --placeholder "usuario/imaxe:latest")}" || return 0
   [ -n "$tag" ] || return 0
-  context="${context:-$(gum_folder --header "Contexto do build" .)}" || return 0
+  context="${context:-$(select_folder --header "Contexto do build" .)}" || return 0
   [ -n "$context" ] || return 0
 
   docker buildx build --load --tag "$tag" "${original_args[@]}" "$context"
@@ -1740,11 +1740,11 @@ docker-clean() {
   _docker_require || return 1
 
   docker system df
-  action="$(gum_choose --header "Que queres limpar?" \
+  action="$(choose --header "Que queres limpar?" \
     "Contedores detidos" "Imaxes sen usar" "Caché de build" \
     "Sistema sen volumes" "Volumes sen usar")" || return 0
 
-  gum_confirm "Executar a limpeza de «$action»?" || return 0
+  confirm "Executar a limpeza de «$action»?" || return 0
   case "$action" in
     "Contedores detidos")
       docker container prune --force "${original_args[@]}"
@@ -1759,7 +1759,7 @@ docker-clean() {
       docker system prune --all --force "${original_args[@]}"
       ;;
     "Volumes sen usar")
-      gum_confirm "Confirmas que os datos dos volumes sen usar se poden borrar?" || return 0
+      confirm "Confirmas que os datos dos volumes sen usar se poden borrar?" || return 0
       docker volume prune --all --force "${original_args[@]}"
       ;;
   esac
@@ -1842,7 +1842,7 @@ docker-logout() {
   done
 
   _docker_require || return 1
-  gum_confirm "Pechar a sesión de ${registry:-Docker Hub}?" || return 0
+  confirm "Pechar a sesión de ${registry:-Docker Hub}?" || return 0
   if [ -n "$registry" ]; then
     docker logout "${original_args[@]}" "$registry"
   else
@@ -1885,7 +1885,7 @@ docker-search() {
   done
 
   _docker_require || return 1
-  query="${query:-$(gum_input --header "Buscar en Docker Hub" -- \
+  query="${query:-$(input --header "Buscar en Docker Hub" -- \
     --placeholder "Nome da imaxe")}" || return 0
   [ -n "$query" ] || return 0
   docker search "${original_args[@]}" "$query"
@@ -1926,7 +1926,7 @@ docker-pull() {
   done
 
   _docker_require || return 1
-  image="${image:-$(gum_input --header "Imaxe para descargar" -- \
+  image="${image:-$(input --header "Imaxe para descargar" -- \
     --placeholder "usuario/imaxe:etiqueta")}" || return 0
   [ -n "$image" ] || return 0
   docker pull "${original_args[@]}" "$image"
@@ -1981,7 +1981,7 @@ docker-push() {
     fi
 
     selection="$(printf '%s\n' "${images[@]}" |
-      gum_filter --header "Selecciona unha imaxe para subir:" -- \
+      filter --header "Selecciona unha imaxe para subir:" -- \
         --placeholder "Filtrar imaxes...")" || return 0
     [ -n "$selection" ] || return 0
     # A referencia que necesita push é o campo anterior ao primeiro tabulador.

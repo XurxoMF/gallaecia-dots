@@ -324,15 +324,21 @@ opcionais ou os fluxos de uso documentados.
 
 ## Interface e idioma
 
-A interface interactiva está centralizada en `modules/ui.sh` e usa `gum`. Emprega os wrappers `gum_style`, `info`, `title`, `warning`, `success`, `fail`, `gum_confirm`, `gum_choose`, `gum_input`, `gum_filter` e `gum_write` para conservar o estilo e as cores xeradas por Noctalia.
+A interface interactiva está centralizada en `modules/ui.sh` e usa `gum`. Emprega os wrappers `style`, `info`, `title`, `warning`, `success`, `fail`, `confirm`, `choose`, `input`, `filter` e `textarea` para conservar o estilo e as cores xeradas por Noctalia.
 
-- O espazado visual pertence aos wrappers de UI. `title` separa a sección anterior e posterior; `gum_confirm`, `gum_choose`, `gum_input` e `gum_write` engaden sempre unha liña baleira antes da interacción. `gum_filter` non engade padding porque ocupa a pantalla completa.
+- Os wrappers públicos de UI usan nomes curtos sen o prefixo `gum_`. Conserva
+  `select_file`, `textarea` e `combine` en lugar de `file`, `write` e `join`
+  para non ocultar os comandos homónimos do sistema. Os antigos nomes `gum_*`
+  son wrappers obsoletos de compatibilidade para a serie 1.x: non os empregues
+  en código novo nin lles rexistres autocompletado.
+
+- O espazado visual pertence aos wrappers de UI. `title` separa a sección anterior e posterior; `confirm`, `choose`, `input` e `textarea` engaden sempre unha liña baleira antes da interacción. `filter` non engade padding porque ocupa a pantalla completa.
 - Implementa ese espazado co `--padding` de Gum, non con `echo`: o padding
   forma parte da interface e Gum elimínao ao pechala, mentres que un `echo`
   deixa liñas baleiras permanentes. Non engadas un `echo` antes destes helpers
   só para crear espazo.
-- `gum_choose`, `gum_input`, `gum_filter`, `gum_write`, `gum_file` e
-  `gum_folder` expoñen `--header TEXTO` como opción propia. Nos consumidores,
+- `choose`, `input`, `filter`, `textarea`, `select_file` e
+  `select_folder` expoñen `--header TEXTO` como opción propia. Nos consumidores,
   sitúa esta opción antes de `--` e deixa despois de `--` unicamente os
   argumentos reenviados ao subcomando orixinal de Gum.
 - Define as cores de Gum mediante roles semánticos xenéricos compartidos por
@@ -340,6 +346,14 @@ A interface interactiva está centralizada en `modules/ui.sh` e usa `gum`. Empre
   engades un rol novo en `ui.sh`, expórtao tamén en
   `noctalia/ui-colors.sh.template` e reutilízao en todos os controis
   equivalentes.
+- Mantén sen fondo os títulos, mensaxes, listas, cabeceiras, seleccións e demais
+  controis non editables. Indica o foco das listas cunha frecha `›` e as
+  seleccións múltiples con `●` e `○`; reserva o fondo para as zonas editables
+  de `input` e `textarea` e para os botóns de `confirm`.
+- Usa a cor de acento de `title` en todas as cabeceiras, amarelo ANSI para
+  `warning` e ningún padding propio en `info`, `warning`, `error`, `success` e
+  `fail`. O espazado de sección pertence a `title` e o dos controis aos seus
+  wrappers interactivos.
 
 Escribe en galego as mensaxes novas e revisa a ortografía antes de rematar. Conserva a orde de idiomas do sistema:
 
