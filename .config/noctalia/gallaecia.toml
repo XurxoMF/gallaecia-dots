@@ -2,7 +2,7 @@
 order = [ "default" ]
 
     [bar.default]
-    background_opacity = 1
+    background_opacity = 0.9
     capsule_thickness = 0.8
     start = [ "clock", "launcher", "wallpaper", "mpvpaper", "system_update" ]
     center = [ "workspaces" ]
@@ -41,7 +41,7 @@ width = 900
     show_events_card = false
 
 [dock]
-background_opacity = 1
+background_opacity = 0.9
 enabled = false
 
 [hooks]
@@ -51,10 +51,10 @@ colors_changed = "systemctl --user try-restart xdg-desktop-portal.service xdg-de
 address = "Galicia"
 
 [notification]
-background_opacity = 1
+background_opacity = 0.9
 
 [osd]
-background_opacity = 1
+background_opacity = 0.9
 
 [plugins]
 enabled = [ "noctalia/translator", "noctalia/mpvpaper" ]
@@ -86,6 +86,7 @@ telemetry_enabled = true
     open_near_click_launcher = true
     open_near_click_session = true
     open_near_click_wallpaper = true
+    transparency_mode = "glass"
 
     [shell.screen_corners]
     enabled = true

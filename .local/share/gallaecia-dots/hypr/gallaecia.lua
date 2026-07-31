@@ -100,8 +100,8 @@ end)
 
 hl.config({
   general = {
-    gaps_in = 5,
-    gaps_out = 10,
+    gaps_in = 4,
+    gaps_out = 8,
   },
 
   xwayland = {
@@ -111,6 +111,8 @@ hl.config({
   decoration = {
     rounding = 10,
     rounding_power = 2,
+    active_opacity = 0.9,
+    inactive_opacity = 0.9,
 
     shadow = {
       enabled = true,
@@ -121,7 +123,7 @@ hl.config({
 
     blur = {
       enabled = true,
-      size = 3,
+      size = 2,
       passes = 2,
       vibrancy = 0.1696,
     },

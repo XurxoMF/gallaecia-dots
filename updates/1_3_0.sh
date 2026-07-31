@@ -66,8 +66,8 @@ update_wallpapers() {
     "$HOME/.wallpapers"
 }
 
-# Actualiza unicamente a base compartida e controlada de Hyprland. O wrapper
-# persoal de ~/.config/hypr permanece intacto.
+# Actualiza unicamente a base compartida e controlada de Hyprland, incluídos a
+# opacidade, os espazos e o desenfoque. O wrapper persoal permanece intacto.
 update_hyprland_base() {
   replace_file \
     "$DOTFILES_DIR/.local/share/gallaecia-dots/hypr/gallaecia.lua" \
@@ -115,8 +115,8 @@ update_xsettingsd_icon_theme() {
     "$HOME/.config/xsettingsd"
 }
 
-# Substitúe a configuración base de Noctalia para que o botón chame directamente
-# o lanzador, sen crear antes unha terminal intermedia. Non toca custom.toml.
+# Substitúe a configuración base de Noctalia co lanzador directo e a nova
+# transparencia de barras, paneis e elementos flotantes. Non toca custom.toml.
 update_noctalia_config() {
   replace_file \
     "$DOTFILES_DIR/.config/noctalia/gallaecia.toml" \
@@ -241,6 +241,7 @@ show_changelog() {
   info "· Engadido run-terminal-as para abrir comandos cun app_id estable."
   info "· O actualizador ábrese nunha única terminal flotante e centrada."
   info "· Kitty, Alacritty, Foot, Ghostty e WezTerm usan o mesmo identificador."
+  info "· Engadida transparencia ás xanelas e aos paneis de Noctalia."
   info "· Engadido gum_folder para seleccionar directorios con Gum."
   info "· Os wrappers compatibles aceptan --header como opción propia."
   info "· Os comandos completan con Gum os datos que se omitan cando procede."
