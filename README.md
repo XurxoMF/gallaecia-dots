@@ -307,6 +307,7 @@ as cores xeradas por Noctalia:
 | `gum_filter`       | Filtra e selecciona elementos dunha lista a pantalla completa. |
 | `gum_write`        | Abre un editor de texto multilínea.                            |
 | `gum_file`         | Permite seleccionar un ficheiro ou directorio.                 |
+| `gum_folder`       | Permite seleccionar unicamente un directorio.                  |
 | `gum_spin`         | Mostra un indicador de progreso mentres se executa un comando. |
 | `gum_pager`        | Presenta texto nun visor desprazable.                          |
 | `gum_table`        | Formata datos como unha táboa interactiva.                     |
@@ -404,7 +405,7 @@ Estes comandos só existen se instalas **Docker + Compose** na categoría
 | `compose-logs`             | Mostra ou segue os rexistros de Compose.                       |
 | `compose-rebuild`          | Reconstrúe e inicia os servizos de Compose.                    |
 | `compose-update`           | Descarga imaxes novas e actualiza os servizos de Compose.      |
-| `docker-build`             | Constrúe unha imaxe local mediante Buildx.                     |
+| `docker-build`             | Constrúe unha imaxe con Buildx e permite seleccionar o contexto. |
 | `docker-clean`             | Limpa recursos Docker non utilizados mediante un fluxo guiado. |
 | `docker-login`             | Inicia sesión nun rexistro de contedores.                      |
 | `docker-logout`            | Pecha a sesión nun rexistro de contedores.                     |

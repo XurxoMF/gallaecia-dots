@@ -74,6 +74,26 @@ update_noctalia_config() {
     "$HOME/.config/noctalia/gallaecia.toml"
 }
 
+# Substitúe o módulo público de interface que incorpora `gum_folder` como
+# selector específico de directorios coa paleta común de Gallaecia.
+update_ui_module() {
+  replace_file \
+    "$DOTFILES_DIR/.local/share/gallaecia-dots/scripts/modules/ui.sh" \
+    "$HOME/.local/share/gallaecia-dots/scripts/modules/ui.sh"
+}
+
+# Actualiza os comandos opcionais de Docker só cando a ferramenta está
+# instalada. Non engade Docker nin activa o seu servizo nesta migración.
+update_docker_commands() {
+  if ! has_command docker; then
+    return 0
+  fi
+
+  replace_file \
+    "$DOTFILES_DIR/optional/.local/share/gallaecia-dots/bashrc/204-docker" \
+    "$HOME/.local/share/gallaecia-dots/bashrc/204-docker"
+}
+
 # Resume os cambios antes de modificar as instalacións existentes.
 show_changelog() {
   title "Update $VERSION"
@@ -81,6 +101,8 @@ show_changelog() {
   info "· Engadido run-terminal-as para abrir comandos cun app_id estable."
   info "· O actualizador ábrese nunha única terminal flotante e centrada."
   info "· Kitty, Alacritty, Foot, Ghostty e WezTerm usan o mesmo identificador."
+  info "· Engadido gum_folder para seleccionar directorios con Gum."
+  info "· docker-build permite seleccionar visualmente o directorio de contexto."
 }
 
 # Instala primeiro a API e o seu entrypoint e activa despois os consumidores.
@@ -95,6 +117,12 @@ apply_update() {
     return 1
   fi
   if ! update_noctalia_config; then
+    return 1
+  fi
+  if ! update_ui_module; then
+    return 1
+  fi
+  if ! update_docker_commands; then
     return 1
   fi
 }

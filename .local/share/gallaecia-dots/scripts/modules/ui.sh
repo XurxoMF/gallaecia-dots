@@ -8,8 +8,8 @@
 #
 #   Mensaxes: gum_style, info, title, warning, error, success, fail
 #   Interacción: gum_confirm, gum_choose, gum_input, gum_filter, gum_write
-#   Ferramentas: gum_file, gum_spin, gum_pager, gum_table, gum_format,
-#                gum_join, gum_log
+#   Ferramentas: gum_file, gum_folder, gum_spin, gum_pager, gum_table,
+#                gum_format, gum_join, gum_log
 #
 # A paleta pode xerala Noctalia en UI_COLORS_FILE. Se non existe, os valores
 # seguintes actúan como fallback. Os roles son semánticos e compartidos: cambia
@@ -361,6 +361,51 @@ COMANDO ORIXINAL
   pero recoméndase escribilos despois de `--`.
 
   gum_file . -- --help
+EOF
+      ;;
+    gum_folder)
+      cat <<'EOF'
+USO
+  gum_folder [OPCIÓNS] [RUTA] [-- ARGUMENTOS DE GUM FILE]
+
+DESCRICIÓN
+  Permite navegar e seleccionar unicamente un directorio coa paleta de
+  Gallaecia. Reutiliza `gum_file` con `--directory --file=false` por defecto.
+
+PARÁMETROS
+  [RUTA]
+      Directorio desde o que comezará a navegación.
+
+OPCIÓNS
+  -h, --help
+      Mostra esta axuda.
+
+  --
+      Remata as opcións do helper. Todo o posterior reenvíase a `gum file`.
+
+CONTROIS
+  Frechas ou h/j/k/l
+      Navega polos directorios.
+
+  Enter
+      Abre ou confirma o directorio seleccionado.
+
+  q ou Esc
+      Cancela a selección.
+
+RESULTADO
+  Escribe en stdout a ruta do directorio seleccionado.
+  Devolve un código distinto de 0 se o usuario cancela.
+
+EXEMPLOS
+  gum_folder
+  gum_folder "$HOME" -- --all --header "Escolle un directorio:"
+
+COMANDO ORIXINAL
+  Os argumentos de Gum tamén se aceptan directamente por compatibilidade,
+  pero recoméndase escribilos despois de `--`.
+
+  gum_folder . -- --help
 EOF
       ;;
     gum_spin)
@@ -1063,6 +1108,33 @@ gum_file() {
 	--header.background="$HEADER_BACKGROUND" \
 	--padding="1 0 0 0" \
 	"${original_args[@]}"
+}
+
+# Recibe unha ruta inicial e opcións de `gum file`, antepón os modos que
+# permiten confirmar directorios e impiden escoller ficheiros, e delega en
+# `gum_file` para conservar a mesma paleta, padding e código de cancelación.
+gum_folder() {
+  local original_args=()
+
+  while (($#)); do
+    case "$1" in
+      -h|--help)
+        _ui_help gum_folder
+        return 0
+        ;;
+      --)
+        shift
+        original_args+=("$@")
+        break
+        ;;
+      *)
+        original_args+=("$1")
+        ;;
+    esac
+    shift
+  done
+
+  gum_file -- --directory --file=false "${original_args[@]}"
 }
 
 # Recibe opcións propias do spinner e, obrigatoriamente tras `--`, un comando.

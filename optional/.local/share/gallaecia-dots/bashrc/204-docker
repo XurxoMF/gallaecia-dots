@@ -386,14 +386,19 @@ USO
   docker-build [OPCIÓNS] [-- ARGUMENTOS DE DOCKER BUILDX BUILD]
 
 DESCRICIÓN
-  Constrúe unha imaxe local mediante Buildx e `--load`. Pide os valores que
-  non se indiquen como opcións.
+  Constrúe unha imaxe local mediante Buildx e `--load`. Pide a etiqueta e abre
+  un selector de directorios para o contexto cando non se indiquen como opcións.
 
 OPCIÓNS
   -t, --tag IMAXE      Referencia da imaxe resultante.
-  -C, --context RUTA   Contexto de build; por defecto, o directorio actual.
+  -C, --context RUTA   Contexto de build; se se omite, ábrese o selector en `.`.
   -h, --help           Mostra esta axuda.
   --                   Remata as opcións do wrapper.
+
+CONTROIS
+  Frechas ou h/j/k/l   Navega polos directorios do selector de contexto.
+  Enter                Abre ou selecciona un directorio.
+  q ou Esc             Cancela o selector sen iniciar a construción.
 
 RESULTADO
   Constrúe a imaxe e cárgaa no almacén local de Docker.
@@ -1476,8 +1481,10 @@ compose-update() {
 }
 
 # Recibe ou solicita unha etiqueta e un contexto de construción, valida Buildx
-# e executa `docker buildx build --load`. A imaxe resultante queda dispoñible no
-# almacén local; os argumentos posteriores a `--` permiten engadir build args.
+# e executa `docker buildx build --load`. Cando falta o contexto, `gum_folder`
+# permite escoller un directorio desde a ruta actual. A imaxe resultante queda
+# dispoñible no almacén local; os argumentos posteriores a `--` permiten engadir
+# build args.
 docker-build() {
   local tag=""
   local context=""
@@ -1522,7 +1529,7 @@ docker-build() {
   # `${valor:-alternativa}` abre o input só cando non se pasou a opción.
   tag="${tag:-$(gum_input --header "Etiqueta da imaxe" --placeholder "usuario/imaxe:latest")}" || return 0
   [ -n "$tag" ] || return 0
-  context="${context:-$(gum_input --header "Contexto do build" --placeholder "." --value ".")}" || return 0
+  context="${context:-$(gum_folder . -- --header "Contexto do build")}" || return 0
   [ -n "$context" ] || return 0
 
   docker buildx build --load --tag "$tag" "${original_args[@]}" "$context"
