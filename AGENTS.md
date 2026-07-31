@@ -229,7 +229,10 @@ administración de perfís que non está dispoñible na interface.
 
 Mantén o mesmo formato nos módulos compartidos e nos Bashrc:
 
-- Se un ficheiro expón varios comandos, centraliza os textos nunha función privada `_nome_help()` e fai que cada comando chame a súa sección.
+- Se un ficheiro expón varios comandos, centraliza os textos nunha función
+  privada `_nome_help()` e fai que cada comando chame a súa sección. Mantén un
+  `case` completo e específico por comando: non agrupes axudas con patróns como
+  `comando-a|comando-b)` nin xeres descricións xenéricas segundo `$1`.
 - Mantén en inglés os nomes dos comandos públicos; as axudas, descricións,
   mensaxes e inputs continúan en galego.
 - Todos os comandos públicos deben procesar opcións cun `while (($#)); do` e un `case "$1" in`, mesmo cando inicialmente só admitan `-h|--help` e `--`. A estrutura uniforme facilita engadir opcións no futuro.
@@ -255,8 +258,18 @@ Mantén o mesmo formato nos módulos compartidos e nos Bashrc:
 - Se o helper combina varios comandos ou non pode reenviar argumentos de forma coherente, non inventes passthrough. Documenta esta limitación na súa axuda e ofrece só opcións propias útiles, como `--dry-run`.
 - As opcións descoñecidas antes de `--` deben producir unha mensaxe clara que indique como consultar `--help`.
 - Reutiliza `--url URL` para enderezos remotos e `--destination RUTA` para a
-  ruta de saída, tamén cando sexa un directorio. Non uses `--origin` para a URL
-  dun clon: Git reserva esa opción para cambiar o nome do remoto creado.
+  ruta ou referencia de saída, tamén cando sexa un directorio. Usa
+  `--origin RUTA` para a entrada dunha operación local, `--registry REXISTRO`
+  para rexistros de contedores, `--query CONSULTA` para textos de busca e
+  `--command COMANDO` cando se pide o nome dun executable. Non uses `--origin`
+  para a URL dun clon: Git reserva esa opción para cambiar o nome do remoto
+  creado.
+- Os comandos operativos completan con Gum os datos omitidos sempre que exista
+  unha elección útil: selector de ficheiro ou directorio para unha orixe,
+  selector de recursos para coleccións e input para texto ou destinos novos.
+  As opcións explícitas permiten saltar cada paso interactivo. Non forces unha
+  TUI en predicados, helpers de estilo nin composición de comandos que require
+  necesariamente os seus argumentos.
 - Prefire repetir un parser curto dentro de cada comando antes que ocultar o fluxo en helpers xenéricos difíciles de seguir. Extrae funcións privadas cando aforren unha cantidade importante de código e sigan sendo evidentes, como os selectores compartidos de contedores ou imaxes.
 - Mantén os helpers específicos no ficheiro da aplicación que os utiliza. Non movas lóxica exclusiva de Git, Docker, yt-dlp ou SpotDL a módulos globais.
 - Os módulos internos de aplicacións e versións deben advertir claramente que

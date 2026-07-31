@@ -107,7 +107,7 @@ EOF
     command_path)
       cat <<'EOF'
 USO
-  command_path [OPCIÓNS] COMANDO
+  command_path [OPCIÓNS] [COMANDO]
 
 DESCRICIÓN
   Resolve un comando mediante `command -v`.
@@ -117,6 +117,9 @@ PARÁMETROS
       Nome do comando que se quere resolver.
 
 OPCIÓNS
+  --command COMANDO
+      Nome que se resolverá; se se omite, pídese cun input.
+
   -h, --help
       Mostra esta axuda.
 
@@ -128,14 +131,14 @@ RESULTADO
   Devolve un código distinto de 0 se o comando non existe.
 
 EXEMPLOS
-  command_path bash
-  command_path git
+  command_path
+  command_path --command git
 EOF
       ;;
     package_owns_command)
       cat <<'EOF'
 USO
-  package_owns_command [OPCIÓNS] COMANDO
+  package_owns_command [OPCIÓNS] [COMANDO]
 
 DESCRICIÓN
   Resolve un executable e consulta con Yay que paquete instalado o proporciona.
@@ -145,6 +148,9 @@ PARÁMETROS
       Nome dun comando ou ruta dun executable.
 
 OPCIÓNS
+  --command COMANDO
+      Nome ou executable que se consultará; se se omite, pídese cun input.
+
   -h, --help
       Mostra esta axuda.
 
@@ -156,8 +162,8 @@ RESULTADO
   Devolve un código distinto de 0 se o comando ou o paquete non se atopan.
 
 EXEMPLOS
-  package_owns_command bash
-  package_owns_command /usr/bin/git
+  package_owns_command
+  package_owns_command --command /usr/bin/git
 EOF
       ;;
     retry_command)
@@ -375,10 +381,18 @@ require_commands() {
 # unha ruta, un alias ou unha función segundo o tipo de comando resolto.
 command_path() {
   local values=()
-  local command_name
+  local command_name=""
 
   while (($#)); do
     case "$1" in
+      --command)
+        if [ $# -lt 2 ]; then
+          printf 'Falta COMANDO para --command. Usa command_path --help.\n' >&2
+          return 1
+        fi
+        command_name="$2"
+        shift
+        ;;
       -h|--help)
         _commands_help command_path
         return 0
@@ -399,11 +413,19 @@ command_path() {
     shift
   done
 
-  if [ ${#values[@]} -ne 1 ]; then
-    printf 'command_path require un COMANDO. Usa command_path --help.\n' >&2
+  if [ -z "$command_name" ] && [ ${#values[@]} -gt 0 ]; then
+    command_name="${values[0]}"
+    values=("${values[@]:1}")
+  fi
+  if [ ${#values[@]} -gt 0 ]; then
+    printf 'command_path recibiu demasiados comandos. Usa command_path --help.\n' >&2
     return 1
   fi
-  command_name="${values[0]}"
+  if [ -z "$command_name" ]; then
+    command_name="$(gum_input --header "Comando que queres localizar" -- \
+      --placeholder "git")" || return 0
+  fi
+  [ -n "$command_name" ] || return 0
 
   command -v "$command_name"
 }
@@ -414,10 +436,19 @@ command_path() {
 # falla de forma explícita se Yay, o comando ou un ficheiro consultable faltan.
 package_owns_command() {
   local values=()
-  local command_name command_location
+  local command_name=""
+  local command_location
 
   while (($#)); do
     case "$1" in
+      --command)
+        if [ $# -lt 2 ]; then
+          printf 'Falta COMANDO para --command. Usa package_owns_command --help.\n' >&2
+          return 1
+        fi
+        command_name="$2"
+        shift
+        ;;
       -h|--help)
         _commands_help package_owns_command
         return 0
@@ -438,11 +469,19 @@ package_owns_command() {
     shift
   done
 
-  if [ ${#values[@]} -ne 1 ]; then
-    printf 'package_owns_command require un COMANDO. Usa package_owns_command --help.\n' >&2
+  if [ -z "$command_name" ] && [ ${#values[@]} -gt 0 ]; then
+    command_name="${values[0]}"
+    values=("${values[@]:1}")
+  fi
+  if [ ${#values[@]} -gt 0 ]; then
+    printf 'package_owns_command recibiu demasiados comandos. Usa --help.\n' >&2
     return 1
   fi
-  command_name="${values[0]}"
+  if [ -z "$command_name" ]; then
+    command_name="$(gum_input --header "Comando ou executable que queres consultar" -- \
+      --placeholder "git")" || return 0
+  fi
+  [ -n "$command_name" ] || return 0
 
   if ! has_command yay; then
     printf 'Yay non está dispoñible para consultar paquetes.\n' >&2

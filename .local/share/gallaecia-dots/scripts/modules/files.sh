@@ -26,7 +26,7 @@ _files_help() {
     replace_path)
       cat <<'EOF'
 USO
-  replace_path [OPCIÓNS] ORIXE DESTINO
+  replace_path [OPCIÓNS] [ORIXE DESTINO]
 
 DESCRICIÓN
   Elimina a árbore de destino e substitúea por unha copia da orixe.
@@ -39,6 +39,12 @@ PARÁMETROS
       Ruta que se eliminará e substituirá.
 
 OPCIÓNS
+  --origin RUTA
+      Directorio que se copiará; se se omite, ábrese o selector.
+
+  --destination RUTA
+      Ruta que se substituirá; se se omite, pídese cun input.
+
   --dry-run
       Mostra a operación sen modificar ficheiros.
 
@@ -59,7 +65,7 @@ EOF
     merge_path)
       cat <<'EOF'
 USO
-  merge_path [OPCIÓNS] ORIXE DESTINO
+  merge_path [OPCIÓNS] [ORIXE DESTINO]
 
 DESCRICIÓN
   Crea o destino se non existe e copia nel o contido da orixe sen borrar
@@ -73,6 +79,12 @@ PARÁMETROS
       Directorio no que se combinará o contido.
 
 OPCIÓNS
+  --origin RUTA
+      Directorio cuxo contido se copiará; se se omite, ábrese o selector.
+
+  --destination RUTA
+      Directorio de destino; se se omite, pídese cun input.
+
   --dry-run
       Mostra a operación sen modificar ficheiros.
 
@@ -93,7 +105,7 @@ EOF
     replace_file)
       cat <<'EOF'
 USO
-  replace_file [OPCIÓNS] ORIXE DESTINO
+  replace_file [OPCIÓNS] [ORIXE DESTINO]
 
 DESCRICIÓN
   Elimina o ficheiro de destino e substitúeo por unha copia da orixe.
@@ -106,6 +118,12 @@ PARÁMETROS
       Ruta do ficheiro que se substituirá.
 
 OPCIÓNS
+  --origin RUTA
+      Ficheiro que se copiará; se se omite, ábrese o selector.
+
+  --destination RUTA
+      Ficheiro que se substituirá; se se omite, pídese cun input.
+
   --dry-run
       Mostra a operación sen modificar ficheiros.
 
@@ -150,34 +168,17 @@ EXEMPLOS
   file_exists -- ./-ficheiro
 EOF
       ;;
-    path_exists|directory_exists|symlink_exists)
-      local description example
-
-      case "$1" in
-        path_exists)
-          description="Comproba se existe unha ruta de calquera tipo, incluídos enlaces rotos."
-          example="path_exists ~/.config"
-          ;;
-        directory_exists)
-          description="Comproba se unha ruta existe e é un directorio."
-          example="directory_exists ~/.config"
-          ;;
-        symlink_exists)
-          description="Comproba se unha ruta é un enlace simbólico, aínda que estea roto."
-          example="symlink_exists ~/.config/app/config.toml"
-          ;;
-      esac
-
-      cat <<EOF
+    path_exists)
+      cat <<'EOF'
 USO
-  $1 [OPCIÓNS] RUTA
+  path_exists [OPCIÓNS] RUTA
 
 DESCRICIÓN
-  $description
+  Comproba se existe unha ruta de calquera tipo, incluídos enlaces rotos.
 
 PARÁMETROS
   RUTA
-      Ruta que se quere comprobar.
+      Ruta de calquera tipo que se quere comprobar.
 
 OPCIÓNS
   -h, --help
@@ -187,17 +188,71 @@ OPCIÓNS
       Remata as opcións e permite unha ruta que comece por guión.
 
 RESULTADO
-  Devolve 0 se a ruta cumpre a condición e un código distinto de 0 se non.
+  Devolve 0 se a ruta existe e un código distinto de 0 se non existe.
 
 EXEMPLOS
-  $example
-  $1 -- ./-ruta
+  path_exists ~/.config
+  path_exists -- ./-ruta
+EOF
+      ;;
+    directory_exists)
+      cat <<'EOF'
+USO
+  directory_exists [OPCIÓNS] RUTA
+
+DESCRICIÓN
+  Comproba se unha ruta existe e é un directorio.
+
+PARÁMETROS
+  RUTA
+      Directorio que se quere comprobar.
+
+OPCIÓNS
+  -h, --help
+      Mostra esta axuda.
+
+  --
+      Remata as opcións e permite unha ruta que comece por guión.
+
+RESULTADO
+  Devolve 0 se o directorio existe e un código distinto de 0 se non.
+
+EXEMPLOS
+  directory_exists ~/.config
+  directory_exists -- ./-directorio
+EOF
+      ;;
+    symlink_exists)
+      cat <<'EOF'
+USO
+  symlink_exists [OPCIÓNS] RUTA
+
+DESCRICIÓN
+  Comproba se unha ruta é unha ligazón simbólica, aínda que estea rota.
+
+PARÁMETROS
+  RUTA
+      Ligazón simbólica que se quere comprobar.
+
+OPCIÓNS
+  -h, --help
+      Mostra esta axuda.
+
+  --
+      Remata as opcións e permite unha ruta que comece por guión.
+
+RESULTADO
+  Devolve 0 se a ruta é unha ligazón simbólica e un código distinto de 0 se non.
+
+EXEMPLOS
+  symlink_exists ~/.config/app/config.toml
+  symlink_exists -- ./-ligazon
 EOF
       ;;
     copy_file)
       cat <<'EOF'
 USO
-  copy_file [OPCIÓNS] ORIXE DESTINO
+  copy_file [OPCIÓNS] [ORIXE DESTINO]
 
 DESCRICIÓN
   Copia un ficheiro conservando os metadatos e rexeita sobrescribir o destino.
@@ -210,6 +265,12 @@ PARÁMETROS
       Nova ruta que non debe existir.
 
 OPCIÓNS
+  --origin RUTA
+      Ficheiro que se copiará; se se omite, ábrese o selector.
+
+  --destination RUTA
+      Nova ruta do ficheiro; se se omite, pídese cun input.
+
   --dry-run
       Mostra a operación sen modificar ficheiros.
 
@@ -223,14 +284,15 @@ RESULTADO
   Devolve 0 se a copia se completa e un código distinto de 0 se falla.
 
 EXEMPLOS
-  copy_file config.toml ~/.config/app/config.toml
+  copy_file
+  copy_file --origin config.toml --destination ~/.config/app/config.toml
   copy_file --dry-run config.toml ~/.config/app/config.toml
 EOF
       ;;
     copy_path)
       cat <<'EOF'
 USO
-  copy_path [OPCIÓNS] ORIXE DESTINO
+  copy_path [OPCIÓNS] [ORIXE DESTINO]
 
 DESCRICIÓN
   Copia unha árbore conservando os metadatos e rexeita sobrescribir o destino.
@@ -243,6 +305,12 @@ PARÁMETROS
       Nova ruta que non debe existir.
 
 OPCIÓNS
+  --origin RUTA
+      Directorio que se copiará; se se omite, ábrese o selector.
+
+  --destination RUTA
+      Nova ruta do directorio; se se omite, pídese cun input.
+
   --dry-run
       Mostra a operación sen modificar ficheiros.
 
@@ -256,14 +324,15 @@ RESULTADO
   Devolve 0 se a copia se completa e un código distinto de 0 se falla.
 
 EXEMPLOS
-  copy_path ./config ~/.config/app
+  copy_path
+  copy_path --origin ./config --destination ~/.config/app
   copy_path --dry-run ./config ~/.config/app
 EOF
       ;;
     ensure_directory)
       cat <<'EOF'
 USO
-  ensure_directory [OPCIÓNS] RUTA
+  ensure_directory [OPCIÓNS] [RUTA]
 
 DESCRICIÓN
   Crea un directorio e os seus pais cando non existen.
@@ -273,6 +342,9 @@ PARÁMETROS
       Directorio que se quere garantir.
 
 OPCIÓNS
+  --destination RUTA
+      Directorio que se creará; se se omite, pídese cun input.
+
   --mode VALOR
       Aplica un modo octal de tres ou catro cifras, tamén se xa existía.
 
@@ -296,7 +368,7 @@ EOF
     backup_path)
       cat <<'EOF'
 USO
-  backup_path [OPCIÓNS] RUTA
+  backup_path [OPCIÓNS] [RUTA]
 
 DESCRICIÓN
   Crea unha copia con marca temporal dun ficheiro, directorio ou enlace.
@@ -306,6 +378,9 @@ PARÁMETROS
       Ruta da que se creará a copia.
 
 OPCIÓNS
+  --origin RUTA
+      Ruta que se copiará; se se omite, ábrese o selector.
+
   --destination DIRECTORIO
       Garda a copia dentro deste directorio.
 
@@ -330,7 +405,7 @@ EOF
     ensure_symlink)
       cat <<'EOF'
 USO
-  ensure_symlink [OPCIÓNS] ORIXE DESTINO
+  ensure_symlink [OPCIÓNS] [ORIXE DESTINO]
 
 DESCRICIÓN
   Crea un enlace simbólico e os directorios pai necesarios.
@@ -343,6 +418,12 @@ PARÁMETROS
       Ruta na que se creará o enlace.
 
 OPCIÓNS
+  --origin RUTA
+      Ruta á que apuntará a ligazón; se se omite, ábrese o selector.
+
+  --destination RUTA
+      Ruta da ligazón; se se omite, pídese cun input.
+
   --replace
       Substitúe un ficheiro ou enlace existente. Nunca substitúe un directorio.
 
@@ -367,7 +448,7 @@ EOF
     trash_path)
       cat <<'EOF'
 USO
-  trash_path [OPCIÓNS] RUTA...
+  trash_path [OPCIÓNS] [RUTA...]
 
 DESCRICIÓN
   Envía unha ou máis rutas ao lixo mediante `trash-put`.
@@ -377,6 +458,10 @@ PARÁMETROS
       Ficheiros, directorios ou enlaces que se enviarán ao lixo.
 
 OPCIÓNS
+  --origin RUTA
+      Engade unha ruta á selección. Pode repetirse; se non se indica ningunha,
+      ábrese o selector de ficheiros.
+
   --dry-run
       Mostra as rutas sen modificar ficheiros.
 
@@ -464,11 +549,29 @@ _validate_file_target() {
 # por Gallaecia; `--dry-run` valida e describe a acción sen escribir nada.
 replace_path() {
   local dry_run=false
+  local interactive=false
   local paths=()
-  local source target
+  local source=""
+  local target=""
 
   while (($#)); do
     case "$1" in
+      --origin)
+        if [ $# -lt 2 ]; then
+          printf 'Falta RUTA para --origin. Usa replace_path --help.\n' >&2
+          return 1
+        fi
+        source="$2"
+        shift
+        ;;
+      --destination)
+        if [ $# -lt 2 ]; then
+          printf 'Falta RUTA para --destination. Usa replace_path --help.\n' >&2
+          return 1
+        fi
+        target="$2"
+        shift
+        ;;
       --dry-run)
         dry_run=true
         ;;
@@ -493,13 +596,29 @@ replace_path() {
     shift
   done
 
-  if [ ${#paths[@]} -ne 2 ]; then
-    printf 'replace_path require ORIXE e DESTINO. Usa replace_path --help.\n' >&2
+  if [ -z "$source" ] && [ ${#paths[@]} -gt 0 ]; then
+    source="${paths[0]}"
+    paths=("${paths[@]:1}")
+  fi
+  if [ -z "$target" ] && [ ${#paths[@]} -gt 0 ]; then
+    target="${paths[0]}"
+    paths=("${paths[@]:1}")
+  fi
+  if [ ${#paths[@]} -gt 0 ]; then
+    printf 'replace_path recibiu demasiadas rutas. Usa replace_path --help.\n' >&2
     return 1
   fi
 
-  source="${paths[0]}"
-  target="${paths[1]}"
+  if [ -z "$source" ]; then
+    source="$(gum_folder --header "Selecciona o directorio de orixe")" || return 0
+    interactive=true
+  fi
+  if [ -z "$target" ]; then
+    target="$(gum_input --header "Directorio de destino" -- \
+      --placeholder "$HOME/.config/aplicacion")" || return 0
+    interactive=true
+  fi
+  [ -n "$target" ] || return 0
 
   if [ ! -d "$source" ]; then
     printf 'A orixe non é un directorio: %s\n' "$source" >&2
@@ -516,6 +635,10 @@ replace_path() {
     return 0
   fi
 
+  if $interactive && path_exists -- "$target"; then
+    gum_confirm "Substituír todo o contido de $target?" || return 0
+  fi
+
   rm -rf -- "$target" && cp -r -- "$source" "$target"
 }
 
@@ -526,10 +649,27 @@ replace_path() {
 merge_path() {
   local dry_run=false
   local paths=()
-  local source target
+  local source=""
+  local target=""
 
   while (($#)); do
     case "$1" in
+      --origin)
+        if [ $# -lt 2 ]; then
+          printf 'Falta RUTA para --origin. Usa merge_path --help.\n' >&2
+          return 1
+        fi
+        source="$2"
+        shift
+        ;;
+      --destination)
+        if [ $# -lt 2 ]; then
+          printf 'Falta RUTA para --destination. Usa merge_path --help.\n' >&2
+          return 1
+        fi
+        target="$2"
+        shift
+        ;;
       --dry-run)
         dry_run=true
         ;;
@@ -554,13 +694,27 @@ merge_path() {
     shift
   done
 
-  if [ ${#paths[@]} -ne 2 ]; then
-    printf 'merge_path require ORIXE e DESTINO. Usa merge_path --help.\n' >&2
+  if [ -z "$source" ] && [ ${#paths[@]} -gt 0 ]; then
+    source="${paths[0]}"
+    paths=("${paths[@]:1}")
+  fi
+  if [ -z "$target" ] && [ ${#paths[@]} -gt 0 ]; then
+    target="${paths[0]}"
+    paths=("${paths[@]:1}")
+  fi
+  if [ ${#paths[@]} -gt 0 ]; then
+    printf 'merge_path recibiu demasiadas rutas. Usa merge_path --help.\n' >&2
     return 1
   fi
 
-  source="${paths[0]}"
-  target="${paths[1]}"
+  if [ -z "$source" ]; then
+    source="$(gum_folder --header "Selecciona o directorio de orixe")" || return 0
+  fi
+  if [ -z "$target" ]; then
+    target="$(gum_input --header "Directorio de destino" -- \
+      --placeholder "$HOME/.config/aplicacion")" || return 0
+  fi
+  [ -n "$target" ] || return 0
 
   if [ ! -d "$source" ]; then
     printf 'A orixe non é un directorio: %s\n' "$source" >&2
@@ -587,11 +741,29 @@ merge_path() {
 # non crea os directorios pai e `--dry-run` non realiza ningunha modificación.
 replace_file() {
   local dry_run=false
+  local interactive=false
   local paths=()
-  local source target
+  local source=""
+  local target=""
 
   while (($#)); do
     case "$1" in
+      --origin)
+        if [ $# -lt 2 ]; then
+          printf 'Falta RUTA para --origin. Usa replace_file --help.\n' >&2
+          return 1
+        fi
+        source="$2"
+        shift
+        ;;
+      --destination)
+        if [ $# -lt 2 ]; then
+          printf 'Falta RUTA para --destination. Usa replace_file --help.\n' >&2
+          return 1
+        fi
+        target="$2"
+        shift
+        ;;
       --dry-run)
         dry_run=true
         ;;
@@ -616,13 +788,29 @@ replace_file() {
     shift
   done
 
-  if [ ${#paths[@]} -ne 2 ]; then
-    printf 'replace_file require ORIXE e DESTINO. Usa replace_file --help.\n' >&2
+  if [ -z "$source" ] && [ ${#paths[@]} -gt 0 ]; then
+    source="${paths[0]}"
+    paths=("${paths[@]:1}")
+  fi
+  if [ -z "$target" ] && [ ${#paths[@]} -gt 0 ]; then
+    target="${paths[0]}"
+    paths=("${paths[@]:1}")
+  fi
+  if [ ${#paths[@]} -gt 0 ]; then
+    printf 'replace_file recibiu demasiadas rutas. Usa replace_file --help.\n' >&2
     return 1
   fi
 
-  source="${paths[0]}"
-  target="${paths[1]}"
+  if [ -z "$source" ]; then
+    source="$(gum_file --header "Selecciona o ficheiro de orixe")" || return 0
+    interactive=true
+  fi
+  if [ -z "$target" ]; then
+    target="$(gum_input --header "Ficheiro de destino" -- \
+      --placeholder "$HOME/.config/aplicacion/config.toml")" || return 0
+    interactive=true
+  fi
+  [ -n "$target" ] || return 0
 
   if [ ! -f "$source" ]; then
     printf 'A orixe non é un ficheiro normal: %s\n' "$source" >&2
@@ -637,6 +825,10 @@ replace_file() {
   if $dry_run; then
     printf 'Substituiríase %s por unha copia de %s.\n' "$target" "$source"
     return 0
+  fi
+
+  if $interactive && path_exists -- "$target"; then
+    gum_confirm "Substituír o ficheiro $target?" || return 0
   fi
 
   rm -f -- "$target" && cp -- "$source" "$target"
@@ -800,10 +992,28 @@ symlink_exists() {
 copy_file() {
   local dry_run=false
   local paths=()
-  local source target target_parent
+  local source=""
+  local target=""
+  local target_parent
 
   while (($#)); do
     case "$1" in
+      --origin)
+        if [ $# -lt 2 ]; then
+          printf 'Falta RUTA para --origin. Usa copy_file --help.\n' >&2
+          return 1
+        fi
+        source="$2"
+        shift
+        ;;
+      --destination)
+        if [ $# -lt 2 ]; then
+          printf 'Falta RUTA para --destination. Usa copy_file --help.\n' >&2
+          return 1
+        fi
+        target="$2"
+        shift
+        ;;
       --dry-run)
         dry_run=true
         ;;
@@ -827,12 +1037,26 @@ copy_file() {
     shift
   done
 
-  if [ ${#paths[@]} -ne 2 ]; then
-    printf 'copy_file require ORIXE e DESTINO. Usa copy_file --help.\n' >&2
+  if [ -z "$source" ] && [ ${#paths[@]} -gt 0 ]; then
+    source="${paths[0]}"
+    paths=("${paths[@]:1}")
+  fi
+  if [ -z "$target" ] && [ ${#paths[@]} -gt 0 ]; then
+    target="${paths[0]}"
+    paths=("${paths[@]:1}")
+  fi
+  if [ ${#paths[@]} -gt 0 ]; then
+    printf 'copy_file recibiu demasiadas rutas. Usa copy_file --help.\n' >&2
     return 1
   fi
-  source="${paths[0]}"
-  target="${paths[1]}"
+  if [ -z "$source" ]; then
+    source="$(gum_file --header "Selecciona o ficheiro de orixe")" || return 0
+  fi
+  if [ -z "$target" ]; then
+    target="$(gum_input --header "Novo ficheiro de destino" -- \
+      --placeholder "$HOME/.config/aplicacion/config.toml")" || return 0
+  fi
+  [ -n "$target" ] || return 0
 
   if [ ! -f "$source" ]; then
     printf 'A orixe non é un ficheiro normal: %s\n' "$source" >&2
@@ -861,10 +1085,28 @@ copy_file() {
 copy_path() {
   local dry_run=false
   local paths=()
-  local source target target_parent
+  local source=""
+  local target=""
+  local target_parent
 
   while (($#)); do
     case "$1" in
+      --origin)
+        if [ $# -lt 2 ]; then
+          printf 'Falta RUTA para --origin. Usa copy_path --help.\n' >&2
+          return 1
+        fi
+        source="$2"
+        shift
+        ;;
+      --destination)
+        if [ $# -lt 2 ]; then
+          printf 'Falta RUTA para --destination. Usa copy_path --help.\n' >&2
+          return 1
+        fi
+        target="$2"
+        shift
+        ;;
       --dry-run)
         dry_run=true
         ;;
@@ -888,12 +1130,26 @@ copy_path() {
     shift
   done
 
-  if [ ${#paths[@]} -ne 2 ]; then
-    printf 'copy_path require ORIXE e DESTINO. Usa copy_path --help.\n' >&2
+  if [ -z "$source" ] && [ ${#paths[@]} -gt 0 ]; then
+    source="${paths[0]}"
+    paths=("${paths[@]:1}")
+  fi
+  if [ -z "$target" ] && [ ${#paths[@]} -gt 0 ]; then
+    target="${paths[0]}"
+    paths=("${paths[@]:1}")
+  fi
+  if [ ${#paths[@]} -gt 0 ]; then
+    printf 'copy_path recibiu demasiadas rutas. Usa copy_path --help.\n' >&2
     return 1
   fi
-  source="${paths[0]}"
-  target="${paths[1]}"
+  if [ -z "$source" ]; then
+    source="$(gum_folder --header "Selecciona o directorio de orixe")" || return 0
+  fi
+  if [ -z "$target" ]; then
+    target="$(gum_input --header "Novo directorio de destino" -- \
+      --placeholder "$HOME/.config/aplicacion")" || return 0
+  fi
+  [ -n "$target" ] || return 0
 
   if [ ! -d "$source" ]; then
     printf 'A orixe non é un directorio: %s\n' "$source" >&2
@@ -923,10 +1179,18 @@ ensure_directory() {
   local dry_run=false
   local mode=""
   local paths=()
-  local directory_path
+  local directory_path=""
 
   while (($#)); do
     case "$1" in
+      --destination)
+        if [ $# -lt 2 ]; then
+          printf 'Falta RUTA para --destination. Usa ensure_directory --help.\n' >&2
+          return 1
+        fi
+        directory_path="$2"
+        shift
+        ;;
       --mode)
         if [ $# -lt 2 ]; then
           printf 'Falta VALOR para --mode. Usa ensure_directory --help.\n' >&2
@@ -958,11 +1222,19 @@ ensure_directory() {
     shift
   done
 
-  if [ ${#paths[@]} -ne 1 ]; then
-    printf 'ensure_directory require unha RUTA. Usa ensure_directory --help.\n' >&2
+  if [ -z "$directory_path" ] && [ ${#paths[@]} -gt 0 ]; then
+    directory_path="${paths[0]}"
+    paths=("${paths[@]:1}")
+  fi
+  if [ ${#paths[@]} -gt 0 ]; then
+    printf 'ensure_directory recibiu demasiadas rutas. Usa ensure_directory --help.\n' >&2
     return 1
   fi
-  directory_path="${paths[0]}"
+  if [ -z "$directory_path" ]; then
+    directory_path="$(gum_input --header "Directorio que se creará" -- \
+      --placeholder "$HOME/.config/aplicacion")" || return 0
+  fi
+  [ -n "$directory_path" ] || return 0
 
   if [ -n "$mode" ] && [[ ! "$mode" =~ ^[0-7]{3,4}$ ]]; then
     printf -- '--mode debe ser un modo octal de tres ou catro cifras.\n' >&2
@@ -998,11 +1270,20 @@ backup_path() {
   local dry_run=false
   local destination=""
   local paths=()
-  local source timestamp source_name candidate target target_parent
+  local source=""
+  local timestamp source_name candidate target target_parent
   local counter=1
 
   while (($#)); do
     case "$1" in
+      --origin)
+        if [ $# -lt 2 ]; then
+          printf 'Falta RUTA para --origin. Usa backup_path --help.\n' >&2
+          return 1
+        fi
+        source="$2"
+        shift
+        ;;
       --destination)
         if [ $# -lt 2 ]; then
           printf 'Falta DIRECTORIO para --destination. Usa backup_path --help.\n' >&2
@@ -1034,11 +1315,17 @@ backup_path() {
     shift
   done
 
-  if [ ${#paths[@]} -ne 1 ]; then
-    printf 'backup_path require unha RUTA. Usa backup_path --help.\n' >&2
+  if [ -z "$source" ] && [ ${#paths[@]} -gt 0 ]; then
+    source="${paths[0]}"
+    paths=("${paths[@]:1}")
+  fi
+  if [ ${#paths[@]} -gt 0 ]; then
+    printf 'backup_path recibiu demasiadas rutas. Usa backup_path --help.\n' >&2
     return 1
   fi
-  source="${paths[0]}"
+  if [ -z "$source" ]; then
+    source="$(gum_file --header "Selecciona a ruta da que crear unha copia")" || return 0
+  fi
 
   if ! path_exists -- "$source"; then
     printf 'A ruta de orixe non existe: %s\n' "$source" >&2
@@ -1085,10 +1372,28 @@ ensure_symlink() {
   local dry_run=false
   local replace=false
   local paths=()
-  local source target target_parent current_source
+  local source=""
+  local target=""
+  local target_parent current_source
 
   while (($#)); do
     case "$1" in
+      --origin)
+        if [ $# -lt 2 ]; then
+          printf 'Falta RUTA para --origin. Usa ensure_symlink --help.\n' >&2
+          return 1
+        fi
+        source="$2"
+        shift
+        ;;
+      --destination)
+        if [ $# -lt 2 ]; then
+          printf 'Falta RUTA para --destination. Usa ensure_symlink --help.\n' >&2
+          return 1
+        fi
+        target="$2"
+        shift
+        ;;
       --replace)
         replace=true
         ;;
@@ -1115,12 +1420,26 @@ ensure_symlink() {
     shift
   done
 
-  if [ ${#paths[@]} -ne 2 ]; then
-    printf 'ensure_symlink require ORIXE e DESTINO. Usa ensure_symlink --help.\n' >&2
+  if [ -z "$source" ] && [ ${#paths[@]} -gt 0 ]; then
+    source="${paths[0]}"
+    paths=("${paths[@]:1}")
+  fi
+  if [ -z "$target" ] && [ ${#paths[@]} -gt 0 ]; then
+    target="${paths[0]}"
+    paths=("${paths[@]:1}")
+  fi
+  if [ ${#paths[@]} -gt 0 ]; then
+    printf 'ensure_symlink recibiu demasiadas rutas. Usa ensure_symlink --help.\n' >&2
     return 1
   fi
-  source="${paths[0]}"
-  target="${paths[1]}"
+  if [ -z "$source" ]; then
+    source="$(gum_file --header "Selecciona a orixe da ligazón")" || return 0
+  fi
+  if [ -z "$target" ]; then
+    target="$(gum_input --header "Destino da ligazón" -- \
+      --placeholder "$HOME/.config/aplicacion/config.toml")" || return 0
+  fi
+  [ -n "$target" ] || return 0
 
   if ! path_exists -- "$source"; then
     printf 'A orixe do enlace non existe: %s\n' "$source" >&2
@@ -1164,7 +1483,7 @@ ensure_symlink() {
 # Recibe unha ou máis rutas, valida primeiro o conxunto completo e despois
 # envíao nunha soa chamada a `trash-put`. A validación previa evita un resultado
 # parcial se unha ruta non existe ou é demasiado ampla. `--dry-run` enumera o
-# que se retiraría e non require confirmar porque este helper non é interactivo.
+# que se retiraría. A operación real require sempre unha confirmación explícita.
 trash_path() {
   local dry_run=false
   local paths=()
@@ -1172,6 +1491,14 @@ trash_path() {
 
   while (($#)); do
     case "$1" in
+      --origin)
+        if [ $# -lt 2 ]; then
+          printf 'Falta RUTA para --origin. Usa trash_path --help.\n' >&2
+          return 1
+        fi
+        paths+=("$2")
+        shift
+        ;;
       --dry-run)
         dry_run=true
         ;;
@@ -1196,8 +1523,9 @@ trash_path() {
   done
 
   if [ ${#paths[@]} -eq 0 ]; then
-    printf 'trash_path require RUTA... Usa trash_path --help.\n' >&2
-    return 1
+    file_path="$(gum_file --header "Selecciona a ruta que enviar ao lixo")" || return 0
+    [ -n "$file_path" ] || return 0
+    paths+=("$file_path")
   fi
   if ! command -v trash-put &> /dev/null; then
     printf 'trash-put non está dispoñible.\n' >&2
@@ -1219,6 +1547,7 @@ trash_path() {
     return 0
   fi
 
+  gum_confirm "Enviar ${#paths[@]} ruta(s) ao lixo?" || return 0
   trash-put -- "${paths[@]}"
 }
 

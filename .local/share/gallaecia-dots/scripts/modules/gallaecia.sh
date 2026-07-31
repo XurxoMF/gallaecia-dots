@@ -180,7 +180,7 @@ EOF
     wallpaper-add)
       cat <<'EOF'
 USO
-  gallaecia wallpaper-add [OPCIÓNS] FICHEIRO...
+  gallaecia wallpaper-add [OPCIÓNS] [FICHEIRO...]
 
 DESCRICIÓN
   Clasifica cada fondo pola extensión e cópiao ao directorio correspondente:
@@ -193,6 +193,10 @@ PARÁMETROS
       e como fondos animados MP4, WEBM, MKV, MOV e GIF.
 
 OPCIÓNS
+  --origin RUTA
+      Engade un fondo á selección. Pode repetirse; se non se indica ningún,
+      ábrese o selector de ficheiros.
+
   -h, --help
       Mostra esta axuda.
 
@@ -537,6 +541,14 @@ _gallaecia_add_wallpapers() {
 
   while (($#)); do
     case "$1" in
+      --origin)
+        if [ $# -lt 2 ]; then
+          printf 'Falta RUTA para --origin. Usa gallaecia wallpaper-add --help.\n' >&2
+          return 1
+        fi
+        files+=("$2")
+        shift
+        ;;
       -h|--help)
         _gallaecia_help wallpaper-add
         return 0
@@ -559,8 +571,10 @@ _gallaecia_add_wallpapers() {
   done
 
   if [ ${#files[@]} -eq 0 ]; then
-    printf 'gallaecia wallpaper-add require polo menos un FICHEIRO. Usa --help.\n' >&2
-    return 1
+    source_file="$(gum_file --header "Selecciona o fondo que queres engadir")" ||
+      return 0
+    [ -n "$source_file" ] || return 0
+    files+=("$source_file")
   fi
 
   for source_file in "${files[@]}"; do

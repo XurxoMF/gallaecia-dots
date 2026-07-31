@@ -19,14 +19,17 @@ DESCRICIÓN
   en GitHub.
 
 OPCIÓNS
-  -h, --help   Mostra esta axuda.
+  --name NOME       Nome de autoría que se gardará.
+  --email CORREO    Correo de autoría que se gardará.
+  --scope ALCANCE   Alcance da configuración: `local` ou `global`.
+  -h, --help        Mostra esta axuda.
 
 RESULTADO
   Garda user.name e user.email na configuración de Git escollida.
 
 EXEMPLOS
   git-credentials
-  git-credentials --help
+  git-credentials --name "María Pérez" --email maria@example.com --scope global
 EOF
       ;;
     github-login)
@@ -116,15 +119,18 @@ DESCRICIÓN
   Pide un título e un corpo opcional e crea un commit.
 
 OPCIÓNS
-  -h, --help   Mostra esta axuda.
-  --           Remata as opcións do wrapper.
+  --title TEXTO   Título do commit; se se omite, pídese cun input.
+  --body TEXTO    Corpo opcional; se se omite, ábrese o editor de texto.
+  -h, --help      Mostra esta axuda.
+  --              Remata as opcións do wrapper.
 
 RESULTADO
   Crea un commit cos cambios xa preparados.
 
 EXEMPLOS
   git-commit
-  git-commit -- --signoff
+  git-commit --title "Engade o selector" --body "Documenta tamén a opción."
+  git-commit --title "Corrixe a validación" -- --signoff
 
 COMANDO ORIXINAL
   Todo o situado despois de `--` reenvíase a `git commit`.
@@ -261,15 +267,17 @@ DESCRICIÓN
   Pide un nome e crea unha rama nova con `git switch -c`.
 
 OPCIÓNS
-  -h, --help   Mostra esta axuda.
-  --           Remata as opcións do wrapper.
+  --branch RAMA   Nome da rama nova; se se omite, pídese cun input.
+  -h, --help      Mostra esta axuda.
+  --              Remata as opcións do wrapper.
 
 RESULTADO
   Crea a rama e cambia inmediatamente a ela.
 
 EXEMPLOS
   git-branch-new
-  git-branch-new -- --no-track
+  git-branch-new --branch feature/nova-opcion
+  git-branch-new --branch fix/validacion -- --no-track
 
 COMANDO ORIXINAL
   Todo o situado despois de `--` engádese a `git switch -c`.
@@ -383,6 +391,7 @@ DESCRICIÓN
 
 OPCIÓNS
   -u, --include-untracked   Inclúe ficheiros aínda non rastrexados.
+  --message TEXTO           Descrición do stash; se se omite, pídese cun input.
   -h, --help                Mostra esta axuda.
   --                        Remata as opcións do wrapper.
 
@@ -391,7 +400,7 @@ RESULTADO
 
 EXEMPLOS
   git-stash-save
-  git-stash-save --include-untracked
+  git-stash-save --message "Traballo no selector" --include-untracked
 
 COMANDO ORIXINAL
   Todo o situado despois de `--` reenvíase a `git stash push`.
@@ -456,10 +465,37 @@ _git_select_commit() {
 # Escribe `user.name` e `user.email` na configuración local ou global de Git e
 # valida que o modo local se execute dentro dun repositorio.
 git-credentials() {
-  local scope scope_flag current_name current_email name email
+  local scope=""
+  local scope_flag current_name current_email
+  local name=""
+  local email=""
 
   while (($#)); do
     case "$1" in
+      --name)
+        if [ $# -lt 2 ]; then
+          warning "Falta o nome despois de --name."
+          return 1
+        fi
+        name="$2"
+        shift
+        ;;
+      --email)
+        if [ $# -lt 2 ]; then
+          warning "Falta o correo despois de --email."
+          return 1
+        fi
+        email="$2"
+        shift
+        ;;
+      --scope)
+        if [ $# -lt 2 ]; then
+          warning "Falta o alcance despois de --scope."
+          return 1
+        fi
+        scope="$2"
+        shift
+        ;;
       -h|--help)
         _git_help git-credentials
         return 0
@@ -480,26 +516,39 @@ git-credentials() {
     shift
   done
 
-  scope="$(gum_choose --header "Onde queres gardar as credenciais?" \
-    "Neste repositorio" "Globalmente")" || return 0
-
-  if [ "$scope" = "Neste repositorio" ]; then
-    _git_require_repo || return 1
-    scope_flag="--local"
-  else
-    scope_flag="--global"
+  if [ -z "$scope" ]; then
+    scope="$(gum_choose --header "Onde queres gardar as credenciais?" \
+      "Neste repositorio" "Globalmente")" || return 0
   fi
 
-  current_name="$(git config "$scope_flag" --get user.name 2> /dev/null || true)"
-  current_email="$(git config "$scope_flag" --get user.email 2> /dev/null || true)"
+  case "$scope" in
+    local|"Neste repositorio")
+      _git_require_repo || return 1
+      scope_flag="--local"
+      ;;
+    global|"Globalmente")
+      scope_flag="--global"
+      ;;
+    *)
+      warning "Alcance descoñecido: $scope. Usa local ou global."
+      return 1
+      ;;
+  esac
 
-  name="$(gum_input --header "Nome" -- --value "$current_name")" || return 0
+  if [ -z "$name" ]; then
+    current_name="$(git config "$scope_flag" --get user.name 2> /dev/null || true)"
+    name="$(gum_input --header "Nome" -- --value "$current_name")" || return 0
+  fi
+
   if [ -z "$name" ]; then
     warning "O nome non pode quedar baleiro."
     return 1
   fi
 
-  email="$(gum_input --header "Email" -- --value "$current_email")" || return 0
+  if [ -z "$email" ]; then
+    current_email="$(git config "$scope_flag" --get user.email 2> /dev/null || true)"
+    email="$(gum_input --header "Email" -- --value "$current_email")" || return 0
+  fi
   if [ -z "$email" ]; then
     warning "O correo non pode quedar baleiro."
     return 1
@@ -629,8 +678,8 @@ git-clone() {
   # As expansións capturadas desde opcións ou Gum non son reinterpretadas pola
   # shell, polo que `~` e `~/...` se resolven explicitamente.
   case "$directory" in
-    "~") directory="$HOME" ;;
-    "~/"*) directory="$HOME/${directory:2}" ;;
+    \~) directory="$HOME" ;;
+    \~/*) directory="$HOME/${directory:2}" ;;
   esac
 
   git clone "${original_args[@]}" -- "$repository_url" "$directory"
@@ -712,10 +761,29 @@ git-add() {
 # o resultado conserva o código do comando orixinal.
 git-commit() {
   local original_args=()
-  local title body
+  local title=""
+  local body=""
+  local body_provided=false
 
   while (($#)); do
     case "$1" in
+      --title)
+        if [ $# -lt 2 ]; then
+          warning "Falta o título despois de --title."
+          return 1
+        fi
+        title="$2"
+        shift
+        ;;
+      --body)
+        if [ $# -lt 2 ]; then
+          warning "Falta o corpo despois de --body."
+          return 1
+        fi
+        body="$2"
+        body_provided=true
+        shift
+        ;;
       -h|--help)
         _git_help git-commit
         return 0
@@ -734,15 +802,19 @@ git-commit() {
   done
   _git_require_repo || return 1
 
-  title="$(gum_input --header "Título do commit" -- \
-    --placeholder "Describe o cambio brevemente")" || return 0
+  if [ -z "$title" ]; then
+    title="$(gum_input --header "Título do commit" -- \
+      --placeholder "Describe o cambio brevemente")" || return 0
+  fi
   if [ -z "$title" ]; then
     warning "O título do commit non pode quedar baleiro."
     return 1
   fi
 
-  body="$(gum_write --header "Corpo opcional do commit" -- \
-    --placeholder "Detalles adicionais...")" || return 0
+  if ! $body_provided; then
+    body="$(gum_write --header "Corpo opcional do commit" -- \
+      --placeholder "Detalles adicionais...")" || return 0
+  fi
 
   if [ -n "$body" ]; then
     git commit "${original_args[@]}" -m "$title" -m "$body"
@@ -969,10 +1041,18 @@ git-branch-switch() {
 # adicionais pásanse ao comando Git.
 git-branch-new() {
   local original_args=()
-  local branch
+  local branch=""
 
   while (($#)); do
     case "$1" in
+      --branch)
+        if [ $# -lt 2 ]; then
+          warning "Falta o nome despois de --branch."
+          return 1
+        fi
+        branch="$2"
+        shift
+        ;;
       -h|--help)
         _git_help git-branch-new
         return 0
@@ -991,8 +1071,10 @@ git-branch-new() {
   done
   _git_require_repo || return 1
 
-  branch="$(gum_input --header "Nome da rama nova" -- \
-    --placeholder "feature/nome-da-rama")" || return 0
+  if [ -z "$branch" ]; then
+    branch="$(gum_input --header "Nome da rama nova" -- \
+      --placeholder "feature/nome-da-rama")" || return 0
+  fi
   [ -n "$branch" ] || return 0
 
   git switch "${original_args[@]}" -c "$branch"
@@ -1178,12 +1260,22 @@ git-commit-show() {
 git-stash-save() {
   local include_untracked=false
   local original_args=()
-  local message
+  local message=""
+  local message_provided=false
 
   while (($#)); do
     case "$1" in
       -u|--include-untracked)
         include_untracked=true
+        ;;
+      --message)
+        if [ $# -lt 2 ]; then
+          warning "Falta a descrición despois de --message."
+          return 1
+        fi
+        message="$2"
+        message_provided=true
+        shift
         ;;
       -h|--help)
         _git_help git-stash-save
@@ -1203,8 +1295,10 @@ git-stash-save() {
   done
 
   _git_require_repo || return 1
-  message="$(gum_input --header "Descrición opcional do stash" -- \
-    --placeholder "Traballo en progreso")" || return 0
+  if ! $message_provided; then
+    message="$(gum_input --header "Descrición opcional do stash" -- \
+      --placeholder "Traballo en progreso")" || return 0
+  fi
 
   if $include_untracked; then
     git stash push "${original_args[@]}" --include-untracked -m "${message:-Traballo en progreso}"

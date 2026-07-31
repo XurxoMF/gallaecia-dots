@@ -38,8 +38,8 @@ source "$INTERNAL_DIR/apps.sh"
 # shellcheck source=/dev/null
 source "$INTERNAL_DIR/versions.sh"
 
-# Substitúe o módulo público que incorpora `run-terminal-as`. As shells xa
-# abertas recibirán a función ao volver cargar o Bashrc ou abrir unha nova.
+# Substitúe o módulo público que incorpora `run-terminal-as` e os novos inputs
+# opcionais. As shells abertas recibirán os cambios ao volver cargar o Bashrc.
 update_commands_module() {
   replace_file \
     "$DOTFILES_DIR/.local/share/gallaecia-dots/scripts/modules/commands.sh" \
@@ -131,6 +131,22 @@ update_ui_module() {
     "$HOME/.local/share/gallaecia-dots/scripts/modules/ui.sh"
 }
 
+# Substitúe os helpers públicos de ficheiros para engadir os selectores Gum e
+# as opcións comúns de orixe e destino sen retirar os argumentos posicionais.
+update_files_module() {
+  replace_file \
+    "$DOTFILES_DIR/.local/share/gallaecia-dots/scripts/modules/files.sh" \
+    "$HOME/.local/share/gallaecia-dots/scripts/modules/files.sh"
+}
+
+# Substitúe o dispatcher público para que wallpaper-add permita seleccionar un
+# fondo con Gum cando non recibe ningunha ruta directa.
+update_gallaecia_module() {
+  replace_file \
+    "$DOTFILES_DIR/.local/share/gallaecia-dots/scripts/modules/gallaecia.sh" \
+    "$HOME/.local/share/gallaecia-dots/scripts/modules/gallaecia.sh"
+}
+
 # Substitúe os helpers públicos de selección de aplicacións para que pasen
 # `--header` como opción propia dos wrappers de interface.
 update_apps_module() {
@@ -139,8 +155,8 @@ update_apps_module() {
     "$HOME/.local/share/gallaecia-dots/scripts/modules/apps.sh"
 }
 
-# Substitúe o módulo público de rede coa mesma separación entre as opcións
-# propias dos wrappers e as reenviadas aos subcomandos orixinais de Gum.
+# Substitúe o módulo público de rede coa separación correcta das opcións de Gum
+# e o selector de ficheiros empregado por vpn-import.
 update_network_module() {
   replace_file \
     "$DOTFILES_DIR/.local/share/gallaecia-dots/scripts/modules/network.sh" \
@@ -227,6 +243,8 @@ show_changelog() {
   info "· Kitty, Alacritty, Foot, Ghostty e WezTerm usan o mesmo identificador."
   info "· Engadido gum_folder para seleccionar directorios con Gum."
   info "· Os wrappers compatibles aceptan --header como opción propia."
+  info "· Os comandos completan con Gum os datos que se omitan cando procede."
+  info "· Axudas e nomes de opcións revisados para ser máis consistentes."
   info "· docker-build permite seleccionar visualmente o directorio de contexto."
   info "· A variante normal de Papirus pasa a ser o tema de iconas predeterminado."
   info "· Engadidos catro novos fondos inspirados en Galicia."
@@ -261,6 +279,12 @@ apply_update() {
     return 1
   fi
   if ! update_ui_module; then
+    return 1
+  fi
+  if ! update_files_module; then
+    return 1
+  fi
+  if ! update_gallaecia_module; then
     return 1
   fi
   if ! update_apps_module; then

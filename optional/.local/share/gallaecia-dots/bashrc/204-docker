@@ -112,27 +112,76 @@ COMANDO ORIXINAL
   Usa `docker-logs -- --help` para consultar as súas opcións.
 EOF
       ;;
-    docker-container-start|docker-container-stop|docker-container-restart)
-      cat <<EOF
+    docker-container-start)
+      cat <<'EOF'
 USO
-  $1 [OPCIÓNS] [-- ARGUMENTOS DO COMANDO DOCKER]
+  docker-container-start [OPCIÓNS] [-- ARGUMENTOS DE DOCKER CONTAINER START]
 
 DESCRICIÓN
-  Selecciona un ou varios contedores e executa a acción indicada polo nome.
+  Selecciona un ou varios contedores detidos e iníciaos.
 
 OPCIÓNS
   -h, --help   Mostra esta axuda.
   --           Remata as opcións do wrapper.
 
 RESULTADO
-  Cambia o estado dos contedores seleccionados.
+  Pon en execución os contedores seleccionados.
 
 EXEMPLOS
-  $1
+  docker-container-start
+  docker-container-start -- --attach
 
 COMANDO ORIXINAL
-  Todo o situado despois de \`--\` reenvíase a \`docker container ${1#docker-container-}\`.
-  Usa \`$1 -- --help\` para consultar as súas opcións.
+  Todo o situado despois de `--` reenvíase a `docker container start`.
+  Usa `docker-container-start -- --help` para consultar as súas opcións.
+EOF
+      ;;
+    docker-container-stop)
+      cat <<'EOF'
+USO
+  docker-container-stop [OPCIÓNS] [-- ARGUMENTOS DE DOCKER CONTAINER STOP]
+
+DESCRICIÓN
+  Selecciona un ou varios contedores activos e detenos ordenadamente.
+
+OPCIÓNS
+  -h, --help   Mostra esta axuda.
+  --           Remata as opcións do wrapper.
+
+RESULTADO
+  Detén os procesos principais dos contedores seleccionados.
+
+EXEMPLOS
+  docker-container-stop
+  docker-container-stop -- --timeout 30
+
+COMANDO ORIXINAL
+  Todo o situado despois de `--` reenvíase a `docker container stop`.
+  Usa `docker-container-stop -- --help` para consultar as súas opcións.
+EOF
+      ;;
+    docker-container-restart)
+      cat <<'EOF'
+USO
+  docker-container-restart [OPCIÓNS] [-- ARGUMENTOS DE DOCKER CONTAINER RESTART]
+
+DESCRICIÓN
+  Selecciona un ou varios contedores activos e reiníciaos.
+
+OPCIÓNS
+  -h, --help   Mostra esta axuda.
+  --           Remata as opcións do wrapper.
+
+RESULTADO
+  Detén e volve iniciar os contedores seleccionados.
+
+EXEMPLOS
+  docker-container-restart
+  docker-container-restart -- --timeout 30
+
+COMANDO ORIXINAL
+  Todo o situado despois de `--` reenvíase a `docker container restart`.
+  Usa `docker-container-restart -- --help` para consultar as súas opcións.
 EOF
       ;;
     docker-container-delete)
@@ -220,41 +269,69 @@ DESCRICIÓN
   Selecciona unha imaxe de orixe e pide unha referencia de destino.
 
 OPCIÓNS
-  -h, --help   Mostra esta axuda.
-  --           Remata as opcións do wrapper.
+  --image REFERENCIA         Imaxe de orixe; se se omite, ábrese o selector.
+  --destination REFERENCIA   Nova referencia da imaxe.
+  -h, --help                 Mostra esta axuda.
+  --                         Remata as opcións do wrapper.
 
 RESULTADO
   Crea unha etiqueta local co formato `repositorio[:etiqueta]`.
 
 EXEMPLOS
   docker-tag
+  docker-tag --image app:dev --destination usuario/app:latest
 
 COMANDO ORIXINAL
   Todo o situado despois de `--` reenvíase a `docker image tag`.
   Usa `docker-tag -- --help` para consultar as súas opcións.
 EOF
       ;;
-    docker-networks|docker-volumes)
-      cat <<EOF
+    docker-networks)
+      cat <<'EOF'
 USO
-  $1 [OPCIÓNS] [-- ARGUMENTOS DO COMANDO DOCKER]
+  docker-networks [OPCIÓNS] [-- ARGUMENTOS DE DOCKER NETWORK LS]
 
 DESCRICIÓN
-  Lista os recursos indicados polo nome do wrapper.
+  Lista as redes de Docker dispoñibles no daemon.
 
 OPCIÓNS
   -h, --help   Mostra esta axuda.
   --           Remata as opcións do wrapper.
 
 RESULTADO
-  Escribe na terminal as redes ou os volumes locais.
+  Escribe na terminal os identificadores, nomes, drivers e ámbitos das redes.
 
 EXEMPLOS
-  $1
+  docker-networks
+  docker-networks -- --filter driver=bridge
 
 COMANDO ORIXINAL
-  Todo o situado despois de \`--\` reenvíase ao comando de listaxe de Docker.
-  Usa \`$1 -- --help\` para consultar as súas opcións.
+  Todo o situado despois de `--` reenvíase a `docker network ls`.
+  Usa `docker-networks -- --help` para consultar as súas opcións.
+EOF
+      ;;
+    docker-volumes)
+      cat <<'EOF'
+USO
+  docker-volumes [OPCIÓNS] [-- ARGUMENTOS DE DOCKER VOLUME LS]
+
+DESCRICIÓN
+  Lista os volumes persistentes dispoñibles no daemon de Docker.
+
+OPCIÓNS
+  -h, --help   Mostra esta axuda.
+  --           Remata as opcións do wrapper.
+
+RESULTADO
+  Escribe na terminal os drivers e nomes dos volumes locais.
+
+EXEMPLOS
+  docker-volumes
+  docker-volumes -- --filter dangling=true
+
+COMANDO ORIXINAL
+  Todo o situado despois de `--` reenvíase a `docker volume ls`.
+  Usa `docker-volumes -- --help` para consultar as súas opcións.
 EOF
       ;;
     docker-network-delete)
@@ -305,29 +382,100 @@ COMANDO ORIXINAL
   Usa `docker-volume-delete -- --help` para consultar as súas opcións.
 EOF
       ;;
-    compose-ps|compose-up|compose-rebuild|compose-update)
-      cat <<EOF
+    compose-ps)
+      cat <<'EOF'
 USO
-  $1 [OPCIÓNS] [-- ARGUMENTOS DE DOCKER COMPOSE]
+  compose-ps [OPCIÓNS] [-- ARGUMENTOS DE DOCKER COMPOSE PS]
 
 DESCRICIÓN
-  Executa no proxecto actual a operación indicada polo nome do wrapper.
-  \`compose-up\` inicia en segundo plano; \`compose-rebuild\` reconstrúe antes
-  de iniciar; \`compose-update\` descarga imaxes e volve aplicar o proxecto.
+  Mostra os contedores e servizos do proxecto Compose actual.
 
 OPCIÓNS
   -h, --help   Mostra esta axuda.
   --           Remata as opcións do wrapper.
 
 RESULTADO
-  Mostra ou actualiza o estado dos servizos do proxecto Compose.
+  Escribe unha táboa co estado do proxecto sen modificalo.
 
 EXEMPLOS
-  $1
+  compose-ps
+  compose-ps -- --all
 
 COMANDO ORIXINAL
-  Todo o situado despois de \`--\` reenvíase á operación de \`docker compose\`.
-  Usa \`$1 -- --help\` para consultar as súas opcións.
+  Todo o situado despois de `--` reenvíase a `docker compose ps`.
+  Usa `compose-ps -- --help` para consultar as súas opcións.
+EOF
+      ;;
+    compose-up)
+      cat <<'EOF'
+USO
+  compose-up [OPCIÓNS] [-- ARGUMENTOS DE DOCKER COMPOSE UP]
+
+DESCRICIÓN
+  Crea ou inicia en segundo plano os servizos do proxecto Compose actual.
+
+OPCIÓNS
+  -h, --help   Mostra esta axuda.
+  --           Remata as opcións do wrapper.
+
+RESULTADO
+  Deixa en execución os servizos solicitados e os seus recursos asociados.
+
+EXEMPLOS
+  compose-up
+  compose-up -- --remove-orphans
+
+COMANDO ORIXINAL
+  Todo o situado despois de `--` reenvíase a `docker compose up -d`.
+  Usa `compose-up -- --help` para consultar as súas opcións.
+EOF
+      ;;
+    compose-rebuild)
+      cat <<'EOF'
+USO
+  compose-rebuild [OPCIÓNS] [-- ARGUMENTOS DE DOCKER COMPOSE UP]
+
+DESCRICIÓN
+  Reconstrúe as imaxes do proxecto Compose e inicia os servizos en segundo plano.
+
+OPCIÓNS
+  -h, --help   Mostra esta axuda.
+  --           Remata as opcións do wrapper.
+
+RESULTADO
+  Actualiza as imaxes construídas localmente e recrea os servizos necesarios.
+
+EXEMPLOS
+  compose-rebuild
+  compose-rebuild -- --force-recreate
+
+COMANDO ORIXINAL
+  Todo o situado despois de `--` reenvíase a `docker compose up -d --build`.
+  Usa `compose-rebuild -- --help` para consultar as súas opcións.
+EOF
+      ;;
+    compose-update)
+      cat <<'EOF'
+USO
+  compose-update [OPCIÓNS] [-- ARGUMENTOS DE DOCKER COMPOSE]
+
+DESCRICIÓN
+  Descarga as imaxes remotas e volve aplicar o proxecto Compose en segundo plano.
+
+OPCIÓNS
+  -h, --help   Mostra esta axuda.
+  --           Remata as opcións do wrapper.
+
+RESULTADO
+  Executa `pull` e, se remata correctamente, recrea os servizos con `up -d`.
+
+EXEMPLOS
+  compose-update
+  compose-update -- api worker
+
+COMANDO ORIXINAL
+  Todo o situado despois de `--` reenvíase primeiro a `docker compose pull` e
+  despois a `docker compose up -d`.
 EOF
       ;;
     compose-down)
@@ -445,16 +593,16 @@ DESCRICIÓN
   Inicia sesión en Docker Hub ou noutro rexistro usando o fluxo de Docker.
 
 OPCIÓNS
-  --server SERVIDOR   Usa un rexistro diferente de Docker Hub.
-  -h, --help          Mostra esta axuda.
-  --                  Remata as opcións do wrapper.
+  --registry REXISTRO   Usa un rexistro diferente de Docker Hub.
+  -h, --help            Mostra esta axuda.
+  --                    Remata as opcións do wrapper.
 
 RESULTADO
   Garda as credenciais segundo a configuración do cliente de Docker.
 
 EXEMPLOS
   docker-login
-  docker-login --server registry.example.com -- --username usuario
+  docker-login --registry registry.example.com -- --username usuario
 
 COMANDO ORIXINAL
   Todo o situado despois de `--` reenvíase a `docker login`.
@@ -470,16 +618,16 @@ DESCRICIÓN
   Confirma e pecha a sesión de Docker Hub ou doutro rexistro.
 
 OPCIÓNS
-  --server SERVIDOR   Usa un rexistro diferente de Docker Hub.
-  -h, --help          Mostra esta axuda.
-  --                  Remata as opcións do wrapper.
+  --registry REXISTRO   Usa un rexistro diferente de Docker Hub.
+  -h, --help            Mostra esta axuda.
+  --                    Remata as opcións do wrapper.
 
 RESULTADO
   Elimina as credenciais gardadas para o rexistro indicado.
 
 EXEMPLOS
   docker-logout
-  docker-logout --server registry.example.com
+  docker-logout --registry registry.example.com
 
 COMANDO ORIXINAL
   Todo o situado despois de `--` reenvíase a `docker logout`.
@@ -495,16 +643,16 @@ DESCRICIÓN
   Busca imaxes públicas en Docker Hub.
 
 OPCIÓNS
-  --term TEXTO   Termo de busca; se se omite, pídese cun input.
-  -h, --help     Mostra esta axuda.
-  --             Remata as opcións do wrapper.
+  --query CONSULTA   Texto de busca; se se omite, pídese cun input.
+  -h, --help         Mostra esta axuda.
+  --                 Remata as opcións do wrapper.
 
 RESULTADO
   Escribe na terminal as imaxes que coinciden coa busca.
 
 EXEMPLOS
-  docker-search --term alpine
-  docker-search --term nginx -- --limit 10
+  docker-search --query alpine
+  docker-search --query nginx -- --limit 10
 
 COMANDO ORIXINAL
   Todo o situado despois de `--` reenvíase a `docker search`.
@@ -545,15 +693,16 @@ DESCRICIÓN
   Selecciona unha imaxe local etiquetada e súbea ao seu rexistro.
 
 OPCIÓNS
-  -h, --help   Mostra esta axuda.
-  --           Remata as opcións do wrapper.
+  --image REFERENCIA   Imaxe que se subirá; se se omite, ábrese o selector.
+  -h, --help           Mostra esta axuda.
+  --                   Remata as opcións do wrapper.
 
 RESULTADO
   Publica no rexistro a imaxe e as capas que falten.
 
 EXEMPLOS
   docker-push
-  docker-push -- --quiet
+  docker-push --image usuario/app:latest -- --quiet
 
 COMANDO ORIXINAL
   Todo o situado despois de `--` reenvíase a `docker push`.
@@ -1086,10 +1235,27 @@ docker-image-delete() {
 # publicar a imaxe; conserva as opcións e o código do cliente.
 docker-tag() {
   local original_args=()
-  local image destination
+  local image=""
+  local destination=""
 
   while (($#)); do
     case "$1" in
+      --image)
+        if [ $# -lt 2 ]; then
+          warning "Falta a referencia despois de --image."
+          return 1
+        fi
+        image="$2"
+        shift
+        ;;
+      --destination)
+        if [ $# -lt 2 ]; then
+          warning "Falta a referencia despois de --destination."
+          return 1
+        fi
+        destination="$2"
+        shift
+        ;;
       -h|--help)
         _docker_help docker-tag
         return 0
@@ -1108,12 +1274,16 @@ docker-tag() {
   done
   _docker_require || return 1
 
-  if ! image="$(_docker_select_images false "Selecciona a imaxe de orixe:")"; then
-    info "Non hai imaxes dispoñibles."
-    return 0
+  if [ -z "$image" ]; then
+    if ! image="$(_docker_select_images false "Selecciona a imaxe de orixe:")"; then
+      info "Non hai imaxes dispoñibles."
+      return 0
+    fi
   fi
-  destination="$(gum_input --header "Nova referencia da imaxe" -- \
-    --placeholder "usuario/imaxe:etiqueta")" || return 0
+  if [ -z "$destination" ]; then
+    destination="$(gum_input --header "Nova referencia da imaxe" -- \
+      --placeholder "usuario/imaxe:etiqueta")" || return 0
+  fi
   [ -n "$destination" ] || return 0
 
   docker image tag "${original_args[@]}" "$image" "$destination"
@@ -1599,17 +1769,17 @@ docker-clean() {
 # `docker login`. Pode solicitar credenciais de forma interactiva e modifica o
 # ficheiro de configuración de Docker onde se gardan os datos da sesión.
 docker-login() {
-  local server=""
+  local registry=""
   local original_args=()
 
   while (($#)); do
     case "$1" in
-      --server)
+      --registry)
         if [ $# -lt 2 ]; then
-          warning "Falta o servidor despois de --server."
+          warning "Falta o rexistro despois de --registry."
           return 1
         fi
-        server="$2"
+        registry="$2"
         shift
         ;;
       -h|--help)
@@ -1630,8 +1800,8 @@ docker-login() {
   done
 
   _docker_require || return 1
-  if [ -n "$server" ]; then
-    docker login "${original_args[@]}" "$server"
+  if [ -n "$registry" ]; then
+    docker login "${original_args[@]}" "$registry"
   else
     docker login "${original_args[@]}"
   fi
@@ -1641,17 +1811,17 @@ docker-login() {
 # Elimina do almacén de credenciais a autenticación correspondente, sen afectar
 # imaxes nin contedores locais.
 docker-logout() {
-  local server=""
+  local registry=""
   local original_args=()
 
   while (($#)); do
     case "$1" in
-      --server)
+      --registry)
         if [ $# -lt 2 ]; then
-          warning "Falta o servidor despois de --server."
+          warning "Falta o rexistro despois de --registry."
           return 1
         fi
-        server="$2"
+        registry="$2"
         shift
         ;;
       -h|--help)
@@ -1672,29 +1842,29 @@ docker-logout() {
   done
 
   _docker_require || return 1
-  gum_confirm "Pechar a sesión de ${server:-Docker Hub}?" || return 0
-  if [ -n "$server" ]; then
-    docker logout "${original_args[@]}" "$server"
+  gum_confirm "Pechar a sesión de ${registry:-Docker Hub}?" || return 0
+  if [ -n "$registry" ]; then
+    docker logout "${original_args[@]}" "$registry"
   else
     docker logout "${original_args[@]}"
   fi
 }
 
-# Recibe ou solicita un termo e executa `docker search` contra o rexistro
+# Recibe ou solicita unha consulta e executa `docker search` contra o rexistro
 # compatible. Só consulta resultados remotos, imprime a táboa e reenvía filtros
 # adicionais como límite ou estado oficial.
 docker-search() {
-  local term=""
+  local query=""
   local original_args=()
 
   while (($#)); do
     case "$1" in
-      --term)
+      --query)
         if [ $# -lt 2 ]; then
-          warning "Falta o texto despois de --term."
+          warning "Falta o texto despois de --query."
           return 1
         fi
-        term="$2"
+        query="$2"
         shift
         ;;
       -h|--help)
@@ -1715,10 +1885,10 @@ docker-search() {
   done
 
   _docker_require || return 1
-  term="${term:-$(gum_input --header "Buscar en Docker Hub" -- \
+  query="${query:-$(gum_input --header "Buscar en Docker Hub" -- \
     --placeholder "Nome da imaxe")}" || return 0
-  [ -n "$term" ] || return 0
-  docker search "${original_args[@]}" "$term"
+  [ -n "$query" ] || return 0
+  docker search "${original_args[@]}" "$query"
 }
 
 # Recibe ou solicita unha referencia completa e chama `docker pull`.
@@ -1766,12 +1936,21 @@ docker-pull() {
 # Transfire as capas ao rexistro indicado pola propia etiqueta; non crea etiquetas
 # novas e reenvía opcións como a plataforma ao cliente Docker.
 docker-push() {
+  local image=""
   local original_args=()
   local selection reference
   local images=()
 
   while (($#)); do
     case "$1" in
+      --image)
+        if [ $# -lt 2 ]; then
+          warning "Falta a referencia despois de --image."
+          return 1
+        fi
+        image="$2"
+        shift
+        ;;
       -h|--help)
         _docker_help docker-push
         return 0
@@ -1790,22 +1969,26 @@ docker-push() {
   done
   _docker_require || return 1
 
-  # awk elimina as imaxes sen repositorio nin etiqueta, que non se poden subir.
-  mapfile -t images < <(
-    docker image ls --format '{{.Repository}}:{{.Tag}}	{{.ID}}	{{.Size}}' |
-      awk -F '\t' '$1 != "<none>:<none>"'
-  )
-  if [ ${#images[@]} -eq 0 ]; then
-    info "Non hai imaxes etiquetadas para subir."
-    return 0
-  fi
+  if [ -z "$image" ]; then
+    # awk elimina as imaxes sen repositorio nin etiqueta, que non se poden subir.
+    mapfile -t images < <(
+      docker image ls --format '{{.Repository}}:{{.Tag}}	{{.ID}}	{{.Size}}' |
+        awk -F '\t' '$1 != "<none>:<none>"'
+    )
+    if [ ${#images[@]} -eq 0 ]; then
+      info "Non hai imaxes etiquetadas para subir."
+      return 0
+    fi
 
-  selection="$(printf '%s\n' "${images[@]}" |
-    gum_filter --header "Selecciona unha imaxe para subir:" -- \
-      --placeholder "Filtrar imaxes...")" || return 0
-  [ -n "$selection" ] || return 0
-  # A referencia que necesita push é o campo anterior ao primeiro tabulador.
-  reference="${selection%%$'\t'*}"
+    selection="$(printf '%s\n' "${images[@]}" |
+      gum_filter --header "Selecciona unha imaxe para subir:" -- \
+        --placeholder "Filtrar imaxes...")" || return 0
+    [ -n "$selection" ] || return 0
+    # A referencia que necesita push é o campo anterior ao primeiro tabulador.
+    reference="${selection%%$'\t'*}"
+  else
+    reference="$image"
+  fi
 
   docker push "${original_args[@]}" "$reference"
 }

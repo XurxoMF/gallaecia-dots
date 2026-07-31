@@ -96,38 +96,191 @@ COMANDO ORIXINAL
   gum_style "Axuda" -- --help
 EOF
       ;;
-    info|title|warning|success|error|fail)
-      cat <<EOF
+    info)
+      cat <<'EOF'
 USO
-  $1 [OPCIÓNS] MENSAXE [-- ARGUMENTOS DE GUM STYLE]
+  info [OPCIÓNS] MENSAXE [-- ARGUMENTOS DE GUM STYLE]
 
 DESCRICIÓN
-  Mostra unha mensaxe co estilo de Gallaecia correspondente a \`$1\`.
+  Mostra unha mensaxe informativa coa cor principal de Gallaecia.
 
 PARÁMETROS
   MENSAXE
-      Texto que se mostrará.
+      Texto informativo que se mostrará.
 
 OPCIÓNS
   -h, --help
       Mostra esta axuda.
 
   --
-      Remata as opcións do helper. Todo o posterior reenvíase a \`gum style\`.
+      Remata as opcións do helper. Todo o posterior reenvíase a `gum style`.
 
 RESULTADO
-  Escribe a mensaxe formatada en stdout.
-  \`fail\` remata o proceso con código 1; os demais helpers devolven o código
-  de \`gum style\` sen pechar o proceso.
+  Escribe a mensaxe formatada en stdout sen engadir separación vertical.
 
 EXEMPLOS
-  $1 "Mensaxe"
-  $1 "Mensaxe con bordo" -- --border rounded
+  info "Instalando paquetes..."
+  info "Detalles" -- --border rounded
 
 COMANDO ORIXINAL
-  Para consultar as opcións admitidas por Gum:
+  Todo o situado despois de `--` reenvíase a `gum style`.
+  Usa `info "Axuda" -- --help` para consultar as súas opcións.
+EOF
+      ;;
+    title)
+      cat <<'EOF'
+USO
+  title [OPCIÓNS] MENSAXE [-- ARGUMENTOS DE GUM STYLE]
 
-  $1 "Axuda" -- --help
+DESCRICIÓN
+  Mostra o título dunha sección en cor de acento, letra grosa e con separación.
+
+PARÁMETROS
+  MENSAXE
+      Texto que identificará a sección.
+
+OPCIÓNS
+  -h, --help
+      Mostra esta axuda.
+
+  --
+      Remata as opcións do helper. Todo o posterior reenvíase a `gum style`.
+
+RESULTADO
+  Escribe o título con padding superior e inferior.
+
+EXEMPLOS
+  title "Aplicacións principais"
+  title "Resumo" -- --align center
+
+COMANDO ORIXINAL
+  Todo o situado despois de `--` reenvíase a `gum style`.
+  Usa `title "Axuda" -- --help` para consultar as súas opcións.
+EOF
+      ;;
+    warning)
+      cat <<'EOF'
+USO
+  warning [OPCIÓNS] MENSAXE [-- ARGUMENTOS DE GUM STYLE]
+
+DESCRICIÓN
+  Mostra unha advertencia destacada sen interromper o proceso.
+
+PARÁMETROS
+  MENSAXE
+      Aviso que se mostrará ao usuario.
+
+OPCIÓNS
+  -h, --help
+      Mostra esta axuda.
+
+  --
+      Remata as opcións do helper. Todo o posterior reenvíase a `gum style`.
+
+RESULTADO
+  Escribe a advertencia coa cor correspondente e devolve o código de Gum.
+
+EXEMPLOS
+  warning "A operación pode tardar."
+  warning "Revisa a configuración" -- --border rounded
+
+COMANDO ORIXINAL
+  Todo o situado despois de `--` reenvíase a `gum style`.
+  Usa `warning "Axuda" -- --help` para consultar as súas opcións.
+EOF
+      ;;
+    error)
+      cat <<'EOF'
+USO
+  error [OPCIÓNS] MENSAXE [-- ARGUMENTOS DE GUM STYLE]
+
+DESCRICIÓN
+  Mostra un erro recuperable sen finalizar o proceso actual.
+
+PARÁMETROS
+  MENSAXE
+      Descrición do erro que se mostrará.
+
+OPCIÓNS
+  -h, --help
+      Mostra esta axuda.
+
+  --
+      Remata as opcións do helper. Todo o posterior reenvíase a `gum style`.
+
+RESULTADO
+  Escribe a mensaxe coa cor de erro e devolve o código de Gum.
+
+EXEMPLOS
+  error "Non se puido ler o ficheiro."
+  error "Operación incompleta" -- --border double
+
+COMANDO ORIXINAL
+  Todo o situado despois de `--` reenvíase a `gum style`.
+  Usa `error "Axuda" -- --help` para consultar as súas opcións.
+EOF
+      ;;
+    success)
+      cat <<'EOF'
+USO
+  success [OPCIÓNS] MENSAXE [-- ARGUMENTOS DE GUM STYLE]
+
+DESCRICIÓN
+  Mostra unha mensaxe de operación completada coa cor de éxito e separación.
+
+PARÁMETROS
+  MENSAXE
+      Resultado satisfactorio que se mostrará.
+
+OPCIÓNS
+  -h, --help
+      Mostra esta axuda.
+
+  --
+      Remata as opcións do helper. Todo o posterior reenvíase a `gum style`.
+
+RESULTADO
+  Escribe a mensaxe con padding superior e inferior.
+
+EXEMPLOS
+  success "Instalación completada."
+  success "Todo listo" -- --align center
+
+COMANDO ORIXINAL
+  Todo o situado despois de `--` reenvíase a `gum style`.
+  Usa `success "Axuda" -- --help` para consultar as súas opcións.
+EOF
+      ;;
+    fail)
+      cat <<'EOF'
+USO
+  fail [OPCIÓNS] MENSAXE [-- ARGUMENTOS DE GUM STYLE]
+
+DESCRICIÓN
+  Mostra un erro fatal e finaliza inmediatamente o proceso.
+
+PARÁMETROS
+  MENSAXE
+      Motivo polo que o proceso non pode continuar.
+
+OPCIÓNS
+  -h, --help
+      Mostra esta axuda sen finalizar cun erro.
+
+  --
+      Remata as opcións do helper. Todo o posterior reenvíase a `gum style`.
+
+RESULTADO
+  Escribe a mensaxe con padding superior e finaliza co código 1.
+
+EXEMPLOS
+  fail "Non se pode continuar."
+  fail "Dependencia ausente" -- --border thick
+
+COMANDO ORIXINAL
+  Todo o situado despois de `--` reenvíase a `gum style`.
+  Usa `fail --help` para consultar esta axuda sen finalizar o proceso.
+
 EOF
       ;;
     gum_confirm)

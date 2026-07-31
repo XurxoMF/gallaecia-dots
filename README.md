@@ -216,6 +216,9 @@ Estes helpers do módulo público `commands.sh` están sempre dispoñibles:
 | `retry_command`        | Repite un comando un número configurable de veces e cunha espera configurable.                     |
 | `run-terminal-as`      | Abre un comando nunha terminal nova cun `app_id` estable para poder aplicarlle regras de Hyprland. |
 
+`command_path` e `package_owns_command` piden o comando cun input cando se
+executan sen argumentos; `--command COMANDO` permite indicalo directamente.
+
 ### Rede e VPN
 
 Noctalia cobre a conexión diaria, o estado de rede e a activación das VPN. O
@@ -234,11 +237,12 @@ NetworkManager:
 | `vpn-delete`      | Elimina un ou varios perfís despois dun selector e unha confirmación. |
 
 Os comandos que actúan sobre un perfil permiten indicar o nome ou UUID e abren
-un selector Gum cando se omite. `vpn-list` mostra a colección completa e
-`vpn-import` recibe directamente o ficheiro que se quere importar. Por exemplo:
+un selector Gum cando se omite. `vpn-import` abre tamén un selector de ficheiros
+por defecto; `--origin` permite indicar a configuración directamente. Por exemplo:
 
 ```bash
-vpn-import --name "VPN do traballo" ~/Descargas/traballo.ovpn
+vpn-import
+vpn-import --origin ~/Descargas/traballo.ovpn --name "VPN do traballo"
 vpn-rename "VPN do traballo" "Oficina"
 vpn-autoconnect Oficina "Wi-Fi da casa"
 vpn-autoconnect --disable Oficina
@@ -269,6 +273,8 @@ as operacións propias do proxecto:
 Cada subcomando dispón da súa propia axuda, por exemplo
 `gallaecia install-category --help`. As operacións internas de instalación
 cárganse nun subshell e desaparecen da terminal ao finalizar.
+`gallaecia wallpaper-add` abre un selector cando non recibe rutas e admite
+`--origin RUTA` repetido para engadir varios fondos directamente.
 
 ### Ficheiros e directorios
 
@@ -284,15 +290,25 @@ Estes helpers do módulo público `files.sh` están sempre dispoñibles:
 | `directory_exists` | Comproba que existe un directorio.                                       |
 | `symlink_exists`   | Comproba que existe unha ligazón simbólica.                              |
 | `copy_file`        | Copia un ficheiro sen sobrescribir por defecto.                          |
-| `copy_path`        | Copia un ficheiro ou unha árbore sen sobrescribir por defecto.           |
+| `copy_path`        | Copia unha árbore sen sobrescribir por defecto.                           |
 | `ensure_directory` | Crea un directorio, incluídos os seus pais, se aínda non existe.         |
 | `backup_path`      | Crea unha copia de seguridade cunha marca temporal.                      |
 | `ensure_symlink`   | Crea ou actualiza unha ligazón simbólica de forma controlada.            |
 | `trash_path`       | Envía unha ruta ao lixo para que a eliminación sexa recuperable.         |
 | `files_equal`      | Compara dous ficheiros e indica se teñen o mesmo contido.                |
 
-As operacións que modificarían ficheiros ofrecen `--dry-run` cando corresponde
-para revisar previamente o resultado.
+As operacións que necesitan unha orixe ou un destino abren `gum_file`,
+`gum_folder` ou un input cando se omiten. Para saltar o fluxo interactivo usan
+de forma consistente `--origin RUTA` e `--destination RUTA`; os argumentos
+posicionais anteriores seguen admitidos. As operacións que modificarían
+ficheiros ofrecen tamén `--dry-run` cando corresponde para revisar previamente
+o resultado.
+
+```bash
+copy_file
+copy_file --origin ./config.toml --destination ~/.config/app/config.toml
+copy_path --origin ./config --destination ~/.config/app
+```
 
 ### Interface con Gum
 
@@ -389,6 +405,12 @@ Estes comandos só existen se instalas **Git + GitHub CLI** na categoría
 | `git-stash-save`    | Garda temporalmente os cambios, opcionalmente tamén os non rastrexados.       |
 | `git-stash-pop`     | Selecciona e recupera unha entrada do _stash_.                                |
 
+Os inputs habituais poden indicarse directamente para saltar só eses pasos do
+fluxo: `git-credentials` acepta `--name`, `--email` e `--scope`; `git-commit`,
+`--title` e `--body`; `git-branch-new`, `--branch`; e `git-stash-save`,
+`--message`. `git-clone` mantén `--url` para o remoto e `--destination` para a
+copia local.
+
 ### Docker, Compose e Buildx
 
 Estes comandos só existen se instalas **Docker + Compose** na categoría
@@ -429,6 +451,11 @@ As operacións de borrado piden confirmación. As accións forzadas ou que poden
 eliminar datos importantes requiren unha segunda confirmación. Ao instalar
 Docker tamén se activa `docker.service` e engádese o usuario ao grupo
 `docker`; o acceso sen `sudo` queda dispoñible despois de reiniciar.
+
+Os valores directos manteñen nomes comúns: `--image` para unha imaxe,
+`--destination` para a nova referencia de `docker-tag`, `--registry` para
+iniciar ou pechar sesión e `--query` para buscar. Se se omiten, os comandos
+abren o selector ou input correspondente.
 
 ## Guía de uso diario
 

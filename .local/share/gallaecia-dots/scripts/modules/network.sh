@@ -51,7 +51,7 @@ EOF
     vpn-import)
       cat <<'EOF'
 USO
-  vpn-import [OPCIÓNS] FICHEIRO
+  vpn-import [OPCIÓNS] [FICHEIRO]
 
 DESCRICIÓN
   Importa un ficheiro VPN mediante NetworkManager. Detecta OpenVPN para `.ovpn`
@@ -62,6 +62,9 @@ PARÁMETROS
       Configuración que entende o plugin de NetworkManager correspondente.
 
 OPCIÓNS
+  --origin RUTA
+      Ficheiro de configuración; se se omite, ábrese o selector.
+
   --type TIPO
       Tipo aceptado por `nmcli connection import`, por exemplo `openvpn`,
       `wireguard`, `vpnc` ou `openconnect`.
@@ -80,8 +83,9 @@ RESULTADO
   código distinto de 0 se falta o plugin necesario ou a importación falla.
 
 EXEMPLOS
-  vpn-import ~/Descargas/traballo.ovpn
-  vpn-import --type wireguard --name Traballo ~/Descargas/wg0.conf
+  vpn-import
+  vpn-import --origin ~/Descargas/traballo.ovpn
+  vpn-import --origin ~/Descargas/wg0.conf --type wireguard --name Traballo
 EOF
       ;;
     vpn-rename)
@@ -600,12 +604,21 @@ vpn-import() {
   local vpn_type=""
   local requested_name=""
   local values=()
-  local file_path imported_uuid=""
+  local file_path=""
+  local imported_uuid=""
   local uuids_before uuids_after candidate_uuid known_uuid known_uuid_value
   local new_profiles=0
 
   while (($#)); do
     case "$1" in
+      --origin)
+        if [ $# -lt 2 ]; then
+          printf 'Falta RUTA para --origin. Usa vpn-import --help.\n' >&2
+          return 1
+        fi
+        file_path="$2"
+        shift
+        ;;
       --type)
         if [ $# -lt 2 ]; then
           printf 'Falta TIPO para --type. Usa vpn-import --help.\n' >&2
@@ -642,17 +655,25 @@ vpn-import() {
     shift
   done
 
-  if [ ${#values[@]} -ne 1 ]; then
-    printf 'vpn-import require un FICHEIRO. Usa vpn-import --help.\n' >&2
+  if [ -z "$file_path" ] && [ ${#values[@]} -gt 0 ]; then
+    file_path="${values[0]}"
+    values=("${values[@]:1}")
+  fi
+  if [ ${#values[@]} -gt 0 ]; then
+    printf 'vpn-import recibiu demasiados ficheiros. Usa vpn-import --help.\n' >&2
     return 1
   fi
-  file_path="${values[0]}"
+
+  _network_require_helpers || return 1
+  if [ -z "$file_path" ]; then
+    file_path="$(gum_file --header "Selecciona a configuración da VPN" -- \
+      "$HOME/Descargas")" || return 0
+  fi
   if [ ! -f "$file_path" ]; then
     printf 'Non existe o ficheiro: %s\n' "$file_path" >&2
     return 1
   fi
 
-  _network_require_helpers || return 1
   if [ -z "$vpn_type" ]; then
     case "${file_path,,}" in
       *.ovpn) vpn_type="openvpn" ;;
