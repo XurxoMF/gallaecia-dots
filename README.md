@@ -12,6 +12,10 @@ obxectivo é ofrecer un punto de partida pequeno, actualizable e fácil de mante
 
 ## Índice
 
+- [Galería](#galería)
+  - [Tema claro](#tema-claro)
+  - [Tema escuro](#tema-escuro)
+  - [Tema extra](#tema-extra)
 - [Que é Gallaecia Dots?](#que-é-gallaecia-dots)
 - [Enfoque minimalista e _opinionated_](#enfoque-minimalista-e-opinionated)
 - [Feito en galego](#feito-en-galego)
@@ -42,6 +46,30 @@ obxectivo é ofrecer un punto de partida pequeno, actualizable e fácil de mante
 - [Estado do proxecto](#estado-do-proxecto)
 - [Contribucións](#contribucións)
 - [Licenza](#licenza)
+
+## Galería
+
+### Tema claro
+
+<p align="center">
+  <a href="assets/Gallaecia-Claro.png"><img src="assets/Gallaecia-Claro.png" alt="Escritorio de Gallaecia Dots co tema claro" width="32%"></a>
+  <a href="assets/Gallaecia-Claro-Apps.png"><img src="assets/Gallaecia-Claro-Apps.png" alt="Aplicacións de Gallaecia Dots co tema claro" width="32%"></a>
+  <a href="assets/Gallaecia-Claro-Terminal.png"><img src="assets/Gallaecia-Claro-Terminal.png" alt="Terminal de Gallaecia Dots co tema claro" width="32%"></a>
+</p>
+
+### Tema escuro
+
+<p align="center">
+  <a href="assets/Gallaecia-Escuro.png"><img src="assets/Gallaecia-Escuro.png" alt="Escritorio de Gallaecia Dots co tema escuro" width="32%"></a>
+  <a href="assets/Gallaecia-Escuro-Apps.png"><img src="assets/Gallaecia-Escuro-Apps.png" alt="Aplicacións de Gallaecia Dots co tema escuro" width="32%"></a>
+  <a href="assets/Gallaecia-Escuro-Terminal.png"><img src="assets/Gallaecia-Escuro-Terminal.png" alt="Terminal de Gallaecia Dots co tema escuro" width="32%"></a>
+</p>
+
+### Temas adaptables ao fondo de pantalla
+
+<p align="center">
+  <a href="assets/Gallaecia-Extra-Cores.png"><img src="assets/Gallaecia-Extra-Cores.png" alt="Escritorio de Gallaecia Dots cun tema de cores alternativo" width="32%"></a>
+</p>
 
 ## Que é Gallaecia Dots?
 
@@ -296,7 +324,7 @@ Estes helpers do módulo público `files.sh` están sempre dispoñibles:
 | `directory_exists` | Comproba que existe un directorio.                                       |
 | `symlink_exists`   | Comproba que existe unha ligazón simbólica.                              |
 | `copy_file`        | Copia un ficheiro sen sobrescribir por defecto.                          |
-| `copy_path`        | Copia unha árbore sen sobrescribir por defecto.                           |
+| `copy_path`        | Copia unha árbore sen sobrescribir por defecto.                          |
 | `ensure_directory` | Crea un directorio, incluídos os seus pais, se aínda non existe.         |
 | `backup_path`      | Crea unha copia de seguridade cunha marca temporal.                      |
 | `ensure_symlink`   | Crea ou actualiza unha ligazón simbólica de forma controlada.            |
