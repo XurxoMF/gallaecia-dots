@@ -439,6 +439,9 @@ Estes comandos só existen se instalas **Git + GitHub CLI** na categoría
 | `git-init`          | Inicializa un repositorio solicitando o nome da rama inicial.                 |
 | `git-clone`         | Clona un repositorio solicitando a URL e o directorio de destino.             |
 | `git-status`        | Resume nunha táboa os estados e rutas dos cambios, sen mostrar os diffs.      |
+| `track-save`        | Garda a referencia actual dun directorio sen commits nin copias do contido.   |
+| `track-status`      | Lista os ficheiros engadidos, modificados e eliminados desde esa referencia.  |
+| `track-delete`      | Retira o seguimento enviando o directorio `.track` ao lixo.                   |
 | `git-add`           | Prepara cambios completos, interactivos ou ficheiros seleccionados.           |
 | `git-commit`        | Crea un commit solicitando título e corpo.                                    |
 | `git-save`          | Prepara os cambios e crea un commit nun único fluxo guiado.                   |
@@ -459,6 +462,12 @@ fluxo: `git-credentials` acepta `--name`, `--email` e `--scope`; `git-init`,
 `--branch` e `--destination`; `git-commit`, `--title` e `--body`;
 `git-branch-new`, `--branch`; e `git-stash-save`, `--message`. `git-clone`
 mantén `--url` para o remoto e `--destination` para a copia local.
+
+`track-save` usa por defecto o directorio actual e admite `--origin` e varios
+`--exclude`. O estado queda nun único `.track`, que contén só un índice de Git:
+non crea commits, historial nin copias do contido. `track-status` e
+`track-delete` buscan esa raíz desde o directorio actual ou aceptan `--origin`.
+Os directorios `.track` e `.git` sempre quedan excluídos do seguimento.
 
 ### Docker, Compose e Buildx
 

@@ -139,6 +139,74 @@ COMANDO ORIXINAL
   Usa `git-status -- --help` para consultar as súas opcións.
 EOF
       ;;
+    track-save)
+      cat <<'EOF'
+USO
+  track-save [OPCIÓNS]
+
+DESCRICIÓN
+  Garda como referencia o estado actual de todos os ficheiros dun directorio.
+  Usa un índice de Git en `.track`, sen commits, historial nin copias do contido.
+
+OPCIÓNS
+  --origin RUTA       Directorio que se vai rastrexar; por defecto, o actual.
+  --exclude PATRÓN    Patrón que se ignorará. Pódese repetir.
+  -h, --help          Mostra esta axuda.
+
+RESULTADO
+  Crea `.track` ou substitúe a referencia anterior tras pedir confirmación.
+  Os patróns novos substitúen as exclusións persoais anteriores; se non se
+  indica ningún, consérvanse. Os directorios `.track` e `.git` sempre se omiten.
+
+EXEMPLOS
+  track-save
+  track-save --origin ~/.config
+  track-save --exclude '*.tmp' --exclude 'cache/'
+EOF
+      ;;
+    track-status)
+      cat <<'EOF'
+USO
+  track-status [OPCIÓNS]
+
+DESCRICIÓN
+  Compara un directorio coa referencia gardada en `.track` e lista os ficheiros
+  engadidos, modificados e eliminados sen mostrar cambios de contido.
+
+OPCIÓNS
+  --origin RUTA   Directorio rastrexado. Se se omite, búscase desde o actual.
+  -h, --help      Mostra esta axuda.
+
+RESULTADO
+  Mostra unha táboa de estados e rutas sen modificar a referencia gardada.
+  Indica que non hai cambios cando o directorio coincide coa referencia.
+
+EXEMPLOS
+  track-status
+  track-status --origin ~/.config
+EOF
+      ;;
+    track-delete)
+      cat <<'EOF'
+USO
+  track-delete [OPCIÓNS]
+
+DESCRICIÓN
+  Retira o seguimento dun directorio enviando o seu `.track` ao lixo.
+  Non elimina ningún dos ficheiros rastrexados.
+
+OPCIÓNS
+  --origin RUTA   Directorio rastrexado. Se se omite, búscase desde o actual.
+  -h, --help      Mostra esta axuda.
+
+RESULTADO
+  Envía `.track` ao lixo tras pedir confirmación; cancelar non modifica nada.
+
+EXEMPLOS
+  track-delete
+  track-delete --origin ~/.config
+EOF
+      ;;
     git-add)
       cat <<'EOF'
 USO
@@ -936,6 +1004,304 @@ git-status() {
   printf '%s\n' 'Estado,Ficheiro' "${rows[@]}" | table -- --print
 }
 
+# Resolve unha raíz indicada explicitamente ou busca un `.track` controlado nos
+# pais do directorio actual. O segundo argumento decide se se require un estado
+# existente; imprime unha ruta absoluta e non modifica o sistema de ficheiros.
+_track_resolve_root() {
+  local root="$1"
+  local require_state="$2"
+
+  if [ -n "$root" ]; then
+    case "$root" in
+      \~) root="$HOME" ;;
+      \~/*) root="$HOME/${root:2}" ;;
+    esac
+    if [ ! -d "$root" ]; then
+      warning "Non existe o directorio: $root"
+      return 1
+    fi
+    root="$(realpath -e -- "$root")" || return 1
+  elif $require_state; then
+    root="$PWD"
+    while [ ! -f "$root/.track/gallaecia-track" ]; do
+      if [ "$root" = "/" ]; then
+        warning "Non se atopou ningún seguimento .track desde o directorio actual."
+        return 1
+      fi
+      root="${root%/*}"
+      [ -n "$root" ] || root="/"
+    done
+  else
+    root="$PWD"
+  fi
+
+  if $require_state && [ ! -f "$root/.track/gallaecia-track" ]; then
+    warning "O directorio non ten un seguimento creado por Gallaecia: $root"
+    return 1
+  fi
+
+  printf '%s\n' "$root"
+}
+
+# Recibe un directorio e cero ou máis exclusións, crea ou actualiza atomicamente
+# o índice `.track/index` mediante `git update-index --info-only`. Git calcula os
+# identificadores do contido pero non escribe blobs, commits nin historial.
+track-save() {
+  local origin=""
+  local root track_dir marker_file exclude_file
+  local index_file list_file exclude_temp
+  local has_new_excludes=false
+  local pattern
+  local excludes=()
+
+  while (($#)); do
+    case "$1" in
+      --origin)
+        if [ $# -lt 2 ]; then
+          warning "Falta RUTA para $1. Usa track-save --help."
+          return 1
+        fi
+        origin="$2"
+        shift
+        ;;
+      --exclude)
+        if [ $# -lt 2 ]; then
+          warning "Falta PATRÓN para $1. Usa track-save --help."
+          return 1
+        fi
+        excludes+=("$2")
+        has_new_excludes=true
+        shift
+        ;;
+      -h|--help)
+        _git_help track-save
+        return 0
+        ;;
+      --)
+        shift
+        if (($#)); then
+          warning "track-save non reenvía argumentos a ningún comando orixinal."
+          return 1
+        fi
+        break
+        ;;
+      *)
+        warning "Opción descoñecida: $1. Usa track-save --help."
+        return 1
+        ;;
+    esac
+    shift
+  done
+
+  root="$(_track_resolve_root "$origin" false)" || return 1
+  track_dir="$root/.track"
+  marker_file="$track_dir/gallaecia-track"
+  exclude_file="$track_dir/info/exclude"
+
+  if path_exists -- "$track_dir"; then
+    if [ ! -f "$marker_file" ]; then
+      warning "Xa existe un .track alleo a Gallaecia en: $root"
+      return 1
+    fi
+    confirm "Substituír a referencia gardada en $root?" || return 0
+  else
+    if ! git init --bare --quiet --initial-branch=track -- "$track_dir"; then
+      return 1
+    fi
+    printf '%s\n' 'version=1' > "$marker_file" || return 1
+    has_new_excludes=true
+  fi
+
+  index_file="$(mktemp "$track_dir/index.XXXXXX")" || return 1
+  list_file="$(mktemp "$track_dir/files.XXXXXX")" || {
+    rm -f -- "$index_file"
+    return 1
+  }
+  exclude_temp="$(mktemp "$track_dir/exclude.XXXXXX")" || {
+    rm -f -- "$index_file" "$list_file"
+    return 1
+  }
+  rm -f -- "$index_file"
+
+  if $has_new_excludes; then
+    printf '%s\n' '.track/' '.git/' > "$exclude_temp" || {
+      rm -f -- "$list_file" "$exclude_temp"
+      return 1
+    }
+    for pattern in "${excludes[@]}"; do
+      printf '%s\n' "$pattern" >> "$exclude_temp" || {
+        rm -f -- "$list_file" "$exclude_temp"
+        return 1
+      }
+    done
+  else
+    cp -- "$exclude_file" "$exclude_temp" || {
+      rm -f -- "$list_file" "$exclude_temp"
+      return 1
+    }
+  fi
+
+  if ! GIT_INDEX_FILE="$index_file" git -C "$root" \
+    --git-dir="$track_dir" --work-tree="$root" read-tree --empty; then
+    rm -f -- "$index_file" "$list_file" "$exclude_temp"
+    return 1
+  fi
+  # A listaxe usa o índice temporal baleiro para que todos os ficheiros actuais
+  # aparezan como candidatos, tamén ao substituír unha referencia anterior.
+  if ! GIT_INDEX_FILE="$index_file" git -C "$root" \
+    --git-dir="$track_dir" --work-tree="$root" \
+    ls-files --others --exclude-from="$exclude_temp" -z > "$list_file"; then
+    rm -f -- "$index_file" "$list_file" "$exclude_temp"
+    return 1
+  fi
+  if ! GIT_INDEX_FILE="$index_file" git -C "$root" \
+    --git-dir="$track_dir" --work-tree="$root" \
+    update-index --add --info-only -z --stdin < "$list_file"; then
+    rm -f -- "$index_file" "$list_file" "$exclude_temp"
+    return 1
+  fi
+
+  if ! mv -- "$index_file" "$track_dir/index"; then
+    rm -f -- "$index_file" "$list_file" "$exclude_temp"
+    return 1
+  fi
+  if ! mv -- "$exclude_temp" "$exclude_file"; then
+    rm -f -- "$list_file" "$exclude_temp"
+    return 1
+  fi
+  rm -f -- "$list_file"
+  success "Referencia gardada para $root."
+}
+
+# Compara o índice sen obxectos co worktree e combina a saída NUL de Git nunha
+# táboa estática. As entradas novas obtéñense por separado porque non pertencen
+# ao índice; non se le nin mostra o contido de ningún ficheiro.
+track-status() {
+  local origin=""
+  local root track_dir exclude_file diff_file new_file
+  local index=0 status path
+  local diff_entries=()
+  local new_entries=()
+  local rows=()
+
+  while (($#)); do
+    case "$1" in
+      --origin)
+        if [ $# -lt 2 ]; then
+          warning "Falta RUTA para $1. Usa track-status --help."
+          return 1
+        fi
+        origin="$2"
+        shift
+        ;;
+      -h|--help)
+        _git_help track-status
+        return 0
+        ;;
+      --)
+        shift
+        if (($#)); then
+          warning "track-status non reenvía argumentos a ningún comando orixinal."
+          return 1
+        fi
+        break
+        ;;
+      *)
+        warning "Opción descoñecida: $1. Usa track-status --help."
+        return 1
+        ;;
+    esac
+    shift
+  done
+
+  root="$(_track_resolve_root "$origin" true)" || return 1
+  track_dir="$root/.track"
+  exclude_file="$track_dir/info/exclude"
+  diff_file="$(mktemp "$track_dir/status.XXXXXX")" || return 1
+  new_file="$(mktemp "$track_dir/new.XXXXXX")" || {
+    rm -f -- "$diff_file"
+    return 1
+  }
+
+  if ! git -C "$root" --git-dir="$track_dir" --work-tree="$root" \
+    diff-files --name-status -z > "$diff_file"; then
+    rm -f -- "$diff_file" "$new_file"
+    return 1
+  fi
+  if ! git -C "$root" --git-dir="$track_dir" --work-tree="$root" \
+    ls-files --others --exclude-from="$exclude_file" -z > "$new_file"; then
+    rm -f -- "$diff_file" "$new_file"
+    return 1
+  fi
+
+  mapfile -d '' -t diff_entries < "$diff_file"
+  mapfile -d '' -t new_entries < "$new_file"
+  rm -f -- "$diff_file" "$new_file"
+
+  # `--name-status -z` alterna sempre un código e unha ruta terminados en NUL.
+  while [ $index -lt ${#diff_entries[@]} ]; do
+    status="${diff_entries[index]}"
+    index=$((index + 1))
+    path="${diff_entries[index]:-}"
+    index=$((index + 1))
+    case "$status" in
+      D) status="Eliminado" ;;
+      *) status="Modificado" ;;
+    esac
+    rows+=("\"$status\",\"${path//\"/\"\"}\"")
+  done
+  for path in "${new_entries[@]}"; do
+    rows+=("\"Engadido\",\"${path//\"/\"\"}\"")
+  done
+
+  if [ ${#rows[@]} -eq 0 ]; then
+    success "Non hai cambios desde a última referencia."
+    return 0
+  fi
+
+  printf '%s\n' 'Estado,Ficheiro' "${rows[@]}" | table -- --print
+}
+
+# Localiza e valida o `.track` de Gallaecia e delega o borrado recuperable en
+# `trash_path`, que pide confirmación antes de mover o directorio ao lixo.
+track-delete() {
+  local origin=""
+  local root
+
+  while (($#)); do
+    case "$1" in
+      --origin)
+        if [ $# -lt 2 ]; then
+          warning "Falta RUTA para $1. Usa track-delete --help."
+          return 1
+        fi
+        origin="$2"
+        shift
+        ;;
+      -h|--help)
+        _git_help track-delete
+        return 0
+        ;;
+      --)
+        shift
+        if (($#)); then
+          warning "track-delete non reenvía argumentos a ningún comando orixinal."
+          return 1
+        fi
+        break
+        ;;
+      *)
+        warning "Opción descoñecida: $1. Usa track-delete --help."
+        return 1
+        ;;
+    esac
+    shift
+  done
+
+  root="$(_track_resolve_root "$origin" true)" || return 1
+  trash_path --origin "$root/.track"
+}
+
 # Permite escoller entre engadir todo, seleccionar ficheiros ou usar o modo patch.
 # Constrúe a chamada correspondente a `git add`, reenvía os argumentos posteriores
 # a `--` e modifica exclusivamente o índice do repositorio actual.
@@ -1628,6 +1994,11 @@ _git_completion() {
       mapfile -t COMPREPLY < <(compgen -d -- "$current")
       return
       ;;
+    --origin)
+      compopt -o filenames
+      mapfile -t COMPREPLY < <(compgen -d -- "$current")
+      return
+      ;;
   esac
 
   for ((index = 1; index < COMP_CWORD; index++)); do
@@ -1659,6 +2030,12 @@ _git_completion() {
     git-stash-save)
       options="-u --include-untracked --message -h --help --"
       ;;
+    track-save)
+      options="--origin --exclude -h --help"
+      ;;
+    track-status|track-delete)
+      options="--origin -h --help"
+      ;;
     github-login|git-status|git-add|git-save|git-diff|git-pull|git-push|git-branch-switch|git-branch-merge|git-log|git-commit-show|git-stash-pop)
       options="-h --help --"
       ;;
@@ -1673,5 +2050,5 @@ if [[ $- == *i* ]]; then
     git-credentials github-login git-init git-clone git-status git-add git-commit git-save \
     git-diff git-pull git-push git-branch-switch git-branch-new \
     git-branch-delete git-branch-merge git-log git-commit-show \
-    git-stash-save git-stash-pop
+    git-stash-save git-stash-pop track-save track-status track-delete
 fi

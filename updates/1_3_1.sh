@@ -59,6 +59,8 @@ show_changelog() {
   info "Cambios que se van aplicar:"
   info "· Engadido git-init para crear repositorios e escoller a rama inicial."
   info "· Engadido git-status para listar estados e rutas sen mostrar diffs."
+  info "· Engadidos track-save, track-status e track-delete para directorios."
+  info "· O seguimento usa un índice .track sen commits nin copias do contido."
 }
 
 # Aplica a actualización do módulo opcional e propaga calquera erro.
