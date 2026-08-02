@@ -16,7 +16,7 @@
   "playlist_retain_track_cover": false,
   "scan_for_songs": false,
   "m3u": null,
-  "output": "Música/SpotDL/{album-artist}/{album}/{track-number}. {title}.{output-ext}",
+  "output": "{album-artist}/{album}/{track-number}. {title}.{output-ext}",
   "overwrite": "skip",
   "search_query": null,
   "ffmpeg": "ffmpeg",

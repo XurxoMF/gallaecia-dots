@@ -103,6 +103,10 @@ Respecta a propiedade de cada ficheiro:
 - `merge_path` copia unha árbore sen borrar o destino e úsase onde pode existir estado que se debe conservar.
 - `replace_path` elimina e substitúe unha árbore completa.
 - `replace_file` substitúe un ficheiro concreto.
+- Os ficheiros fóra de `~/.local/share/gallaecia-dots` considéranse editables
+  polo usuario salvo que estean declarados como controlados polo proxecto, como
+  `gallaecia.toml`. Nas migracións modifica só as liñas ou propiedades
+  necesarias e conserva o resto do contido en lugar de substituír o ficheiro.
 - `gallaecia.toml` está controlado polo proxecto; `custom.toml` non se debe sobrescribir se xa existe.
 - O wrapper `~/.config/hypr/hyprland.lua` carga a base compartida de Hyprland. Conserva os placeholders `{{terminal}}`, `{{editor}}`, `{{ide}}`, `{{navegador}}` e `{{explorador_de_arquivos}}` ata que o instalador os substitúa.
 - `.bashrc` está controlado polo proxecto. A personalización do usuario debe ir en ficheiros `~/.config/bashrc/NNN-nome`.

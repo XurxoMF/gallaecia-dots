@@ -426,7 +426,9 @@ Estes comandos só existen se instalas a aplicación correspondente na categorí
 | SpotDL               | `spotdl-music` | Busca e descarga música mediante SpotDL.                        |
 
 Os tres admiten URL, modo dunha soa descarga e argumentos adicionais para o
-programa orixinal. Consulta `COMANDO --help` para ver todas as opcións.
+programa orixinal. Os vídeos descárganse directamente na carpeta actual; a
+música organízase en subcarpetas de artista e álbum dentro dela. Consulta
+`COMANDO --help` para ver todas as opcións.
 
 ### Git e GitHub
 
