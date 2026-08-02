@@ -33,6 +33,7 @@ obxectivo é ofrecer un punto de partida pequeno, actualizable e fácil de mante
   - [Alias e configuración da shell](#alias-e-configuración-da-shell)
   - [Descargas con yt-dlp e SpotDL](#descargas-con-yt-dlp-e-spotdl)
   - [Git e GitHub](#git-e-github)
+  - [Seguimento de directorios](#seguimento-de-directorios)
   - [Docker, Compose e Buildx](#docker-compose-e-buildx)
 - [Guía de uso diario](#guía-de-uso-diario)
   - [Actualizar o sistema](#actualizar-o-sistema)
@@ -439,9 +440,6 @@ Estes comandos só existen se instalas **Git + GitHub CLI** na categoría
 | `git-init`          | Inicializa un repositorio solicitando o nome da rama inicial.                 |
 | `git-clone`         | Clona un repositorio solicitando a URL e o directorio de destino.             |
 | `git-status`        | Resume nunha táboa os estados e rutas dos cambios, sen mostrar os diffs.      |
-| `track-save`        | Garda a referencia actual dun directorio sen commits nin copias do contido.   |
-| `track-status`      | Lista os ficheiros engadidos, modificados e eliminados desde esa referencia.  |
-| `track-delete`      | Retira o seguimento enviando o directorio `.track` ao lixo.                   |
 | `git-add`           | Prepara cambios completos, interactivos ou ficheiros seleccionados.           |
 | `git-commit`        | Crea un commit solicitando título e corpo.                                    |
 | `git-save`          | Prepara os cambios e crea un commit nun único fluxo guiado.                   |
@@ -463,11 +461,27 @@ fluxo: `git-credentials` acepta `--name`, `--email` e `--scope`; `git-init`,
 `git-branch-new`, `--branch`; e `git-stash-save`, `--message`. `git-clone`
 mantén `--url` para o remoto e `--destination` para a copia local.
 
+### Seguimento de directorios
+
+Estes comandos permiten detectar cambios nun directorio sen convertelo nun
+repositorio convencional. Gardan unha única referencia do estado dos ficheiros
+e comparan con ela as revisións posteriores: non crean commits, ramas, historial
+nin copias do contido. Requiren **Git + GitHub CLI** na categoría
+**Desenvolvemento** porque empregan internamente o índice de Git.
+
+| Comando        | Descrición                                                                   |
+| -------------- | ---------------------------------------------------------------------------- |
+| `track-save`   | Crea ou actualiza a referencia do estado actual do directorio.               |
+| `track-status` | Lista os ficheiros engadidos, modificados e eliminados desde esa referencia. |
+| `track-delete` | Retira o seguimento enviando o directorio `.track` ao lixo.                  |
+
 `track-save` usa por defecto o directorio actual e admite `--origin` e varios
 `--exclude`. O estado queda nun único `.track`, que contén só un índice de Git:
-non crea commits, historial nin copias do contido. `track-status` e
-`track-delete` buscan esa raíz desde o directorio actual ou aceptan `--origin`.
-Os directorios `.track` e `.git` sempre quedan excluídos do seguimento.
+non garda o contido rastrexado. `track-status` e `track-delete` buscan esa raíz
+desde o directorio actual ou aceptan `--origin`. Os directorios `.track` e
+`.git` sempre quedan excluídos do seguimento. Ao volver executar `track-save`,
+substitúese a referencia anterior tras confirmar; non se conservan versións
+previas.
 
 ### Docker, Compose e Buildx
 
