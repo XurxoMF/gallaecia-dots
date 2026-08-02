@@ -56,6 +56,34 @@ COMANDO ORIXINAL
   Usa `github-login -- --help` para consultar as súas opcións.
 EOF
       ;;
+    git-init)
+      cat <<'EOF'
+USO
+  git-init [OPCIÓNS] [-- ARGUMENTOS DE GIT INIT]
+
+DESCRICIÓN
+  Inicializa un repositorio e solicita o nome da rama inicial. Usa `main`
+  como proposta cando Git non ten configurado outro nome predeterminado.
+
+OPCIÓNS
+  --branch RAMA          Nome da rama inicial.
+  --destination RUTA    Directorio que se vai inicializar; por defecto, o actual.
+  -h, --help             Mostra esta axuda.
+  --                     Remata as opcións do wrapper.
+
+RESULTADO
+  Crea ou reinicializa o repositorio Git no directorio indicado.
+
+EXEMPLOS
+  git-init
+  git-init --branch master --destination ~/Desarrollo/proxecto
+  git-init --branch main -- --object-format=sha256
+
+COMANDO ORIXINAL
+  Todo o situado despois de `--` reenvíase a `git init`.
+  Usa `git-init -- --help` para consultar as súas opcións.
+EOF
+      ;;
     git-clone)
       cat <<'EOF'
 USO
@@ -83,6 +111,32 @@ EXEMPLOS
 COMANDO ORIXINAL
   Todo o situado despois de `--` reenvíase a `git clone` antes da URL e do
   directorio. Usa `git-clone -- --help` para consultar as súas opcións.
+EOF
+      ;;
+    git-status)
+      cat <<'EOF'
+USO
+  git-status [OPCIÓNS] [-- ARGUMENTOS DE GIT STATUS]
+
+DESCRICIÓN
+  Resume os cambios nunha táboa con cada estado e ruta, sen mostrar o contido
+  modificado dos ficheiros. Distingue cambios preparados e sen preparar.
+
+OPCIÓNS
+  -h, --help   Mostra esta axuda.
+  --           Remata as opcións do wrapper.
+
+RESULTADO
+  Mostra unha lista de cambios ou indica que o repositorio está limpo. Non
+  modifica o índice, a árbore de traballo nin o historial.
+
+EXEMPLOS
+  git-status
+  git-status -- --untracked-files=all
+
+COMANDO ORIXINAL
+  Todo o situado despois de `--` reenvíase a `git status --porcelain=v1`.
+  Usa `git-status -- --help` para consultar as súas opcións.
 EOF
       ;;
     git-add)
@@ -592,6 +646,85 @@ github-login() {
   gh auth login --web "${original_args[@]}"
 }
 
+# Recibe ou solicita a rama inicial e inicializa o directorio indicado, que por
+# defecto é o actual. Expande `~`, valida o nome da rama e reenvía as opcións
+# posteriores a `--`; pode crear o directorio e a estrutura interna de Git.
+git-init() {
+  local branch=""
+  local directory="$PWD"
+  local default_branch
+  local original_arg
+  local original_args=()
+
+  while (($#)); do
+    case "$1" in
+      --branch)
+        if [ $# -lt 2 ]; then
+          warning "Falta RAMA para $1. Usa git-init --help."
+          return 1
+        fi
+        branch="$2"
+        shift
+        ;;
+      --destination)
+        if [ $# -lt 2 ]; then
+          warning "Falta RUTA para $1. Usa git-init --help."
+          return 1
+        fi
+        directory="$2"
+        shift
+        ;;
+      -h|--help)
+        _git_help git-init
+        return 0
+        ;;
+      --)
+        shift
+        original_args=("$@")
+        break
+        ;;
+      *)
+        warning "Opción descoñecida: $1. Usa git-init --help."
+        return 1
+        ;;
+    esac
+    shift
+  done
+
+  # A axuda de Git debe funcionar directamente, sen solicitar antes a rama.
+  for original_arg in "${original_args[@]}"; do
+    case "$original_arg" in
+      -h|--help)
+        git init "${original_args[@]}"
+        return
+        ;;
+    esac
+  done
+
+  if [ -z "$branch" ]; then
+    default_branch="$(git config --global --get init.defaultBranch 2> /dev/null || true)"
+    branch="$(input --header "Rama inicial" -- \
+      --value "${default_branch:-main}")" || return 0
+  fi
+  if [ -z "$branch" ]; then
+    warning "O nome da rama inicial non pode quedar baleiro."
+    return 1
+  fi
+  if ! git check-ref-format --branch "$branch" &> /dev/null; then
+    warning "O nome da rama inicial non é válido: $branch"
+    return 1
+  fi
+
+  # Os valores devoltos por Gum ou recibidos como opción non expanden `~` pola
+  # shell, polo que se resolve explicitamente antes de entregar a ruta a Git.
+  case "$directory" in
+    \~) directory="$HOME" ;;
+    \~/*) directory="$HOME/${directory:2}" ;;
+  esac
+
+  git init "${original_args[@]}" --initial-branch="$branch" -- "$directory"
+}
+
 # Recibe ou solicita a URL e o directorio exacto de destino e executa
 # `git clone`. Expande `~` nos valores interactivos ou recibidos por opción,
 # reenvía as opcións posteriores a `--` e conserva o código de saída de Git.
@@ -683,6 +816,124 @@ git-clone() {
   esac
 
   git clone "${original_args[@]}" -- "$repository_url" "$directory"
+}
+
+# Le a saída NUL de `git status --porcelain=v1`, traduce os códigos do índice e
+# do worktree a descricións galegas e debuxa unha táboa estática. O formato NUL
+# conserva espazos e permite identificar o segundo nome das rutas renomeadas.
+git-status() {
+  local original_args=()
+  local original_arg
+  local entry path original_path
+  local index_status worktree_status status_text index_text worktree_text
+  local index=0
+  local entries=()
+  local rows=()
+
+  while (($#)); do
+    case "$1" in
+      -h|--help)
+        _git_help git-status
+        return 0
+        ;;
+      --)
+        shift
+        original_args=("$@")
+        break
+        ;;
+      *)
+        warning "Opción descoñecida: $1. Usa git-status --help."
+        return 1
+        ;;
+    esac
+    shift
+  done
+
+  # A axuda orixinal non necesita un repositorio nin debe pasar polo formato
+  # tabular propio deste wrapper.
+  for original_arg in "${original_args[@]}"; do
+    case "$original_arg" in
+      -h|--help)
+        git status "${original_args[@]}"
+        return
+        ;;
+    esac
+  done
+  _git_require_repo || return 1
+
+  # A primeira lectura conserva o código de Git, que `mapfile` non pode obter
+  # directamente cando recibe os rexistros mediante unha substitución de proceso.
+  if ! git status --porcelain=v1 -z "${original_args[@]}" > /dev/null; then
+    return 1
+  fi
+  mapfile -d '' -t entries < <(git status --porcelain=v1 -z "${original_args[@]}")
+  while [ $index -lt ${#entries[@]} ]; do
+    entry="${entries[index]}"
+    index_status="${entry:0:1}"
+    worktree_status="${entry:1:1}"
+    path="${entry:3}"
+    original_path=""
+
+    # No modo `-z`, un renomeado ou copia leva a ruta nova no primeiro rexistro
+    # e a ruta orixinal no seguinte, sen os separadores visuais de formato curto.
+    if [ "$index_status" = "R" ] || [ "$index_status" = "C" ] ||
+      [ "$worktree_status" = "R" ] || [ "$worktree_status" = "C" ]; then
+      index=$((index + 1))
+      original_path="${entries[index]:-}"
+      path="$original_path → $path"
+    fi
+
+    case "$index_status$worktree_status" in
+      DD|AU|UD|UA|DU|AA|UU)
+        status_text="Conflito"
+        ;;
+      '??')
+        status_text="Non rastrexado"
+        ;;
+      '!!')
+        status_text="Ignorado"
+        ;;
+      *)
+        index_text=""
+        worktree_text=""
+        case "$index_status" in
+          A) index_text="Engadido" ;;
+          M) index_text="Modificado" ;;
+          D) index_text="Eliminado" ;;
+          R) index_text="Renomeado" ;;
+          C) index_text="Copiado" ;;
+          T) index_text="Tipo modificado" ;;
+        esac
+        case "$worktree_status" in
+          A) worktree_text="Engadido" ;;
+          M) worktree_text="Modificado" ;;
+          D) worktree_text="Eliminado" ;;
+          R) worktree_text="Renomeado" ;;
+          C) worktree_text="Copiado" ;;
+          T) worktree_text="Tipo modificado" ;;
+        esac
+
+        if [ -n "$index_text" ] && [ -n "$worktree_text" ]; then
+          status_text="Preparado: $index_text · Sen preparar: $worktree_text"
+        elif [ -n "$index_text" ]; then
+          status_text="Preparado: $index_text"
+        else
+          status_text="Sen preparar: $worktree_text"
+        fi
+        ;;
+    esac
+
+    # CSV duplica as comiñas internas para conservar nomes de ficheiro literais.
+    rows+=("\"${status_text//\"/\"\"}\",\"${path//\"/\"\"}\"")
+    index=$((index + 1))
+  done
+
+  if [ ${#rows[@]} -eq 0 ]; then
+    success "O repositorio está limpo."
+    return 0
+  fi
+
+  printf '%s\n' 'Estado,Ficheiro' "${rows[@]}" | table -- --print
 }
 
 # Permite escoller entre engadir todo, seleccionar ficheiros ou usar o modo patch.
@@ -1390,6 +1641,9 @@ _git_completion() {
     git-credentials)
       options="--name --email --scope -h --help"
       ;;
+    git-init)
+      options="--branch --destination -h --help --"
+      ;;
     git-clone)
       options="--url --destination -h --help --"
       ;;
@@ -1405,7 +1659,7 @@ _git_completion() {
     git-stash-save)
       options="-u --include-untracked --message -h --help --"
       ;;
-    github-login|git-add|git-save|git-diff|git-pull|git-push|git-branch-switch|git-branch-merge|git-log|git-commit-show|git-stash-pop)
+    github-login|git-status|git-add|git-save|git-diff|git-pull|git-push|git-branch-switch|git-branch-merge|git-log|git-commit-show|git-stash-pop)
       options="-h --help --"
       ;;
   esac
@@ -1416,7 +1670,7 @@ _git_completion() {
 # Este rexistro só existe cando o Bashrc opcional de Git está instalado.
 if [[ $- == *i* ]]; then
   complete -F _git_completion \
-    git-credentials github-login git-clone git-add git-commit git-save \
+    git-credentials github-login git-init git-clone git-status git-add git-commit git-save \
     git-diff git-pull git-push git-branch-switch git-branch-new \
     git-branch-delete git-branch-merge git-log git-commit-show \
     git-stash-save git-stash-pop

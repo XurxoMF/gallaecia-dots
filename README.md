@@ -436,7 +436,9 @@ Estes comandos só existen se instalas **Git + GitHub CLI** na categoría
 | ------------------- | ----------------------------------------------------------------------------- |
 | `git-credentials`   | Configura o nome e o correo da autoría de Git, no repositorio ou globalmente. |
 | `github-login`      | Inicia sesión en GitHub mediante GitHub CLI.                                  |
+| `git-init`          | Inicializa un repositorio solicitando o nome da rama inicial.                 |
 | `git-clone`         | Clona un repositorio solicitando a URL e o directorio de destino.             |
+| `git-status`        | Resume nunha táboa os estados e rutas dos cambios, sen mostrar os diffs.      |
 | `git-add`           | Prepara cambios completos, interactivos ou ficheiros seleccionados.           |
 | `git-commit`        | Crea un commit solicitando título e corpo.                                    |
 | `git-save`          | Prepara os cambios e crea un commit nun único fluxo guiado.                   |
@@ -453,10 +455,10 @@ Estes comandos só existen se instalas **Git + GitHub CLI** na categoría
 | `git-stash-pop`     | Selecciona e recupera unha entrada do _stash_.                                |
 
 Os inputs habituais poden indicarse directamente para saltar só eses pasos do
-fluxo: `git-credentials` acepta `--name`, `--email` e `--scope`; `git-commit`,
-`--title` e `--body`; `git-branch-new`, `--branch`; e `git-stash-save`,
-`--message`. `git-clone` mantén `--url` para o remoto e `--destination` para a
-copia local.
+fluxo: `git-credentials` acepta `--name`, `--email` e `--scope`; `git-init`,
+`--branch` e `--destination`; `git-commit`, `--title` e `--body`;
+`git-branch-new`, `--branch`; e `git-stash-save`, `--message`. `git-clone`
+mantén `--url` para o remoto e `--destination` para a copia local.
 
 ### Docker, Compose e Buildx
 
