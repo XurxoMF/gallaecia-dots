@@ -1179,7 +1179,7 @@ track-save() {
 track-status() {
   local origin=""
   local root track_dir exclude_file diff_file new_file
-  local index=0 status path
+  local index=0 status path refresh_status
   local diff_entries=()
   local new_entries=()
   local rows=()
@@ -1222,6 +1222,18 @@ track-status() {
     rm -f -- "$diff_file"
     return 1
   }
+
+  # `diff-files` confía primeiro nos metadatos gardados no índice. Refrescalos
+  # evita marcar como modificado un ficheiro que se moveu e volveu ao seu sitio:
+  # Git compara o contido co hash gardado sen almacenar ningún blob. O código 1
+  # é normal cando quedan cambios reais; os erros de Git usan un código maior.
+  git -C "$root" --git-dir="$track_dir" --work-tree="$root" \
+    update-index --refresh > /dev/null 2>&1
+  refresh_status=$?
+  if [ "$refresh_status" -gt 1 ]; then
+    rm -f -- "$diff_file" "$new_file"
+    return 1
+  fi
 
   if ! git -C "$root" --git-dir="$track_dir" --work-tree="$root" \
     diff-files --name-status -z > "$diff_file"; then
