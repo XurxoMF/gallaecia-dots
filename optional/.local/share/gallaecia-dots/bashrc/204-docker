@@ -1,6 +1,6 @@
 # shellcheck shell=bash
 
-# Funcións interactivas opcionais para Docker, Compose e Buildx.
+# Comandos e alias opcionais para Docker, Compose e Buildx.
 
 # Recibe o nome dun comando deste módulo e imprime a súa axuda específica.
 # Centraliza usos, opcións, controis, efectos e passthrough sen contactar co
@@ -1992,6 +1992,12 @@ docker-push() {
 
   docker push "${original_args[@]}" "$reference"
 }
+
+# Inicia os contedores xa creados do proxecto Compose actual.
+alias compose-start='docker compose start'
+
+# Detén os contedores do proxecto Compose sen eliminalos.
+alias compose-stop='docker compose stop'
 
 # Completa referencias de imaxes locais sen abrir os selectores interactivos.
 # Se o daemon non está dispoñible, a lista queda simplemente baleira.

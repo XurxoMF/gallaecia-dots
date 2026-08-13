@@ -508,6 +508,8 @@ Estes comandos só existen se instalas **Docker + Compose** na categoría
 | `docker-volumes`           | Lista os volumes de Docker.                                      |
 | `docker-volume-delete`     | Elimina volumes seleccionados con confirmación reforzada.        |
 | `compose-ps`               | Mostra os servizos do proxecto Compose actual.                   |
+| `compose-start`            | Inicia os contedores xa creados do proxecto Compose.             |
+| `compose-stop`             | Detén os contedores do proxecto Compose sen eliminalos.          |
 | `compose-up`               | Inicia os servizos de Compose.                                   |
 | `compose-down`             | Detén e retira os servizos de Compose.                           |
 | `compose-logs`             | Mostra ou segue os rexistros de Compose.                         |
