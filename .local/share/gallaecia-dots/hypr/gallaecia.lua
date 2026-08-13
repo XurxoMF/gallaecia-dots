@@ -86,6 +86,9 @@ hl.on("hyprland.start", function ()
 
     -- Start Noctalia
     hl.exec_cmd("noctalia")
+
+    -- Generate KDE menus
+    hl.exec_cmd("kbuildsycoca6")
 end)
 
 --------------------
