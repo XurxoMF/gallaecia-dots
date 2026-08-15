@@ -7,9 +7,6 @@ keymap = [
 	{ on = "M", run = "plugin mount", desc = "Abre o menú para montar/desmontar USBs" },
 	# Plugin chmod
 	{ on = [ "c", "m" ], run = "plugin chmod", desc = "Cambia os permisos dos arquivos seleccionados" },
-	# Plugin recicle
-	{ on = [ "d", "u" ], run = "plugin restore",                  desc = "Restauro os últimos arquivos/carpetas eliminados" },
-	{ on = [ "d", "U" ], run = "plugin restore -- --interactive", desc = "Restauro arquivos/carpetas eliminados (Interactivamente)" },
 
 	{ on = "<Esc>", run = "escape",             desc = "Saír do modo visual, limpar a selección ou cancelar a busca" },
 	{ on = "<C-[>", run = "escape",             desc = "Saír do modo visual, limpar a selección ou cancelar a busca" },
@@ -37,6 +34,8 @@ keymap = [
 
 	{ on = [ "g", "g" ], run = "arrow top", desc = "Ir ao inicio" },
 	{ on = "G",          run = "arrow bot", desc = "Ir ao final" },
+	{ on = "<Home>",     run = "arrow top", desc = "Ir ao inicio" },
+	{ on = "<End>",      run = "arrow bot", desc = "Ir ao final" },
 
 	# Navegación
 	{ on = "h", run = "leave", desc = "Volver ao directorio pai" },
@@ -81,6 +80,7 @@ keymap = [
 	{ on = [ "d", "d" ],  run = "remove",                      desc = "Mover os ficheiros seleccionados ao lixo" },
 	{ on = [ "d", "D" ],  run = "remove --permanently",        desc = "Eliminar permanentemente os ficheiros seleccionados" },
 	{ on = "a",           run = "create",                      desc = "Crear un ficheiro (remata con / para directorios)" },
+	{ on = "A",           run = "bulk_create",                 desc = "Crear varios ficheiros" },
 	{ on = "r",           run = "rename --cursor=before_ext",  desc = "Renomear ficheiro(s) seleccionado(s)" },
 	{ on = ";",           run = "shell --interactive",         desc = "Executar unha orde de shell" },
 	{ on = ":",           run = "shell --block --interactive", desc = "Executar unha orde de shell (bloquear ata que remate)" },
@@ -100,8 +100,10 @@ keymap = [
 	{ on = [ "m", "n" ], run = "linemode none",        desc = "Modo de liña: ningún" },
 
 	# Copiar
-	{ on = [ "c", "c" ], run = "copy path",             desc = "Copiar URL do ficheiro" },
-	{ on = [ "c", "d" ], run = "copy dirname",          desc = "Copiar URL do directorio" },
+	{ on = [ "c", "c" ], run = "copy path",             desc = "Copiar ruta do ficheiro" },
+	{ on = [ "c", "C" ], run = "copy url",              desc = "Copiar URL do ficheiro" },
+	{ on = [ "c", "d" ], run = "copy dirpath",          desc = "Copiar ruta do directorio" },
+	{ on = [ "c", "D" ], run = "copy dirurl",           desc = "Copiar URL do directorio" },
 	{ on = [ "c", "f" ], run = "copy filename",         desc = "Copiar nome do ficheiro" },
 	{ on = [ "c", "n" ], run = "copy name_without_ext", desc = "Copiar nome do ficheiro sen extensión" },
 
@@ -133,6 +135,7 @@ keymap = [
 	{ on = [ "g", "h" ],       run = "cd ~",             desc = "Ir ao inicio persoal" },
 	{ on = [ "g", "c" ],       run = "cd ~/.config",     desc = "Ir a ~/.config" },
 	{ on = [ "g", "d" ],       run = "cd ~/Downloads",   desc = "Ir a ~/Downloads" },
+	{ on = [ "g", "t" ],       run = "plugin trash",     desc = "Ir ao lixo" },
 	{ on = [ "g", "<Space>" ], run = "cd --interactive", desc = "Saltar de forma interactiva" },
 	{ on = [ "g", "f" ],       run = "follow",           desc = "Seguir a ligazón simbólica enfocada" },
 
@@ -261,16 +264,16 @@ keymap = [
 	{ on = "<C-f>",   run = "move 1",  desc = "Mover un carácter cara adiante" },
 
 	# Movemento por palabras
-	{ on = "b",         run = "backward",                    desc = "Mover cara atrás ao inicio da palabra actual ou anterior" },
-	{ on = "B",         run = "backward --far",              desc = "Mover cara atrás ao inicio da PALABRA actual ou anterior" },
-	{ on = "w",         run = "forward",                     desc = "Mover cara adiante ao inicio da seguinte palabra" },
-	{ on = "W",         run = "forward --far",               desc = "Mover cara adiante ao inicio da seguinte PALABRA" },
-	{ on = "e",         run = "forward --end-of-word",       desc = "Mover cara adiante ao final da palabra actual ou seguinte" },
-	{ on = "E",         run = "forward --far --end-of-word", desc = "Mover cara adiante ao final da PALABRA actual ou seguinte" },
-	{ on = "<A-b>",     run = "backward",                    desc = "Mover cara atrás ao inicio da palabra actual ou anterior" },
-	{ on = "<A-f>",     run = "forward --end-of-word",       desc = "Mover cara adiante ao final da palabra actual ou seguinte" },
-	{ on = "<C-Left>",  run = "backward",                    desc = "Mover cara atrás ao inicio da palabra actual ou anterior" },
-	{ on = "<C-Right>", run = "forward --end-of-word",       desc = "Mover cara adiante ao final da palabra actual ou seguinte" },
+	{ on = "b",         run = "backward",                   desc = "Mover cara atrás ao inicio da palabra actual ou anterior" },
+	{ on = "B",         run = "backward wide",              desc = "Mover cara atrás ao inicio da PALABRA actual ou anterior" },
+	{ on = "w",         run = "forward",                    desc = "Mover cara adiante ao inicio da seguinte palabra" },
+	{ on = "W",         run = "forward wide",               desc = "Mover cara adiante ao inicio da seguinte PALABRA" },
+	{ on = "e",         run = "forward --end-of-word",      desc = "Mover cara adiante ao final da palabra actual ou seguinte" },
+	{ on = "E",         run = "forward wide --end-of-word", desc = "Mover cara adiante ao final da PALABRA actual ou seguinte" },
+	{ on = "<A-b>",     run = "backward lean",              desc = "Mover cara atrás ao inicio da palabra actual ou anterior" },
+	{ on = "<A-f>",     run = "forward lean --end-of-word", desc = "Mover cara adiante ao final da palabra actual ou seguinte" },
+	{ on = "<C-Left>",  run = "backward lean",              desc = "Mover cara atrás ao inicio da palabra actual ou anterior" },
+	{ on = "<C-Right>", run = "forward lean --end-of-word", desc = "Mover cara adiante ao final da palabra actual ou seguinte" },
 
 	# Movemento por liñas
 	{ on = "0",      run = "move bol",        desc = "Mover ao inicio da liña" },
@@ -312,6 +315,14 @@ keymap = [
 	{ on = "u",     run = [ "undo", "casefy lower" ], desc = "Desfacer ou pasar a minúsculas no modo visual" },
 	{ on = "U",     run = "casefy upper",             desc = "Pasar a maiúsculas" },
 	{ on = "<C-r>", run = "redo",                     desc = "Refacer a última operación" },
+
+	# Historial
+	{ on = "k",      run = "recall -1", desc = "Recuperar a entrada anterior" },
+	{ on = "j",      run = "recall 1",  desc = "Recuperar a entrada seguinte" },
+	{ on = "<Up>",   run = "recall -1", desc = "Recuperar a entrada anterior" },
+	{ on = "<Down>", run = "recall 1",  desc = "Recuperar a entrada seguinte" },
+	{ on = "<C-p>",  run = "recall -1", desc = "Recuperar a entrada anterior" },
+	{ on = "<C-n>",  run = "recall 1",  desc = "Recuperar a entrada seguinte" },
 
 	# Axuda
 	{ on = "~",    run = "help", desc = "Abrir a axuda" },
@@ -364,9 +375,10 @@ keymap = [
 [help]
 
 keymap = [
-	{ on = "<Esc>", run = "escape", desc = "Limpar o filtro ou agochar a axuda" },
-	{ on = "<C-[>", run = "escape", desc = "Limpar o filtro ou agochar a axuda" },
-	{ on = "<C-c>", run = "close",  desc = "Agochar a axuda" },
+	{ on = "<Esc>",   run = "escape",         desc = "Entrar no modo normal ou agochar a axuda" },
+	{ on = "<C-[>",   run = "escape",         desc = "Entrar no modo normal ou agochar a axuda" },
+	{ on = "<C-c>",   run = "close",          desc = "Pechar a axuda" },
+	{ on = "<Enter>", run = "close --submit", desc = "Pechar a axuda e executar as accións seleccionadas" },
 
 	# Navegación
 	{ on = "k", run = "arrow prev", desc = "Liña anterior" },
@@ -375,6 +387,6 @@ keymap = [
 	{ on = "<Up>",   run = "arrow prev", desc = "Liña anterior" },
 	{ on = "<Down>", run = "arrow next", desc = "Liña seguinte" },
 
-	# Filtrado
-	{ on = "f", run = "filter", desc = "Filtrar elementos da axuda" },
+	{ on = "<C-p>", run = "arrow prev", desc = "Liña anterior" },
+	{ on = "<C-n>", run = "arrow next", desc = "Liña seguinte" },
 ]

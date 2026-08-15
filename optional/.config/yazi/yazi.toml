@@ -48,6 +48,10 @@ download = [
 	{ run = "ya emit download --open %S", desc = "Descargar e abrir" },
 	{ run = "ya emit download %S",        desc = "Descargar" },
 ]
+trash = [
+	{ run = "ya pub trash-restore --list %S", desc = "Restaurar os ficheiros seleccionados" },
+	{ run = "ya pub trash-empty --list %S",   desc = "Baleirar o lixo" },
+]
 
 [open]
 rules = [
@@ -67,6 +71,8 @@ rules = [
 	{ mime = "inode/empty", use = [ "edit", "reveal" ] },
 	# Sistema de ficheiros virtual
 	{ mime = "vfs/{absent,stale}", use = "download" },
+	# Lixo
+	{ mime = "trash/**", use = [ "open", "trash" ] },
 	# Alternativa
 	{ url = "*", use = [ "open", "reveal" ] },
 ]
@@ -91,11 +97,14 @@ fetchers = [
 	# Tipo MIME
 	{ url = "*/",         run = "mime.dir",    prio = "high", group = "mime" },
 	{ url = "local://*",  run = "mime.local",  prio = "high", group = "mime" },
+	{ url = "trash://*",  run = "mime.trash",  prio = "high", group = "mime" },
 	{ url = "remote://*", run = "mime.remote", prio = "high", group = "mime" },
 ]
 spotters = [
 	# Multificheiro
 	{ mime = "multi/*", run = "multi" },
+	# Lixo
+	{ mime = "trash/**", run = "trash" },
 	# Cartafol
 	{ url = "*/", run = "folder" },
 	# Código
@@ -131,8 +140,10 @@ preloaders = [
 	{ mime = "font/*", run = "font" },
 	{ mime = "application/ms-opentype", run = "font" },
 	# Algunhas veces os arquivos de IA os detecta como "application/pdf".
-	# Neste caso usamos extensión de arquvio para evitalo.
+	# Neste caso usamos a extensión do arquivo para evitalo.
 	{ url = "*.{ai,eps,ait}", run = "mediainfo" },
+	# Lixo
+	{ mime = "trash/**", run = "trash" },
 ]
 previewers = [
 	{ url = "*/", run = "folder" },
@@ -165,12 +176,14 @@ previewers = [
 	{ mime = "font/*", run = "font" },
 	{ mime = "application/ms-opentype", run = "font" },
 	# Algunhas veces os arquivos de IA os detecta como "application/pdf".
-	# Neste caso usamos extensión de arquvio para evitalo.
+	# Neste caso usamos a extensión do arquivo para evitalo.
 	{ url = "*.{ai,eps,ait}", run = "mediainfo" },
 	# Ficheiro baleiro
 	{ mime = "inode/empty", run = "empty" },
 	# Sistema de ficheiros virtual
 	{ mime = "vfs/*", run = "vfs" },
+	# Lixo
+	{ mime = "trash/**", run = "trash" },
 	# Erro
 	{ mime = "null/*", run = "null" },
 	# Alternativa

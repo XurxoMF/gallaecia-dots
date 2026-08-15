@@ -816,7 +816,6 @@ install-category-file-explorer() {
     ya pkg add yazi-rs/plugins:git || return 1
     ya pkg add yazi-rs/plugins:mount || return 1
     ya pkg add yazi-rs/plugins:chmod || return 1
-    ya pkg add boydaihungst/restore || return 1
     ya pkg add boydaihungst/mediainfo || return 1
   fi
   [ -n "$default_entry" ] || return 0

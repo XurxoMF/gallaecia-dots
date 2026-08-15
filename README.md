@@ -580,7 +580,9 @@ e Explorador de arquivos úsase a mesma app tanto para os MIME como para
 Hyprland. Terminal e Editor de terminal actualizan só Hyprland porque non teñen
 regras MIME equivalentes. Yazi rexistra `yazi.desktop` para abrir directorios e
 Hyprland lánzao sempre con `$TERMINAL -e yazi`, polo que segue automaticamente
-o terminal predeterminado tras reiniciar a sesión.
+o terminal predeterminado tras reiniciar a sesión. A súa configuración inclúe
+o lixo integrado de Yazi (`g t`), a creación múltiple de ficheiros (`A`), o
+historial das entradas e a paleta de comandos da axuda de Yazi 26.8.15.
 
 As asignacións de Hyprland actualízanse aínda que o placeholder da instalación
 inicial xa teña un valor. As regras MIME existentes substitúense e as que
