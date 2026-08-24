@@ -122,6 +122,7 @@ usuario.
 - Hyprland.
 - Noctalia e Noctalia Greeter.
 - Tradutor integrado no launcher de Noctalia.
+- Selector de cor integrado na barra de Noctalia mediante Hyprpicker.
 - Fondos animados con MPV e mpvpaper.
 - greetd.
 - XDG Desktop Portals.
@@ -173,10 +174,10 @@ e definir unha predeterminada.
 | **Correo**                               | Thunderbird — Yay/Pacman (`thunderbird`)                                                                                                                                                                                                                                                             |
 | **Chat**                                 | Discord — Yay/Pacman (`discord`)<br>Vesktop — Yay/Pacman (`vesktop`)<br>Telegram — Yay/Pacman (`telegram-desktop`)<br>Element — Yay/Pacman (`element-desktop`)                                                                                                                                       |
 | **Creatividade**                         | OBS Studio — Yay/Pacman (`obs-studio`)<br>Krita — Yay/Pacman (`krita`)<br>GIMP — Yay/Pacman (`gimp`)<br>Inkscape — Yay/Pacman (`inkscape`)<br>Blender — Yay/Pacman (`blender`)<br>Kdenlive — Yay/Pacman (`kdenlive`)<br>Puddletag — Yay/Pacman (`puddletag`)<br>HandBrake — Yay/Pacman (`handbrake`) |
-| **Oficina e notas**                      | LibreOffice — Yay/Pacman (`libreoffice-still`, `libreoffice-still-gl`, `libreoffice-still-es`)<br>Obsidian — Yay/Pacman (`obsidian`)                                                                                                                                                                 |
+| **Oficina e notas**                      | LibreOffice — Yay/Pacman (`libreoffice-still`, `libreoffice-still-gl`, `libreoffice-still-es`)<br>ONLYOFFICE — Yay/Pacman (`onlyoffice-bin`)<br>Obsidian — Yay/Pacman (`obsidian`)                                                                                                                                                |
 | **Xogos e tendas**                       | Steam — Yay/Pacman (`steam`)<br>Prism Launcher — Yay/Pacman (`prismlauncher`)<br>Lutris — Yay/Pacman (`lutris`)<br>Bottles — Flatpak (`com.usebottles.bottles`)                                                                                                                                      |
 | **Utilidades**                           | KeePassXC — Yay/Pacman (`keepassxc`)<br>qBittorrent — Yay/Pacman (`qbittorrent`)                                                                                                                                                                                                                     |
-| **Desenvolvemento**                      | Git + GitHub CLI — Yay/Pacman (`git`, `github-cli`)<br>Docker + Compose — Yay/Pacman (`docker`, `docker-compose`, `docker-buildx`)<br>Bruno — Flatpak (`com.usebruno.Bruno`)<br>FileZilla — Yay/Pacman (`filezilla`)                                                                                 |
+| **Desenvolvemento**                      | Git + GitHub CLI — Yay/Pacman (`git`, `github-cli`)<br>Docker + Compose — Yay/Pacman (`docker`, `docker-compose`, `docker-buildx`)<br>OpenCode — Yay/Pacman (`opencode`)<br>Bruno — Flatpak (`com.usebruno.Bruno`)<br>FileZilla — Yay/Pacman (`filezilla`)                                           |
 | **Rede e privacidade**                   | Proton VPN — Flatpak (`com.protonvpn.www`)                                                                                                                                                                                                                                                           |
 | **Descargas e personalización**          | yt-dlp — Yay/Pacman (`yt-dlp`)<br>SpotDL — Pipx (`spotdl`)                                                                                                                                                                                                                                           |
 
@@ -654,7 +655,8 @@ utilizan MPV e mpvpaper, instalados obrigatoriamente polo núcleo.
 | `Shift` + `Print`  | Capturar todos os monitores.                   |
 | `Alt` + `Print`    | Capturar o monitor actual.                     |
 
-O launcher de Noctalia inclúe tamén o tradutor engadido por Gallaecia.
+O launcher de Noctalia inclúe tamén o tradutor engadido por Gallaecia. A barra
+ofrece ademais un selector de cor que emprega Hyprpicker.
 
 ### Personalizar sen perder cambios
 

@@ -10,6 +10,7 @@ order = [ "default" ]
         "media",
         "tray",
         "notifications",
+        "colorpicker",
         "clipboard",
         "network",
         "bluetooth",
@@ -57,7 +58,7 @@ background_opacity = 0.9
 background_opacity = 0.9
 
 [plugins]
-enabled = [ "noctalia/translator", "noctalia/mpvpaper" ]
+enabled = [ "noctalia/translator", "noctalia/mpvpaper", "oldirtty/color_picker" ]
 
 [plugin_settings."noctalia/mpvpaper"]
 picker_open_near_click = true
@@ -121,10 +122,12 @@ wallpaper_scheme = "vibrant"
         "wezterm"
     ]
     community_ids = [
+        "opencode",
         "tauon",
         "zen-browser",
         "discord",
         "telegram",
+        "libreoffice",
         "neovim",
         "obsidian",
         "vscode",
@@ -133,9 +136,9 @@ wallpaper_scheme = "vibrant"
         "steam",
         "obs",
         "zathura",
+        "hyprtoolkit",
         "papirus-icons",
-        "yazi",
-        "hyprtoolkit"
+        "yazi"
     ]
 
         [theme.templates.user.ui-colors]
@@ -171,3 +174,6 @@ type = "custom_button"
     left = "exec ~/.local/share/gallaecia-dots/scripts/run-terminal-as.sh system-update -- bash -lc ~/.local/share/gallaecia-dots/scripts/system-update.sh"
     middle = "exec ~/.local/share/gallaecia-dots/scripts/run-terminal-as.sh system-update -- bash -lc ~/.local/share/gallaecia-dots/scripts/system-update.sh"
     right = "exec ~/.local/share/gallaecia-dots/scripts/run-terminal-as.sh system-update -- bash -lc ~/.local/share/gallaecia-dots/scripts/system-update.sh"
+
+[widget.colorpicker]
+type = "oldirtty/color_picker:widget"

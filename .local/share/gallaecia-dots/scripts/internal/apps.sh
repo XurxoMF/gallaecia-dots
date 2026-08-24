@@ -1220,7 +1220,8 @@ install-category-creativity() {
 
 # Instala aplicacións heteroxéneas de oficina e notas sen pedir unha
 # predeterminada común. LibreOffice declara cada formato co executable
-# especializado; Obsidian queda explícito sen MIME adicional nesta categoría.
+# especializado, mentres que ONLYOFFICE emprega un único lanzador para textos,
+# follas de cálculo e presentacións. Obsidian queda sen MIME adicional.
 install-category-office() {
   local required=false
   if [ "${1:-}" = "--required" ]; then required=true; shift; fi
@@ -1231,6 +1232,7 @@ install-category-office() {
 
   local entries=(
     "pkg|LibreOffice|libreoffice-still libreoffice-still-gl libreoffice-still-es|libreoffice"
+    "pkg|ONLYOFFICE|onlyoffice-bin|onlyoffice-desktopeditors"
     "pkg|Obsidian|obsidian|obsidian"
   )
   local selected_entries=() active_entries=()
@@ -1265,6 +1267,15 @@ install-category-office() {
           return 1
         set_default_apps libreoffice-draw.desktop \
           application/vnd.oasis.opendocument.graphics
+        ;;
+      ONLYOFFICE)
+        set_default_apps onlyoffice-desktopeditors.desktop \
+          application/msword application/rtf application/vnd.oasis.opendocument.text \
+          application/vnd.openxmlformats-officedocument.wordprocessingml.document text/rtf \
+          application/vnd.ms-excel application/vnd.oasis.opendocument.spreadsheet \
+          application/vnd.openxmlformats-officedocument.spreadsheetml.sheet \
+          application/vnd.ms-powerpoint application/vnd.oasis.opendocument.presentation \
+          application/vnd.openxmlformats-officedocument.presentationml.presentation
         ;;
       Obsidian) : ;;
     esac || return 1
@@ -1374,6 +1385,7 @@ install-category-development() {
   local entries=(
     "pkg|Git + GitHub CLI|git github-cli|git"
     "pkg|Docker + Compose|docker docker-compose docker-buildx|docker"
+    "pkg|OpenCode|opencode|opencode"
     "flatpak|Bruno|com.usebruno.Bruno|bruno"
     "pkg|FileZilla|filezilla|filezilla"
   )

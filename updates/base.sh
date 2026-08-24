@@ -90,7 +90,7 @@ REQUIRED_PACKAGES=(
   flatpak util-linux pipewire gnome-keyring seahorse libsecret greetd cage wlr-randr dbus polkit libnewt ddcutil power-profiles-daemon trash-cli
   networkmanager networkmanager-openvpn
   python python-pip python-pipx ffmpeg mpv mpvpaper udisks2 7zip jq poppler fd ripgrep fzf zoxide resvg imagemagick mediainfo
-  hyprland uwsm
+  hyprland hyprpicker uwsm
   noctalia noctalia-greeter
   qt5-base qt6-base qt5ct qt6ct qt5-wayland qt6-wayland xsettingsd hyprland-qt-support kservice
   xdg-utils xdg-desktop-portal xdg-desktop-portal-hyprland xdg-desktop-portal-gtk xdg-user-dirs archlinux-xdg-menu
@@ -223,7 +223,7 @@ configure_required_services() {
 # Crea todos os directorios XDG persoais e instala os dous ficheiros que fixan
 # os seus nomes galegos. Os ficheiros son controlados pola base e substitúense.
 create_personal_dirs() {
-  mkdir -p "${PERSONAL_DIRS[@]}" "$HOME/.config" &&
+  ensure_directory "${PERSONAL_DIRS[@]}" "$HOME/.config" &&
   replace_file "$DOTFILES_DIR/.config/user-dirs.dirs" "$HOME/.config/user-dirs.dirs" &&
   replace_file "$DOTFILES_DIR/.config/user-dirs.conf" "$HOME/.config/user-dirs.conf"
 }
@@ -255,13 +255,15 @@ install_gallaecia_config() {
   merge_path "$DOTFILES_DIR/.local/share/gallaecia-dots" "$HOME/.local/share/gallaecia-dots" &&
   replace_file "$DOTFILES_DIR/.config/mimeapps.list" "$HOME/.config/mimeapps.list" &&
   sudo chmod +x -R "$HOME/.local/share/gallaecia-dots/scripts" &&
-  mkdir -p "$HOME/.wallpaper-videos" &&
+  ensure_directory "$HOME/.wallpaper-videos" &&
   merge_path "$DOTFILES_DIR/.wallpapers" "$HOME/.wallpapers"
 }
 
 # Fixa `Login` como chaveiro predeterminado para Secret Service sen substituír
-# os demais chaveiros que poida ter o usuario.
+# os demais chaveiros que poida ter o usuario. Nunha instalación nova o daemon
+# aínda pode non ter creado o directorio onde se garda esta selección.
 install_default_keyring() {
+  ensure_directory "$HOME/.local/share/keyrings" &&
   replace_file \
     "$DOTFILES_DIR/.local/share/keyrings/default" \
     "$HOME/.local/share/keyrings/default"
@@ -324,14 +326,14 @@ install_electron_config() {
 # Instala o wrapper de Hyprland en ~/.config.
 # Ese ficheiro queda para o usuario; a base actualizable vive en ~/.local/share.
 install_hyprland() {
-  mkdir -p "$HOME/.config/hypr" &&
+  ensure_directory "$HOME/.config/hypr" &&
   replace_file "$DOTFILES_DIR/.config/hypr/hyprland.lua" "$HOME/.config/hypr/hyprland.lua"
 }
 
 # Instala Noctalia separando base e custom:
 # gallaecia.toml pode actualizarse; custom.toml só se crea se non existe.
 install_noctalia() {
-  mkdir -p "$HOME/.config/noctalia" &&
+  ensure_directory "$HOME/.config/noctalia" &&
   replace_file "$DOTFILES_DIR/.config/noctalia/gallaecia.toml" "$HOME/.config/noctalia/gallaecia.toml" &&
   if [ ! -f "$HOME/.config/noctalia/custom.toml" ]; then
     replace_file "$DOTFILES_DIR/.config/noctalia/custom.toml" "$HOME/.config/noctalia/custom.toml"
