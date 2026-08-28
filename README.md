@@ -548,9 +548,10 @@ Ghostty ou WezTerm. O fluxo permite:
 2. Actualizar paquetes oficiais de Arch e AUR con Yay.
 3. Actualizar aplicacións Flatpak.
 4. Actualizar os plugins de Yazi, se Yazi está instalado.
-5. Descargar os últimos cambios de Gallaecia Dots e aplicar só as migracións
+5. Actualizar os paquetes instalados mediante pipx.
+6. Descargar os últimos cambios de Gallaecia Dots e aplicar só as migracións
    pendentes.
-6. Reiniciar o equipo ao final, se o confirmas.
+7. Reiniciar o equipo ao final, se o confirmas.
 
 Cada bloque pide confirmación, polo que podes omitir o que non queiras executar.
 Tamén podes abrir o mesmo fluxo manualmente:

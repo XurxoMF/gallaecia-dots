@@ -9,7 +9,7 @@ set -o pipefail
 # É o fluxo que abren o botón de Noctalia e `gallaecia update`. Cada bloque pide
 # confirmación por separado:
 #
-#   Rust -> Yay/Pacman -> Flatpak -> plugins Yazi -> dotfiles -> reinicio
+#   Rust -> Yay/Pacman -> Flatpak -> plugins Yazi -> pipx -> dotfiles -> reinicio
 #
 # A parte de dotfiles reutiliza `gallaecia _sync-repo`. Despois executa
 # install.sh en modo update para aplicar só as migracións pendentes.
@@ -99,14 +99,21 @@ update_flatpak() {
   fi
 }
 
-# Require o executable de Yazi e o seu xestor `ya` antes de actualizar plugins.
-# Se falta algún, omite todo o bloque para non deixar unha actualización parcial.
+# Actualiza os plugins de Yazi. O fluxo principal só ofrece este bloque cando
+# están dispoñibles tanto Yazi como o seu xestor `ya`.
 update_yazi_plugins() {
-  if has_command yazi && has_command ya; then
-    title "Actualizando plugins de Yazi..."
-    ya pkg upgrade
+  title "Actualizando plugins de Yazi..."
+  ya pkg upgrade
+}
+
+# Se pipx está dispoñible, actualiza todos os contornos xestionados por el.
+# A ausencia de pipx só mostra un aviso porque este ecosistema é opcional.
+update_pipx() {
+  if has_command pipx; then
+    title "Actualizando paquetes de pipx..."
+    pipx upgrade-all
   else
-    warning "Yazi non está instalado. Saltando actualización de plugins de Yazi."
+    warning "pipx non está instalado. Saltando actualización de paquetes de pipx."
   fi
 }
 
@@ -140,11 +147,21 @@ main() {
     fi
   fi
 
-  if confirm "Actualizar plugins de Yazi?"; then
-    if update_yazi_plugins; then
-      success "Plugins de Yazi actualizados con éxito!"
+  if has_command yazi && has_command ya; then
+    if confirm "Actualizar plugins de Yazi?"; then
+      if update_yazi_plugins; then
+        success "Plugins de Yazi actualizados con éxito!"
+      else
+        fail "Algo fallou ao actualizar os plugins de Yazi!"
+      fi
+    fi
+  fi
+
+  if confirm "Actualizar paquetes de pipx?"; then
+    if update_pipx; then
+      success "Paquetes de pipx actualizados con éxito!"
     else
-      fail "Algo fallou ao actualizar os plugins de Yazi!"
+      fail "Algo fallou ao actualizar os paquetes de pipx!"
     fi
   fi
 
