@@ -246,7 +246,14 @@ configure_desktop_services() {
 # Crea todos os directorios XDG persoais e instala os dous ficheiros que fixan
 # os seus nomes galegos. Os ficheiros son controlados pola base e substitúense.
 create_personal_dirs() {
-  ensure_directory "${PERSONAL_DIRS[@]}" "$HOME/.config" &&
+  local directory
+
+  for directory in "${PERSONAL_DIRS[@]}" "$HOME/.config"; do
+    if ! ensure_directory "$directory"; then
+      return 1
+    fi
+  done
+
   replace_file "$DOTFILES_DIR/.config/user-dirs.dirs" "$HOME/.config/user-dirs.dirs" &&
   replace_file "$DOTFILES_DIR/.config/user-dirs.conf" "$HOME/.config/user-dirs.conf"
 }
@@ -277,7 +284,10 @@ install_gallaecia_config() {
   local module internal_library script
 
   if ! ensure_directory \
-    "$HOME/.local/share/gallaecia-dots/scripts/modules" \
+    "$HOME/.local/share/gallaecia-dots/scripts/modules"; then
+    return 1
+  fi
+  if ! ensure_directory \
     "$HOME/.local/share/gallaecia-dots/scripts/internal"; then
     return 1
   fi

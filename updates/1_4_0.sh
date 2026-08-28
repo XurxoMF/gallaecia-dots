@@ -57,7 +57,10 @@ update_mode_aware_scripts() {
   local module internal_library
 
   if ! ensure_directory \
-    "$HOME/.local/share/gallaecia-dots/scripts/modules" \
+    "$HOME/.local/share/gallaecia-dots/scripts/modules"; then
+    return 1
+  fi
+  if ! ensure_directory \
     "$HOME/.local/share/gallaecia-dots/scripts/internal"; then
     return 1
   fi
