@@ -1421,7 +1421,7 @@ install-category-development() {
   fi
 }
 
-# Instala aplicacións de rede e privacidade. A categoría non modifica
+# Instala aplicacións e ferramentas de rede e privacidade. A categoría non modifica
 # Hyprland, MIME nin ficheiros opcionais.
 install-category-network() {
   local required=false
@@ -1431,7 +1431,11 @@ install-category-network() {
     return 1
   fi
 
-  local entries=("flatpak|Proton VPN|com.protonvpn.www|protonvpn")
+  local entries=(
+    "flatpak|Proton VPN|com.protonvpn.www|protonvpn"
+    "pkg|OpenSSH|openssh|ssh"
+    "pkg|WireGuard|wireguard-tools|wg"
+  )
   local selected_entries=() active_entries=()
   local selection_status
 
@@ -1445,7 +1449,11 @@ install-category-network() {
     *) return 1 ;;
   esac
   [ ${#active_entries[@]} -gt 0 ] || return 0
-  _install_selected_packages "${selected_entries[@]}"
+  _install_selected_packages "${selected_entries[@]}" || return 1
+
+  if _selection_has OpenSSH "${selected_entries[@]}"; then
+    sudo systemctl enable sshd.service || return 1
+  fi
 }
 
 # Instala yt-dlp/SpotDL e as súas configuracións e módulos Bash opcionais.
@@ -1491,5 +1499,199 @@ install-category-downloads() {
     replace_file \
       "$DOTFILES_DIR/optional/.local/share/gallaecia-dots/bashrc/202-spotdl" \
       "$HOME/.local/share/gallaecia-dots/bashrc/202-spotdl" || return 1
+  fi
+}
+
+###############################################################################
+# CATEGORÍAS DE SERVIDOR
+###############################################################################
+
+# Instala editores de terminal no servidor sen configurar Hyprland nin o tema
+# dinámico de Noctalia. A base chama esta categoría con `--required`.
+install-category-server-editor() {
+  local required=false
+  if [ "${1:-}" = "--required" ]; then required=true; shift; fi
+  if [ $# -ne 0 ]; then
+    error "Opción descoñecida en server-editor: $1"
+    return 1
+  fi
+
+  local entries=(
+    "pkg|Neovim|neovim neovim-base16-git|nvim"
+    "pkg|Helix|helix|hx"
+    "pkg|Vim|vim|vim"
+    "pkg|Nano|nano|nano"
+    "pkg|Micro|micro|micro"
+  )
+  local selected_entries=() active_entries=()
+  local selection_status
+
+  _prepare_category_apps \
+    selected_entries active_entries \
+    "$required" "Selecciona editor ou editores de terminal:" "${entries[@]}"
+  selection_status=$?
+  case "$selection_status" in
+    0) ;;
+    2) return 0 ;;
+    *) return 1 ;;
+  esac
+  [ ${#active_entries[@]} -gt 0 ] || return 0
+  _install_selected_packages "${selected_entries[@]}"
+}
+
+# Instala ferramentas de administración e monitorización de terminal. A
+# categoría é heteroxénea e non precisa unha aplicación predeterminada.
+install-category-administration() {
+  local required=false
+  if [ "${1:-}" = "--required" ]; then required=true; shift; fi
+  if [ $# -ne 0 ]; then
+    error "Opción descoñecida en administration: $1"
+    return 1
+  fi
+
+  local entries=(
+    "pkg|tmux|tmux|tmux"
+    "pkg|btop|btop|btop"
+    "pkg|htop|htop|htop"
+  )
+  local selected_entries=() active_entries=()
+  local selection_status
+
+  _prepare_category_apps \
+    selected_entries active_entries \
+    "$required" "Selecciona ferramentas de administración:" "${entries[@]}"
+  selection_status=$?
+  case "$selection_status" in
+    0) ;;
+    2) return 0 ;;
+    *) return 1 ;;
+  esac
+  [ ${#active_entries[@]} -gt 0 ] || return 0
+  _install_selected_packages "${selected_entries[@]}"
+}
+
+# Instala Yazi e os ficheiros de terminal que non dependen do flavor xerado por
+# Noctalia. `mediainfo` acompáñao porque un dos plugins usa ese executable.
+install-category-server-files() {
+  local required=false
+  if [ "${1:-}" = "--required" ]; then required=true; shift; fi
+  if [ $# -ne 0 ]; then
+    error "Opción descoñecida en server-files: $1"
+    return 1
+  fi
+
+  local entries=("pkg|Yazi|yazi mediainfo|yazi")
+  local selected_entries=() active_entries=()
+  local selection_status
+
+  _prepare_category_apps \
+    selected_entries active_entries \
+    "$required" "Selecciona ferramentas de ficheiros:" "${entries[@]}"
+  selection_status=$?
+  case "$selection_status" in
+    0) ;;
+    2) return 0 ;;
+    *) return 1 ;;
+  esac
+  [ ${#active_entries[@]} -gt 0 ] || return 0
+  _install_selected_packages "${selected_entries[@]}" || return 1
+
+  if _selection_has Yazi "${selected_entries[@]}"; then
+    ensure_directory "$HOME/.config/yazi" || return 1
+    replace_file \
+      "$DOTFILES_DIR/optional/.config/yazi/init.lua" \
+      "$HOME/.config/yazi/init.lua" || return 1
+    replace_file \
+      "$DOTFILES_DIR/optional/.config/yazi/keymap.toml" \
+      "$HOME/.config/yazi/keymap.toml" || return 1
+    replace_file \
+      "$DOTFILES_DIR/optional/.config/yazi/yazi.toml" \
+      "$HOME/.config/yazi/yazi.toml" || return 1
+    ya pkg add yazi-rs/plugins:git || return 1
+    ya pkg add yazi-rs/plugins:mount || return 1
+    ya pkg add yazi-rs/plugins:chmod || return 1
+    ya pkg add boydaihungst/mediainfo || return 1
+  fi
+}
+
+# Instala ferramentas de despregamento. Git e Docker conservan os seus módulos
+# Bash opcionais; Docker queda habilitado para o seguinte arranque e o usuario
+# incorpórase ao grupo correspondente.
+install-category-deployment() {
+  local required=false
+  if [ "${1:-}" = "--required" ]; then required=true; shift; fi
+  if [ $# -ne 0 ]; then
+    error "Opción descoñecida en deployment: $1"
+    return 1
+  fi
+
+  local entries=(
+    "pkg|Git + GitHub CLI|git github-cli|git"
+    "pkg|Docker + Compose|docker docker-compose docker-buildx|docker"
+  )
+  local selected_entries=() active_entries=()
+  local selection_status
+
+  _prepare_category_apps \
+    selected_entries active_entries \
+    "$required" "Selecciona ferramentas de despregamento:" "${entries[@]}"
+  selection_status=$?
+  case "$selection_status" in
+    0) ;;
+    2) return 0 ;;
+    *) return 1 ;;
+  esac
+  [ ${#active_entries[@]} -gt 0 ] || return 0
+  _install_selected_packages "${selected_entries[@]}" || return 1
+
+  if _selection_has "Git + GitHub CLI" "${selected_entries[@]}"; then
+    mkdir -p "$HOME/.local/share/gallaecia-dots/bashrc" || return 1
+    replace_file \
+      "$DOTFILES_DIR/optional/.local/share/gallaecia-dots/bashrc/203-git" \
+      "$HOME/.local/share/gallaecia-dots/bashrc/203-git" || return 1
+  fi
+
+  if _selection_has "Docker + Compose" "${selected_entries[@]}"; then
+    mkdir -p "$HOME/.local/share/gallaecia-dots/bashrc" || return 1
+    replace_file \
+      "$DOTFILES_DIR/optional/.local/share/gallaecia-dots/bashrc/204-docker" \
+      "$HOME/.local/share/gallaecia-dots/bashrc/204-docker" || return 1
+    sudo systemctl enable docker.service || return 1
+    sudo usermod -aG docker "$USER" || return 1
+  fi
+}
+
+# Instala opcionalmente OpenSSH e WireGuard. OpenSSH queda habilitado para o
+# seguinte arranque sen iniciar o daemon; NetworkManager xestiona nativamente
+# os perfís de WireGuard e non precisa outro servizo.
+install-category-server-network() {
+  local required=false
+  if [ "${1:-}" = "--required" ]; then required=true; shift; fi
+  if [ $# -ne 0 ]; then
+    error "Opción descoñecida en server-network: $1"
+    return 1
+  fi
+
+  local entries=(
+    "pkg|OpenSSH|openssh|ssh"
+    "pkg|WireGuard|wireguard-tools|wg"
+  )
+  local selected_entries=() active_entries=()
+  local selection_status
+
+  _prepare_category_apps \
+    selected_entries active_entries \
+    "$required" "Selecciona ferramentas de rede:" "${entries[@]}"
+  selection_status=$?
+  case "$selection_status" in
+    0) ;;
+    2) return 0 ;;
+    *) return 1 ;;
+  esac
+  [ ${#active_entries[@]} -gt 0 ] || return 0
+  _install_selected_packages "${selected_entries[@]}" || return 1
+
+  if _selection_has OpenSSH "${selected_entries[@]}"; then
+    sudo systemctl enable sshd.service || return 1
   fi
 }

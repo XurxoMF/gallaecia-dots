@@ -6,5 +6,8 @@ complete -cf sudo
 # Engade ao PATH os executables instalados localmente, incluídos os de pipx.
 export PATH="$PATH:$HOME/.local/bin"
 
-# Activa o autocompletado dos comandos e opcións de pipx.
-eval "$(register-python-argcomplete pipx)"
+# Activa o autocompletado de pipx só cando a instalación o ofrece. No modo
+# servidor Python e pipx non forman parte da base obrigatoria.
+if has_command pipx && has_command register-python-argcomplete; then
+  eval "$(register-python-argcomplete pipx)"
+fi

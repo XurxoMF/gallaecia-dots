@@ -20,6 +20,7 @@ if [ ! -r "$MODULES_DIR/apps.sh" ] ||
   [ ! -r "$MODULES_DIR/network.sh" ] ||
   [ ! -r "$MODULES_DIR/ui.sh" ] ||
   [ ! -r "$INTERNAL_DIR/apps.sh" ] ||
+  [ ! -r "$INTERNAL_DIR/mode.sh" ] ||
   [ ! -r "$INTERNAL_DIR/versions.sh" ]; then
   echo "Non se atoparon os módulos ou librarías internas en $DOTFILES_DIR." >&2
   exit 1
@@ -40,6 +41,8 @@ source "$MODULES_DIR/ui.sh"
 # shellcheck source=/dev/null
 source "$INTERNAL_DIR/apps.sh"
 # shellcheck source=/dev/null
+source "$INTERNAL_DIR/mode.sh"
+# shellcheck source=/dev/null
 source "$INTERNAL_DIR/versions.sh"
 
 # Modelo dun paso illado da migración: debe modificar unha soa responsabilidade
@@ -50,13 +53,29 @@ apply_example_change() {
   true
 }
 
+# Modelo dun cambio exclusivo de escritorio. Elimina esta función cando a
+# migración non teña operacións para ese modo.
+apply_desktop_example_change() {
+  true
+}
+
+# Modelo dun cambio exclusivo de servidor. Elimina esta función cando a
+# migración non teña operacións para ese modo.
+apply_server_example_change() {
+  true
+}
+
 # Mostra só información visible e suficiente para decidir a confirmación.
 # Non debe executar instalacións, copias nin cambios de estado.
 show_changelog() {
   title "Update $VERSION"
   info "Cambios que se van aplicar:"
-  info "· Describe aquí o primeiro cambio."
-  info "· Describe aquí o segundo cambio."
+  info "· Describe aquí os cambios comúns."
+  if is_desktop; then
+    info "· Describe aquí os cambios exclusivos do escritorio."
+  elif is_server; then
+    info "· Describe aquí os cambios exclusivos do servidor."
+  fi
 }
 
 # Orquestra todos os pasos con bloques `if ! funcion`; engade aquí cada función
@@ -65,11 +84,26 @@ apply_update() {
   if ! apply_example_change; then
     return 1
   fi
+  if is_desktop; then
+    if ! apply_desktop_example_change; then
+      return 1
+    fi
+  elif is_server; then
+    if ! apply_server_example_change; then
+      return 1
+    fi
+  else
+    return 1
+  fi
 }
 
 # Presenta o changelog, confirma e executa o orquestrador.
 # Só un éxito completo permite ao instalador marcar a versión como aplicada.
 main() {
+  if ! get_install_mode > /dev/null; then
+    fail "Non se puido determinar o modo da instalación."
+  fi
+
   show_changelog
 
   if ! confirm "Instalar update $VERSION?"; then

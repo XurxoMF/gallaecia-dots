@@ -39,8 +39,8 @@ USO
 
 DESCRICIÓN
   Xestiona Gallaecia Dots desde unha única interface. Permite consultar os
-  comandos, actualizar ou reinstalar os dots, instalar novas aplicacións por
-  categoría e engadir fondos.
+  comandos, actualizar ou reinstalar os dots e instalar novas aplicacións por
+  categoría segundo o modo actual.
 
 OPCIÓNS
   -h, --help
@@ -62,9 +62,6 @@ COMANDOS
   install-category
       Instala máis aplicacións dunha categoría sen retirar as existentes.
 
-  wallpaper-add
-      Engade imaxes ou fondos animados ao directorio correspondente.
-
 RESULTADO
   Devolve 0 cando o subcomando remata correctamente e un código distinto de 0
   cando falla ou recibe argumentos non válidos.
@@ -72,7 +69,6 @@ RESULTADO
 EXEMPLOS
   gallaecia commands
   gallaecia install-category
-  gallaecia wallpaper-add ~/Imaxes/fondo.jpg
 EOF
       ;;
     commands)
@@ -100,8 +96,8 @@ USO
   gallaecia update [OPCIÓNS]
 
 DESCRICIÓN
-  Executa o actualizador interactivo de Rust, Yay/Pacman, Flatpak, Yazi e
-  Gallaecia Dots.
+  Executa o actualizador interactivo de Gallaecia Dots e ofrece actualizar
+  Rust, Yay/Pacman, Flatpak, Yazi e pipx cando detecta cada ferramenta.
 
 OPCIÓNS
   -h, --help
@@ -137,20 +133,13 @@ EOF
     install-category)
       cat <<'EOF'
 USO
-  gallaecia install-category [OPCIÓNS] [CATEGORÍA]
+  gallaecia install-category [OPCIÓNS]
 
 DESCRICIÓN
   Mostra as categorías da instalación base e permite instalar novas
-  aplicacións. Mostra por separado as variantes completas xa instaladas e
-  ocúltaas do selector. Non elimina as xa instaladas. A aplicación escollida
-  como predeterminada entre as existentes e as novas aplícase tamén a
-  mimeapps.list e Hyprland cando corresponda. Usa exclusivamente as categorías
-  da versión instalada e non sincroniza o repositorio.
-
-PARÁMETROS
-  [CATEGORÍA]
-      Identificador interno opcional, por exemplo `audio`, `development` ou
-      `downloads`. Se se omite, mantén o selector aberto ata premer Esc.
+  aplicacións dispoñibles para o modo actual. Mostra por separado as variantes
+  completas xa instaladas e ocúltaas do selector. Non elimina as xa instaladas.
+  Mantén o menú aberto ata premer Esc e non sincroniza o repositorio.
 
 OPCIÓNS
   -h, --help
@@ -169,12 +158,11 @@ CONTROIS
 RESULTADO
   Instala as aplicacións seleccionadas e as súas configuracións opcionais. A
   mesma elección predeterminada aplícase a MIME e Hyprland nas categorías
-  homoxéneas. As heteroxéneas aplican os MIME propios sen pedir unha
-  predeterminada común. Esc salta a selección actual ou pecha o menú.
+  homoxéneas do escritorio. As heteroxéneas aplican os MIME propios sen pedir
+  unha predeterminada común. Esc salta a selección actual ou pecha o menú.
 
 EXEMPLOS
   gallaecia install-category
-  gallaecia install-category development
 EOF
       ;;
     wallpaper-add)
@@ -224,8 +212,11 @@ commands             Lista esta referencia.
 update               Actualiza o sistema e os dotfiles.
 reinstall            Reinstala Gallaecia Dots desde a base actual.
 install-category     Instala máis aplicacións dunha categoría.
-wallpaper-add        Engade imaxes e fondos animados.
 EOF
+
+  if ! _gallaecia_is_server_mode; then
+    printf '%s\n' 'wallpaper-add        Engade imaxes e fondos animados.'
+  fi
 }
 
 # Le a primeira liña do ficheiro de estado `version`. Non calcula a versión
@@ -238,6 +229,20 @@ _gallaecia_version() {
   else
     printf 'Gallaecia Dots sen versión rexistrada\n'
   fi
+}
+
+# Devolve 0 cando o estado persistente indica modo servidor. Este predicado
+# privado permite ocultar comandos gráficos sen cargar librarías internas no
+# Bashrc do usuario.
+_gallaecia_is_server_mode() {
+  local mode_file="$HOME/.local/share/gallaecia-dots/mode"
+  local mode=""
+
+  if [ -s "$mode_file" ]; then
+    IFS= read -r mode < "$mode_file"
+  fi
+
+  [ "$mode" = "server" ]
 }
 
 # Recibe a ruta candidata e comproba dúas cousas: que Git a recoñeza como
@@ -390,13 +395,10 @@ _gallaecia_reinstall() {
   SKIP_CLONE=1 INSTALL_MODE=reinstall bash "$dotfiles_dir/install.sh"
 }
 
-# Instala categorías dentro dun subshell para que a libraría interna e as súas
-# variables desaparezan ao volver á terminal do usuario. Sen CATEGORÍA mantén
-# aberto un menú declarado aquí ata que se prema Esc; cun identificador procesa
-# unha única categoría. En ambos casos reutiliza exactamente as mesmas funcións
-# que a instalación base, pero sen --required.
+# Instala categorías dentro dun subshell para que as librarías internas e as
+# súas variables desaparezan ao volver á terminal. O menú corresponde ao modo
+# persistente e permanece aberto ata premer Esc; non admite acceso posicional.
 _gallaecia_install_category() (
-  local category_id=""
   local dotfiles_dir="${DOTFILES_DIR:-$HOME/.dotfiles}"
   local modules_dir="$HOME/.local/share/gallaecia-dots/scripts/modules"
   local internal_dir="$HOME/.local/share/gallaecia-dots/scripts/internal"
@@ -410,11 +412,10 @@ _gallaecia_install_category() (
         ;;
       --)
         shift
-        if [ $# -gt 1 ]; then
-          printf 'gallaecia install-category admite unha única CATEGORÍA.\n' >&2
+        if [ $# -gt 0 ]; then
+          printf 'gallaecia install-category non admite categorías como argumento.\n' >&2
           return 1
         fi
-        category_id="${1:-}"
         break
         ;;
       -*)
@@ -422,11 +423,8 @@ _gallaecia_install_category() (
         return 1
         ;;
       *)
-        if [ -n "$category_id" ]; then
-          printf 'gallaecia install-category admite unha única CATEGORÍA.\n' >&2
-          return 1
-        fi
-        category_id="$1"
+        printf 'gallaecia install-category non admite categorías como argumento.\n' >&2
+        return 1
         ;;
     esac
     shift
@@ -439,12 +437,13 @@ _gallaecia_install_category() (
     [ ! -r "$modules_dir/network.sh" ] ||
     [ ! -r "$modules_dir/ui.sh" ] ||
     [ ! -r "$internal_dir/apps.sh" ] ||
+    [ ! -r "$internal_dir/mode.sh" ] ||
     [ ! -r "$internal_dir/versions.sh" ]; then
     error "Non se atoparon todos os módulos de Gallaecia Dots."
     return 1
   fi
 
-  # As oito cargas estándar quedan confinadas neste subshell.
+  # As nove cargas estándar quedan confinadas neste subshell.
   # shellcheck source=/dev/null
   source "$modules_dir/apps.sh"
   # shellcheck source=/dev/null
@@ -460,65 +459,80 @@ _gallaecia_install_category() (
   # shellcheck source=/dev/null
   source "$internal_dir/apps.sh"
   # shellcheck source=/dev/null
+  source "$internal_dir/mode.sh"
+  # shellcheck source=/dev/null
   source "$internal_dir/versions.sh"
 
   DOTFILES_DIR="$dotfiles_dir"
 
-  # Este case é a lista pública de categorías do subcomando. Mantense manual e
-  # explícito para que engadir unha categoría non introduza outro catálogo global.
-  _gallaecia_run_category() {
-    case "$1" in
-      terminal|"Terminal") install-category-terminal ;;
-      editor|"Editor de terminal") install-category-editor ;;
-      ide|"IDE ou editor gráfico") install-category-ide ;;
-      browser|"Navegador") install-category-browser ;;
-      file-explorer|"Explorador de arquivos") install-category-file-explorer ;;
-      audio|"Audio") install-category-audio ;;
-      video|"Vídeo") install-category-video ;;
-      pdf|"PDF") install-category-pdf ;;
-      images|"Imaxes") install-category-images ;;
-      mail|"Correo") install-category-mail ;;
-      chat|"Chat") install-category-chat ;;
-      creativity|"Creatividade") install-category-creativity ;;
-      office|"Oficina e notas") install-category-office ;;
-      games|"Xogos e tendas") install-category-games ;;
-      utilities|"Utilidades") install-category-utilities ;;
-      development|"Desenvolvemento") install-category-development ;;
-      network|"Rede e privacidade") install-category-network ;;
-      downloads|"Descargas e personalización") install-category-downloads ;;
-      *)
-        error "Categoría descoñecida: $1"
-        return 1
-        ;;
-    esac
-  }
-
-  if [ -n "$category_id" ]; then
-    _gallaecia_run_category "$category_id"
-    return
+  if ! get_install_mode > /dev/null; then
+    return 1
   fi
 
+  # Resolve as etiquetas visibles contra as funcións do modo actual.
+  _gallaecia_run_category() {
+    if is_server; then
+      case "$1" in
+        "Editor") install-category-server-editor ;;
+        "Administración") install-category-administration ;;
+        "Ficheiros") install-category-server-files ;;
+        "Despregamento") install-category-deployment ;;
+        "Rede") install-category-server-network ;;
+        *) error "Categoría de servidor descoñecida: $1"; return 1 ;;
+      esac
+    else
+      case "$1" in
+        "Terminal") install-category-terminal ;;
+        "Editor de terminal") install-category-editor ;;
+        "IDE ou editor gráfico") install-category-ide ;;
+        "Navegador") install-category-browser ;;
+        "Explorador de arquivos") install-category-file-explorer ;;
+        "Audio") install-category-audio ;;
+        "Vídeo") install-category-video ;;
+        "PDF") install-category-pdf ;;
+        "Imaxes") install-category-images ;;
+        "Correo") install-category-mail ;;
+        "Chat") install-category-chat ;;
+        "Creatividade") install-category-creativity ;;
+        "Oficina e notas") install-category-office ;;
+        "Xogos e tendas") install-category-games ;;
+        "Utilidades") install-category-utilities ;;
+        "Desenvolvemento") install-category-development ;;
+        "Rede e privacidade") install-category-network ;;
+        "Descargas e personalización") install-category-downloads ;;
+        *) error "Categoría de escritorio descoñecida: $1"; return 1 ;;
+      esac
+    fi
+  }
+
   while true; do
-    if ! selected_category="$(choose --header "Escolle unha categoría; preme Esc para saír:" \
-      "Terminal" \
-      "Editor de terminal" \
-      "IDE ou editor gráfico" \
-      "Navegador" \
-      "Explorador de arquivos" \
-      "Audio" \
-      "Vídeo" \
-      "PDF" \
-      "Imaxes" \
-      "Correo" \
-      "Chat" \
-      "Creatividade" \
-      "Oficina e notas" \
-      "Xogos e tendas" \
-      "Utilidades" \
-      "Desenvolvemento" \
-      "Rede e privacidade" \
-      "Descargas e personalización")"; then
-      return 0
+    if is_server; then
+      if ! selected_category="$(choose --header "Escolle unha categoría; preme Esc para saír:" \
+        "Editor" "Administración" "Ficheiros" "Despregamento" "Rede")"; then
+        return 0
+      fi
+    else
+      if ! selected_category="$(choose --header "Escolle unha categoría; preme Esc para saír:" \
+        "Terminal" \
+        "Editor de terminal" \
+        "IDE ou editor gráfico" \
+        "Navegador" \
+        "Explorador de arquivos" \
+        "Audio" \
+        "Vídeo" \
+        "PDF" \
+        "Imaxes" \
+        "Correo" \
+        "Chat" \
+        "Creatividade" \
+        "Oficina e notas" \
+        "Xogos e tendas" \
+        "Utilidades" \
+        "Desenvolvemento" \
+        "Rede e privacidade" \
+        "Descargas e personalización")"; then
+        return 0
+      fi
     fi
 
     _gallaecia_run_category "$selected_category" || return 1
@@ -675,6 +689,10 @@ gallaecia() {
       _gallaecia_install_category "$@"
       ;;
     wallpaper-add)
+      if _gallaecia_is_server_mode; then
+        error "wallpaper-add non está dispoñible en modo servidor."
+        return 1
+      fi
       _gallaecia_add_wallpapers "$@"
       ;;
     _sync-repo)
@@ -688,14 +706,17 @@ gallaecia() {
   esac
 }
 
-# Completa os subcomandos públicos, as categorías instalables e as rutas dos
-# fondos. A lista de categorías replica intencionadamente o `case` do comando.
+# Completa os subcomandos públicos e as rutas dos fondos. O modo servidor non
+# suxire o comando gráfico e install-category xa non admite identificadores.
 _gallaecia_completion() {
   local current="${COMP_WORDS[COMP_CWORD]:-}"
   local previous=""
   local subcommand="${COMP_WORDS[1]:-}"
-  local commands="commands update reinstall install-category wallpaper-add"
-  local categories="terminal editor ide browser file-explorer audio video pdf images mail chat creativity office games utilities development network downloads"
+  local commands="commands update reinstall install-category"
+
+  if ! _gallaecia_is_server_mode; then
+    commands+=" wallpaper-add"
+  fi
 
   COMPREPLY=()
   if ((COMP_CWORD > 0)); then
@@ -718,11 +739,7 @@ _gallaecia_completion() {
 
   case "$subcommand" in
     install-category)
-      if [[ "$current" == -* ]]; then
-        mapfile -t COMPREPLY < <(compgen -W "-h --help --" -- "$current")
-      else
-        mapfile -t COMPREPLY < <(compgen -W "$categories" -- "$current")
-      fi
+      mapfile -t COMPREPLY < <(compgen -W "-h --help --" -- "$current")
       ;;
     wallpaper-add)
       if [[ "$current" == -* ]]; then

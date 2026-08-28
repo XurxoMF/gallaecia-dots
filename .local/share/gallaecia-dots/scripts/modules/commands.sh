@@ -1,5 +1,20 @@
 # shellcheck shell=bash
 
+# Este módulo consulta o modo ao rexistrar e executar utilidades de escritorio.
+# Resolve a libraría interna desde a súa propia árbore para funcionar igual
+# desde o repositorio e desde a instalación en ~/.local/share.
+_commands_scripts_dir="${BASH_SOURCE[0]%/modules/commands.sh}"
+if [ ! -r "$_commands_scripts_dir/internal/mode.sh" ]; then
+  printf 'Non se atopou a libraría interna de modo de Gallaecia Dots.\n' >&2
+  if [ "${BASH_SOURCE[0]}" != "$0" ]; then
+    return 1
+  fi
+  exit 1
+fi
+# shellcheck source=/dev/null
+source "$_commands_scripts_dir/internal/mode.sh"
+unset _commands_scripts_dir
+
 ###############################################################################
 # MÓDULO PÚBLICO DE COMANDOS
 #
@@ -597,6 +612,14 @@ run-terminal-as() {
   local command_args=()
   local name terminal terminal_path terminal_name application_id
 
+  if ! get_install_mode > /dev/null; then
+    return 1
+  fi
+  if is_server; then
+    printf 'run-terminal-as non está dispoñible en modo servidor.\n' >&2
+    return 1
+  fi
+
   while (($#)); do
     case "$1" in
       -h|--help)
@@ -737,5 +760,9 @@ _commands_completion() {
 if [[ $- == *i* ]]; then
   complete -F _commands_completion \
     has_command require_command require_commands \
-    command_path package_owns_command retry_command run-terminal-as
+    command_path package_owns_command retry_command
+
+  if get_install_mode > /dev/null && ! is_server; then
+    complete -F _commands_completion run-terminal-as
+  fi
 fi

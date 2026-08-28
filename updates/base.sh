@@ -16,6 +16,7 @@ if [ ! -r "$MODULES_DIR/apps.sh" ] ||
   [ ! -r "$MODULES_DIR/network.sh" ] ||
   [ ! -r "$MODULES_DIR/ui.sh" ] ||
   [ ! -r "$INTERNAL_DIR/apps.sh" ] ||
+  [ ! -r "$INTERNAL_DIR/mode.sh" ] ||
   [ ! -r "$INTERNAL_DIR/versions.sh" ]; then
   echo "Non se atoparon os módulos ou librarías internas de Gallaecia Dots." >&2
   echo "Clona o repo en $DOTFILES_DIR e executa $DOTFILES_DIR/install.sh." >&2
@@ -37,6 +38,8 @@ source "$MODULES_DIR/ui.sh"
 # shellcheck source=/dev/null
 source "$INTERNAL_DIR/apps.sh"
 # shellcheck source=/dev/null
+source "$INTERNAL_DIR/mode.sh"
+# shellcheck source=/dev/null
 source "$INTERNAL_DIR/versions.sh"
 
 ###############################################################################
@@ -49,47 +52,49 @@ source "$INTERNAL_DIR/versions.sh"
 #   prerequisitos mínimos
 #          │
 #          ▼
-#   estado de versións e confirmación
+#   estado, confirmación e modo desktop/server
 #          │
 #          ▼
-#   idioma, Yay, Rust e paquetes obrigatorios
+#   idioma, Yay, paquetes e servizos comúns
 #          │
 #          ▼
-#   ficheiros base, servizos e configuración do escritorio
-#          │
-#          ▼
-#   categorías principais
-#   (terminal/editor/IDE/navegador/explorador)
-#          │
-#          ▼
-#   categorías opcionais
-#   (cada categoría instala e configura a súa selección ao momento)
+#   ┌─────────────────────┴────────────────────┐
+#   ▼                                          ▼
+# escritorio: stack gráfico, XDG e apps      servidor: apps de terminal
 #          │
 #          ▼
 #   rexistro de `base` e reinicio opcional
 #
 # Cada categoría vive nunha función `install-category-*` de
 # `scripts/internal/apps.sh`. A función contén a lista visible, instala os
-# paquetes seleccionados e aplica as configuracións, MIME e valores de
-# Hyprland que lle corresponden antes de pasar á seguinte categoría.
+# paquetes seleccionados e aplica no mesmo paso só as configuracións que
+# corresponden ao modo actual.
 #
 # PARA MODIFICAR A BASE
 #
-# - Paquete imprescindible para todos: REQUIRED_PACKAGES.
-# - Directorio persoal: PERSONAL_DIRS.
+# - Paquete común: REQUIRED_PACKAGES.
+# - Paquete exclusivo do escritorio: REQUIRED_DESKTOP_PACKAGES.
+# - Directorio persoal de escritorio: PERSONAL_DIRS.
 # - Aplicación dunha categoría: a súa función en internal/apps.sh.
 # - Configuración controlada polo proxecto: función install_* correspondente.
 # - Configuración opcional dunha app: dentro da mesma función de categoría.
 ###############################################################################
 
-# Paquetes que sempre forman parte do escritorio, independentemente das
-# aplicacións que o usuario escolla despois nas categorías.
+# Paquetes compartidos polos modos de escritorio e servidor. Esta base mantén
+# só ferramentas de terminal, rede, paquetes e estado necesarias nos dous.
 REQUIRED_PACKAGES=(
+  util-linux dbus polkit libnewt trash-cli
+  networkmanager nftables
+  7zip jq fd ripgrep fzf zoxide
+)
+
+# Paquetes gráficos e multimedia instalados unicamente no modo escritorio.
+REQUIRED_DESKTOP_PACKAGES=(
   noto-fonts-cjk noto-fonts-emoji noto-fonts ttf-noto-nerd
   papirus-icon-theme breeze breeze-icons
-  flatpak util-linux pipewire gnome-keyring seahorse libsecret greetd cage wlr-randr dbus polkit libnewt ddcutil power-profiles-daemon trash-cli
-  networkmanager networkmanager-openvpn
-  python python-pip python-pipx ffmpeg mpv mpvpaper udisks2 7zip jq poppler fd ripgrep fzf zoxide resvg imagemagick mediainfo
+  flatpak pipewire gnome-keyring seahorse libsecret greetd cage wlr-randr ddcutil power-profiles-daemon
+  networkmanager-openvpn
+  python python-pip python-pipx ffmpeg mpv mpvpaper udisks2 poppler resvg imagemagick mediainfo
   hyprland hyprpicker uwsm
   noctalia noctalia-greeter
   qt5-base qt6-base qt5ct qt6ct qt5-wayland qt6-wayland xsettingsd hyprland-qt-support kservice
@@ -159,13 +164,20 @@ configure_locale() {
   echo "LANGUAGE=gl_ES:es_ES:en_US" | sudo tee -a /etc/locale.conf
 }
 
-# Activa cores, ILoveCandy e [multilib] en pacman.
-# Algúns paquetes necesarios dependen de multilib.
+# Activa cores e ILoveCandy en pacman nos dous modos.
 configure_pacman() {
   sudo sed -i \
 	-e 's/^#Color/Color/' \
 	-e 's/^#ILoveCandy/ILoveCandy/' \
 	-e '/^#Color/a ILoveCandy' \
+	/etc/pacman.conf &&
+  sudo pacman -Syy
+}
+
+# Habilita [multilib] só no escritorio, onde o precisan Steam e outras
+# aplicacións gráficas. O servidor non activa repositorios innecesarios.
+configure_desktop_pacman() {
+  sudo sed -i \
 	-e 's/^#\[multilib\]/[multilib]/' \
 	-e '/^\[multilib\]/{n; s/^#Include/Include/}' \
 	/etc/pacman.conf &&
@@ -191,28 +203,39 @@ install_yay() {
   yay -Y --color always --save
 }
 
-# Instala Rustup desde os repositorios e configura a toolchain estable para o
-# usuario actual. Modifica paquetes do sistema e o estado persoal de Rustup.
+# Instala Rustup só no escritorio e configura a toolchain estable para o
+# usuario actual. Algunhas aplicacións gráficas da base dependen desta pila.
 install_rust() {
   sudo pacman -Syu --needed rustup &&
   rustup default stable
 }
 
-# Instala só os paquetes obrigatorios do sistema base.
-# As apps de usuario (terminal, navegador, editor...) escóllense máis abaixo.
+# Instala os paquetes comúns aos dous modos.
 install_required_packages() {
-  yay -Syu --needed "${REQUIRED_PACKAGES[@]}" &&
+  yay -Syu --needed "${REQUIRED_PACKAGES[@]}"
+}
+
+# Instala os paquetes exclusivos do escritorio e prepara Flathub e os temas.
+install_desktop_required_packages() {
+  yay -Syu --needed "${REQUIRED_DESKTOP_PACKAGES[@]}" &&
   flatpak install -y flathub org.gtk.Gtk3theme.adw-gtk3-dark org.gtk.Gtk3theme.adw-gtk3
 }
 
-# Habilita NetworkManager para Noctalia e restaura o arranque previsto por Arch
-# para GNOME Keyring. O paquete habilita globalmente o socket; non se debe
-# habilitar tamén o servizo no usuario porque `pam_systemd` podería inicializalo
-# antes de que `pam_gnome_keyring` cree e desbloquee `Login` no primeiro acceso.
+# Habilita NetworkManager e nftables para o seguinte arranque sen substituír a
+# rede nin o firewall que manteñen conectada a instalación en curso.
 configure_required_services() {
-  if ! sudo systemctl enable --now NetworkManager.service; then
+  if ! sudo systemctl enable NetworkManager.service; then
     return 1
   fi
+  if ! sudo systemctl enable nftables.service; then
+    return 1
+  fi
+}
+
+# Restaura no escritorio o arranque previsto por Arch para GNOME Keyring. O
+# paquete habilita globalmente o socket; non se debe habilitar tamén o servizo
+# no usuario porque PAM debe crear e desbloquear primeiro o chaveiro `Login`.
+configure_desktop_services() {
   # `disable` non detén o daemon da sesión actual. Só retira os symlinks que
   # Gallaecia puidese crear; o socket global do paquete segue habilitado.
   if ! systemctl --user disable gnome-keyring-daemon.service; then
@@ -248,13 +271,59 @@ install_greetd_pam_config() {
     "/etc/pam.d/greetd"
 }
 
-# Instala os ficheiros controlados por Gallaecia en ~/.local/share e combina os
-# fondos distribuídos cos persoais sen eliminar imaxes adicionais do usuario.
+# Instala só os scripts e librarías compartidos polos dous modos. As árbores de
+# Hyprland, Noctalia e os fondos distribúense nun paso exclusivo do escritorio.
 install_gallaecia_config() {
-  rm -f "$HOME/.local/share/gallaecia-dots/scripts/modules/versions.sh" &&
-  merge_path "$DOTFILES_DIR/.local/share/gallaecia-dots" "$HOME/.local/share/gallaecia-dots" &&
+  local module internal_library script
+
+  if ! ensure_directory \
+    "$HOME/.local/share/gallaecia-dots/scripts/modules" \
+    "$HOME/.local/share/gallaecia-dots/scripts/internal"; then
+    return 1
+  fi
+
+  rm -f "$HOME/.local/share/gallaecia-dots/scripts/modules/versions.sh" || return 1
+
+  for module in apps commands files gallaecia network ui; do
+    if ! replace_file \
+      "$DOTFILES_DIR/.local/share/gallaecia-dots/scripts/modules/$module.sh" \
+      "$HOME/.local/share/gallaecia-dots/scripts/modules/$module.sh"; then
+      return 1
+    fi
+  done
+
+  for internal_library in apps mode versions; do
+    if ! replace_file \
+      "$DOTFILES_DIR/.local/share/gallaecia-dots/scripts/internal/$internal_library.sh" \
+      "$HOME/.local/share/gallaecia-dots/scripts/internal/$internal_library.sh"; then
+      return 1
+    fi
+  done
+
+  for script in gallaecia system-update; do
+    if ! replace_file \
+      "$DOTFILES_DIR/.local/share/gallaecia-dots/scripts/$script.sh" \
+      "$HOME/.local/share/gallaecia-dots/scripts/$script.sh"; then
+      return 1
+    fi
+  done
+
+  sudo chmod +x -R "$HOME/.local/share/gallaecia-dots/scripts"
+}
+
+# Instala os recursos compartidos exclusivos do escritorio. As fusións dos
+# fondos conservan imaxes persoais e a configuración MIME queda controlada.
+install_desktop_gallaecia_config() {
+  replace_file \
+    "$DOTFILES_DIR/.local/share/gallaecia-dots/scripts/run-terminal-as.sh" \
+    "$HOME/.local/share/gallaecia-dots/scripts/run-terminal-as.sh" &&
+  replace_path \
+    "$DOTFILES_DIR/.local/share/gallaecia-dots/hypr" \
+    "$HOME/.local/share/gallaecia-dots/hypr" &&
+  replace_path \
+    "$DOTFILES_DIR/.local/share/gallaecia-dots/noctalia" \
+    "$HOME/.local/share/gallaecia-dots/noctalia" &&
   replace_file "$DOTFILES_DIR/.config/mimeapps.list" "$HOME/.config/mimeapps.list" &&
-  sudo chmod +x -R "$HOME/.local/share/gallaecia-dots/scripts" &&
   ensure_directory "$HOME/.wallpaper-videos" &&
   merge_path "$DOTFILES_DIR/.wallpapers" "$HOME/.wallpapers"
 }
@@ -282,6 +351,7 @@ install_desktop_overrides() {
 # Esta función pertence á instalación base; as migracións posteriores preservan
 # personalizacións xa existentes en `~/.config/bashrc`.
 install_bashrc() {
+  ensure_directory "$HOME/.config" &&
   replace_file "$DOTFILES_DIR/.bashrc" "$HOME/.bashrc" &&
   replace_path "$DOTFILES_DIR/.config/bashrc" "$HOME/.config/bashrc"
 }
@@ -340,9 +410,24 @@ install_noctalia() {
   fi
 }
 
-# Aplica todos os dotfiles base, sen apps opcionais.
-# As configs de apps opcionais instálanse máis tarde segundo a selección.
-install_dotfiles() {
+# Instala os scripts e o Bashrc compartidos polos dous modos.
+install_common_dotfiles() {
+  if install_gallaecia_config; then
+    success "Configs propias de Gallaecia Dots instaladas con éxito!"
+  else
+    fail "Algo fallou ao instalar as configs propias de Gallaecia Dots! Abortando instalación..."
+  fi
+
+  if install_bashrc; then
+    success "Bashrc instalado con éxito!"
+  else
+    fail "Algo fallou ao instalar o bashrc! Abortando instalación..."
+  fi
+}
+
+# Aplica todos os ficheiros controlados exclusivos do escritorio. As configs de
+# aplicacións opcionais instálanse máis tarde segundo a selección.
+install_desktop_dotfiles() {
   if install_greetd_config; then
     success "Configuración de greetd instalada con éxito!"
   else
@@ -355,10 +440,10 @@ install_dotfiles() {
     fail "Algo fallou ao configurar PAM para GNOME Keyring! Abortando instalación..."
   fi
 
-  if install_gallaecia_config; then
-    success "Configs propias de Gallaecia Dots instaladas con éxito!"
+  if install_desktop_gallaecia_config; then
+    success "Recursos de escritorio de Gallaecia instalados con éxito!"
   else
-    fail "Algo fallou ao instalar as configs propias de Gallaecia Dots! Abortando instalación..."
+    fail "Algo fallou ao instalar os recursos de escritorio! Abortando instalación..."
   fi
 
   if install_default_keyring; then
@@ -371,12 +456,6 @@ install_dotfiles() {
     success "Utilidades técnicas ocultadas do launcher con éxito!"
   else
     fail "Algo fallou ao instalar os overrides do launcher! Abortando instalación..."
-  fi
-
-  if install_bashrc; then
-    success "Bashrc instalado con éxito!"
-  else
-    fail "Algo fallou ao instalar o bashrc! Abortando instalación..."
   fi
 
   if install_xdg_portals; then
@@ -426,7 +505,7 @@ install_dotfiles() {
 # mostra e acepta as variantes completas xa instaladas, ofrece só as restantes
 # e impide continuar sen ningunha app activa. Instala e configura inmediatamente
 # as novas seleccións, polo que non existe unha fase posterior de colas.
-install_required_app_categories() {
+install_desktop_required_app_categories() {
   install-category-terminal --required || return 1
   install-category-editor --required || return 1
   install-category-ide --required || return 1
@@ -439,7 +518,7 @@ install_required_app_categories() {
 # do selector. Sen `--required`, Esc salta só a categoría actual.
 # Cada función comparte exactamente o mesmo fluxo usado por `gallaecia
 # install-category`, incluídas configuracións, MIME e Hyprland.
-install_optional_app_categories() {
+install_desktop_optional_app_categories() {
   install-category-audio || return 1
   install-category-video || return 1
   install-category-pdf || return 1
@@ -455,112 +534,157 @@ install_optional_app_categories() {
   install-category-downloads || return 1
 }
 
-# Executa as fases visuais e técnicas da instalación base na orde necesaria.
-# Se "base" xa aparece en versions-instaladas, non repite o proceso.
-#
-# As categorías instalan inmediatamente as súas seleccións. Se unha delas
-# falla, a base non se marca como instalada e o erro queda localizado nesa fase.
+# O servidor require polo menos un editor de terminal. Esta variante non
+# configura Hyprland nin integra o tema dinámico de Noctalia.
+install_server_required_app_categories() {
+  install-category-server-editor --required
+}
+
+# Percorre as categorías opcionais propias do servidor. Cada unha instala a
+# selección inmediatamente e pode cancelarse sen deter as seguintes.
+install_server_optional_app_categories() {
+  install-category-administration || return 1
+  install-category-server-files || return 1
+  install-category-deployment || return 1
+  install-category-server-network || return 1
+}
+
+# Conserva o modo xa rexistrado nas reinstalacións. Nunha instalación nova
+# mostra a primeira elección do fluxo e garda `desktop` ou `server`.
+select_install_mode() {
+  local current_mode selected_mode
+
+  if [ -e "$GALLAECIA_MODE_FILE" ]; then
+    if ! current_mode="$(get_install_mode)"; then
+      return 1
+    fi
+    info "Conservando o modo actual: $current_mode."
+    return 0
+  fi
+
+  if ! selected_mode="$(choose --header "Escolle o modo de instalación:" \
+    "Escritorio" "Servidor")"; then
+    warning "Selección do modo cancelada."
+    return 2
+  fi
+
+  case "$selected_mode" in
+    Escritorio) set_install_mode desktop ;;
+    Servidor) set_install_mode server ;;
+    *)
+      error "Modo de instalación descoñecido: $selected_mode"
+      return 1
+      ;;
+  esac
+}
+
+# Instala os paquetes, servizos e ficheiros compartidos polos dous modos.
+install_common_base() {
+  title "Cambiar idioma a galego"
+  info "Configurarase a orde Galego, Español e Inglés para o sistema."
+  if ! configure_locale; then
+    fail "Algo fallou ao cambiar o idioma! Abortando instalación..."
+  fi
+
+  title "Configurar pacman"
+  info "Activaranse as cores e ILoveCandy na configuración de pacman."
+  if ! configure_pacman; then
+    fail "Algo fallou ao configurar pacman! Abortando instalación..."
+  fi
+
+  title "Instalar paquetes comúns"
+  info "Instalaranse Yay, NetworkManager, nftables e as utilidades compartidas."
+  if ! install_yay; then
+    fail "Algo fallou ao instalar Yay! Abortando instalación..."
+  fi
+  if ! install_required_packages; then
+    fail "Algo fallou ao instalar os paquetes comúns! Abortando instalación..."
+  fi
+  if ! configure_required_services; then
+    fail "Algo fallou ao habilitar os servizos comúns! Abortando instalación..."
+  fi
+
+  title "Instalar dotfiles comúns"
+  info "Instalaranse o Bashrc, os módulos públicos e as librarías internas."
+  if ! install_common_dotfiles; then
+    fail "Algo fallou ao instalar os dotfiles comúns! Abortando instalación..."
+  fi
+}
+
+# Completa o modo escritorio co stack gráfico, os directorios XDG e todas as
+# categorías actuais de aplicacións.
+install_desktop_base() {
+  title "Preparar paquetes de escritorio"
+  info "Habilitarase [multilib] e instalaranse Rust, Flatpak, Hyprland e Noctalia."
+  if ! configure_desktop_pacman; then
+    fail "Algo fallou ao habilitar [multilib]! Abortando instalación..."
+  fi
+  if ! install_rust; then
+    fail "Algo fallou durante a instalación de Rust! Abortando instalación..."
+  fi
+  if ! install_desktop_required_packages; then
+    fail "Algo fallou ao instalar os paquetes de escritorio! Abortando instalación..."
+  fi
+  if ! configure_desktop_services; then
+    fail "Algo fallou ao configurar os servizos de escritorio! Abortando instalación..."
+  fi
+
+  title "Crear directorios persoais"
+  info "Crearanse e configuraranse os directorios XDG cos nomes en galego."
+  if ! create_personal_dirs; then
+    fail "Algo fallou ao crear os directorios persoais! Abortando instalación..."
+  fi
+
+  title "Instalar escritorio"
+  info "Instalaranse greetd, Hyprland, Noctalia e as configuracións gráficas."
+  if ! install_desktop_dotfiles; then
+    fail "Algo fallou ao instalar os dotfiles de escritorio! Abortando instalación..."
+  fi
+
+  title "Aplicacións principais"
+  info "Selecciona polo menos unha aplicación por categoría."
+  if ! install_desktop_required_app_categories; then
+    fail "Algo fallou ao instalar as aplicacións principais! Abortando instalación..."
+  fi
+
+  title "Aplicacións opcionais"
+  info "Selecciona aplicacións opcionais por categoría ou preme Esc para saltalas."
+  if ! install_desktop_optional_app_categories; then
+    fail "Algo fallou ao instalar as aplicacións opcionais! Abortando instalación..."
+  fi
+}
+
+# Completa o modo servidor coas categorías exclusivas de terminal.
+install_server_base() {
+  title "Editor de terminal"
+  info "Selecciona polo menos un editor para administrar o servidor."
+  if ! install_server_required_app_categories; then
+    fail "Algo fallou ao instalar o editor do servidor! Abortando instalación..."
+  fi
+
+  title "Aplicacións de servidor"
+  info "Selecciona ferramentas opcionais ou preme Esc para saltar cada categoría."
+  if ! install_server_optional_app_categories; then
+    fail "Algo fallou ao instalar as aplicacións de servidor! Abortando instalación..."
+  fi
+}
+
+# Executa primeiro a base común e despois exactamente o modo persistente. Se
+# `base` xa está rexistrada non repite o proceso.
 install_base_version() {
   if is_version_installed "$VERSION"; then
     info "Gallaecia Dots $VERSION xa está instalado. Saltando instalación base..."
     return 0
   fi
 
-  info "Agora que temos os dotfiles descargados, vamos a instalalos!"
+  install_common_base
 
-  title "Cambiar idioma a Galego"
-  info "Como bos dotfiles en Galego, temos que cambiar o idioma a Galego. Se engade un fallback a Español e logo a Inglés en caso de non haber nigún dos dous."
-
-  echo
-
-  if configure_locale; then
-    success "Idioma cambiado con éxito!"
+  if is_desktop; then
+    install_desktop_base
+  elif is_server; then
+    install_server_base
   else
-    fail "Algo fallou ao cambiar o idioma! Abortando instalación..."
-  fi
-
-  title "Habilitar [multilib] e cores en pacman"
-  info "Algúns dos paquetes obligatorios están en multilib polo que temos que habilitala."
-
-  echo
-
-  if configure_pacman; then
-    success "[multilib] habilitado con éxito e cores activadas!"
-  else
-    fail "Algo fallou ao habilitar [multilib] ou activar cores! Abortando instalación..."
-  fi
-
-  title "Instalar paquetes obligatorios"
-  info "Os programas obligatorios inclúen, entre outros, yay, Rust, Flatpak, Hyprland e Noctalia."
-
-  echo
-
-  if install_yay; then
-    success "YAY instalado con éxito!"
-  else
-    fail "Algo fallou ao instalar YAY! Abortando instalación..."
-  fi
-
-  if install_rust; then
-    success "Rust instalado con éxito!"
-  else
-    fail "Algo fallou durante a instalación de Rust! Abortando instalación..."
-  fi
-
-  if install_required_packages; then
-    success "Paquetes requeridos instalados con éxito!"
-  else
-    fail "Algo fallou durante a instalación dos paquetes obligatorios! Abortando instalación..."
-  fi
-
-  if configure_required_services; then
-    success "Servizos requeridos configurados con éxito!"
-  else
-    fail "Algo fallou durante a configuración dos servizos obligatorios! Abortando instalación..."
-  fi
-
-  title "Crear carpetas personales e configuralas"
-  info "Os dotfiles necesitan multiples carpetas para certas cousas polo que é necesario crealas e configuralas."
-  info "Estas carpetas son Aplicacións, Desarrollo, Descargas, Documentos, Escritorio, Imaxes, Modelos, Música, Público, Vídeos, e Xogos."
-  info "Inda que como usuario non precises estas carpetas, certas funcionalidades incluídas nestes dotfiles e en certas aplicacións precisan que esas carpetas existan se non poden fallar ou non funcionar correctamente."
-
-  echo
-
-  if create_personal_dirs; then
-    success "Carpetas creadas con éxito!"
-  else
-    fail "Algo fallou durante a creación das carpetas! Abortando instalación..."
-  fi
-
-  title "Instalar dotfiles"
-  info "Todos os paquetes necesitan unha configuración tanto para o funcionamento como para os estilos. Iso mismo son os dotfiles."
-
-  echo
-
-  if install_dotfiles; then
-    success "Dotfiles instalados con éxito!"
-  else
-    fail "Algo fallou ao instalar os dotfiles! Abortando instalación..."
-  fi
-
-  info "Xa temos os dotfiles base instalados e configurados! Agora imos escoller aplicacións."
-
-  title "Aplicacións principais"
-  info "Selecciona polo menos unha aplicación por categoría. Se escolles varias, poderás indicar cal usar por defecto."
-
-  if install_required_app_categories; then
-    success "Aplicacións principais instaladas e configuradas con éxito!"
-  else
-    fail "Algo fallou ao instalar as aplicacións principais! Abortando instalación..."
-  fi
-
-  title "Aplicacións opcionais"
-  info "Selecciona aplicacións opcionais por categoría. Podes deixar categorías baleiras."
-
-  if install_optional_app_categories; then
-    success "Aplicacións opcionais instaladas e configuradas con éxito!"
-  else
-    fail "Algo fallou ao instalar as aplicacións opcionais! Abortando instalación..."
+    fail "Non se puido determinar o modo da instalación."
   fi
 }
 
@@ -568,6 +692,8 @@ install_base_version() {
 # confirmación, executa install_base_version e ofrece reiniciar. Calquera fallo
 # anterior ao rexistro final impide que a base quede marcada como instalada.
 main() {
+  local mode_status
+
   if ! install_prerequisites; then
     echo "Non se puideron instalar os prerequisitos da base. Abortando instalación..." >&2
     exit 1
@@ -590,13 +716,23 @@ main() {
     exit 0
   fi
 
-  info "Instalando Gallaecia Dots desde $DOTFILES_DIR."
+  select_install_mode
+  mode_status=$?
+  if [ "$mode_status" -eq 2 ]; then
+    info "Instalación cancelada."
+    exit 0
+  fi
+  if [ "$mode_status" -ne 0 ]; then
+    fail "Non se puido preparar o modo da instalación."
+  fi
+
+  info "Instalando Gallaecia Dots en modo $(get_install_mode) desde $DOTFILES_DIR."
 
   install_base_version
 
   title "Reiniciar o sistema"
   info "Recoméndase reiniciar o sistema para aplicar correctamente todos os cambios."
-  
+
   if confirm "Reiniciar o sistema agora?"; then
     systemctl reboot
   fi

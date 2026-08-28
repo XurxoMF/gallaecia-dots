@@ -6,10 +6,10 @@ set -o pipefail
 ###############################################################################
 # ACTUALIZADOR INTERACTIVO DO SISTEMA
 #
-# É o fluxo que abren o botón de Noctalia e `gallaecia update`. Cada bloque pide
-# confirmación por separado:
+# É o fluxo que abre o botón de Noctalia no escritorio ou `gallaecia update` en
+# calquera modo. Cada xestor ou ferramenta instalada ofrece o seu bloque:
 #
-#   Rust -> Yay/Pacman -> Flatpak -> plugins Yazi -> pipx -> dotfiles -> reinicio
+#   Rust -> Yay/Pacman -> Flatpak -> Yazi -> pipx -> dotfiles -> reinicio
 #
 # A parte de dotfiles reutiliza `gallaecia _sync-repo`. Despois executa
 # install.sh en modo update para aplicar só as migracións pendentes.
@@ -21,7 +21,6 @@ source "$HOME/.local/share/gallaecia-dots/scripts/modules/ui.sh"
 source "$HOME/.local/share/gallaecia-dots/scripts/modules/commands.sh"
 # shellcheck source=/dev/null
 source "$HOME/.local/share/gallaecia-dots/scripts/modules/gallaecia.sh"
-
 DOTFILES_DIR="${DOTFILES_DIR:-$HOME/.dotfiles}"
 INSTALLER="$DOTFILES_DIR/install.sh"
 
@@ -123,27 +122,33 @@ update_pipx() {
 main() {
   show_logo
 
-  if confirm "Actualizar Rust?"; then
-    if update_rust; then
-      success "Rust actualizado con éxito!"
-    else
-      fail "Algo fallou ao actualizar Rust!"
+  if has_command rustup; then
+    if confirm "Actualizar Rust?"; then
+      if update_rust; then
+        success "Rust actualizado con éxito!"
+      else
+        fail "Algo fallou ao actualizar Rust!"
+      fi
     fi
   fi
 
-  if confirm "Actualizar pacman e AUR?"; then
-    if update_arch; then
-      success "Pacman e AUR actualizados con éxito!"
-    else
-      fail "Algo fallou ao actualizar pacman e AUR!"
+  if has_command yay; then
+    if confirm "Actualizar pacman e AUR?"; then
+      if update_arch; then
+        success "Pacman e AUR actualizados con éxito!"
+      else
+        fail "Algo fallou ao actualizar pacman e AUR!"
+      fi
     fi
   fi
 
-  if confirm "Actualizar Flatpak?"; then
-    if update_flatpak; then
-      success "Flatpak actualizado con éxito!"
-    else
-      fail "Algo fallou ao actualizar Flatpak!"
+  if has_command flatpak; then
+    if confirm "Actualizar Flatpak?"; then
+      if update_flatpak; then
+        success "Flatpak actualizado con éxito!"
+      else
+        fail "Algo fallou ao actualizar Flatpak!"
+      fi
     fi
   fi
 
@@ -157,11 +162,13 @@ main() {
     fi
   fi
 
-  if confirm "Actualizar paquetes de pipx?"; then
-    if update_pipx; then
-      success "Paquetes de pipx actualizados con éxito!"
-    else
-      fail "Algo fallou ao actualizar os paquetes de pipx!"
+  if has_command pipx; then
+    if confirm "Actualizar paquetes de pipx?"; then
+      if update_pipx; then
+        success "Paquetes de pipx actualizados con éxito!"
+      else
+        fail "Algo fallou ao actualizar os paquetes de pipx!"
+      fi
     fi
   fi
 

@@ -204,7 +204,7 @@ run_install_flow() {
 # Fluxo bootstrap completo:
 # 1. instalar gum/git,
 # 2. clonar repo,
-# 3. cargar as oito librarías estándar desde o repo,
+# 3. cargar as nove librarías estándar desde o repo,
 # 4. resolver o modo,
 # 5. delegar a instalación real á base ou ás migracións.
 main() {
@@ -222,6 +222,7 @@ main() {
     [ ! -r "$MODULES_DIR/network.sh" ] ||
     [ ! -r "$MODULES_DIR/ui.sh" ] ||
     [ ! -r "$INTERNAL_DIR/apps.sh" ] ||
+    [ ! -r "$INTERNAL_DIR/mode.sh" ] ||
     [ ! -r "$INTERNAL_DIR/versions.sh" ]; then
     echo "Non se atoparon as librarías de Gallaecia Dots en $DOTFILES_DIR." >&2
     exit 1
@@ -241,6 +242,8 @@ main() {
   source "$MODULES_DIR/ui.sh"
   # shellcheck source=/dev/null
   source "$INTERNAL_DIR/apps.sh"
+  # shellcheck source=/dev/null
+  source "$INTERNAL_DIR/mode.sh"
   # shellcheck source=/dev/null
   source "$INTERNAL_DIR/versions.sh"
 

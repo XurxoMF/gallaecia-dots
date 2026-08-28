@@ -1,22 +1,5 @@
 {
-    "app_config": {
-        "audio_config": {
-            "audio": "pipewire"
-        },
-        "bluetooth_config": {
-            "enabled": true
-        },
-        "fonts_config": {
-            "fonts": [
-                "noto-fonts",
-                "noto-fonts-emoji",
-                "noto-fonts-cjk"
-            ]
-        },
-        "print_service_config": {
-            "enabled": true
-        }
-    },
+    "app_config": {},
     "archinstall_language": "Galician",
     "bootloader_config": {
         "bootloader": "Grub",
@@ -48,9 +31,7 @@
                 "https://mirror.es.cdn-perfprod.com/archlinux/$repo/os/$arch"
             ]
         },
-        "optional_repositories": [
-            "multilib"
-        ]
+        "optional_repositories": []
     },
     "network_config": {
         "type": "nm"

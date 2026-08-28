@@ -16,6 +16,7 @@ if [ ! -r "$MODULES_DIR/apps.sh" ] ||
   [ ! -r "$MODULES_DIR/network.sh" ] ||
   [ ! -r "$MODULES_DIR/ui.sh" ] ||
   [ ! -r "$INTERNAL_DIR/apps.sh" ] ||
+  [ ! -r "$INTERNAL_DIR/mode.sh" ] ||
   [ ! -r "$INTERNAL_DIR/versions.sh" ]; then
   echo "Non se atoparon os módulos ou librarías internas en $DOTFILES_DIR." >&2
   exit 1
@@ -35,6 +36,8 @@ source "$MODULES_DIR/network.sh"
 source "$MODULES_DIR/ui.sh"
 # shellcheck source=/dev/null
 source "$INTERNAL_DIR/apps.sh"
+# shellcheck source=/dev/null
+source "$INTERNAL_DIR/mode.sh"
 # shellcheck source=/dev/null
 source "$INTERNAL_DIR/versions.sh"
 

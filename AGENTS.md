@@ -2,7 +2,7 @@
 
 ## Obxectivo do proxecto
 
-Gallaecia Dots é un conxunto de dotfiles e un instalador interactivo para preparar un escritorio minimalista baseado en Arch Linux, Hyprland e Noctalia. O proxecto ofrece unha base pequena, actualizable e en galego, e permite que cada usuario escolla as aplicacións que quere instalar.
+Gallaecia Dots é un conxunto de dotfiles e un instalador interactivo para preparar escritorios minimalistas baseados en Arch Linux, Hyprland e Noctalia ou servidores administrados por terminal/SSH. O proxecto ofrece unha base pequena, actualizable e en galego, e permite que cada usuario escolla as aplicacións que quere instalar segundo o modo persistente.
 
 Non é unha distribución nin pretende abstraer o funcionamento de Arch. Os scripts empregan directamente ferramentas como `pacman`, `yay`, `flatpak`, `pipx`, `nmcli`, `systemctl` e `rustup`.
 
@@ -16,7 +16,8 @@ Emprega o galego nos comentarios, mensaxes da interface, documentación e nomes 
 - `updates/X_Y_Z.sh`: migracións incrementais para instalacións antigas.
 - `updates/X_X_X.sh.example`: plantilla para crear unha migración.
 - `.local/share/gallaecia-dots/scripts/modules/`: API Bash pública cargada polo `.bashrc`, con helpers de aplicacións, comandos, ficheiros, rede, interface e o dispatcher `gallaecia`.
-- `.local/share/gallaecia-dots/scripts/internal/`: librarías internas de instalación de aplicacións e versións, cargadas explicitamente polo instalador e por todos os updates, pero nunca polo `.bashrc`.
+- `.local/share/gallaecia-dots/scripts/internal/`: librarías internas de aplicacións, modo e versións. O instalador e os updates cárganas explicitamente; `commands.sh` carga ademais `mode.sh` como dependencia para adaptar comandos e completados, pero non é unha API persoal.
+- `.local/share/gallaecia-dots/scripts/internal/mode.sh`: estado e predicados internos para distinguir os modos `desktop` e `server`.
 - `.local/share/gallaecia-dots/scripts/system-update.sh`: actualizador interactivo do sistema e dos dotfiles.
 - `.local/share/applications/`: overrides mínimos que ocultan do launcher
   utilidades técnicas instaladas como dependencias.
@@ -30,6 +31,7 @@ Emprega o galego nos comentarios, mensaxes da interface, documentación e nomes 
 - `optional/`: configuracións que só se instalan cando se escolle a aplicación correspondente.
 - `others/`: ficheiros de sistema para `greetd`, a súa pila PAM e Noctalia Greeter.
 - `archinstall/user_configuration.json`: perfil para preparar unha instalación base de Arch.
+- `archinstall/server_configuration.json`: perfil headless de Arch con NetworkManager e sen compoñentes gráficos.
 - `.wallpapers/`: fondos distribuídos polo proxecto.
 
 ## Fluxo de instalación e versións
@@ -49,6 +51,12 @@ O estado gárdase en `~/.local/share/gallaecia-dots/`:
 - `versions-instaladas`: unha versión aplicada por liña.
 - `version`: última versión aplicada.
 - `instalado`: data da última instalación ou actualización.
+- `mode`: modo persistente, cunha única liña `desktop` ou `server`.
+
+Nunha instalación nova `base.sh` pregunta o modo antes de modificar o sistema.
+`reinstall` conserva o valor actual. A migración `1.4.0` rexistra como
+`desktop` todas as instalacións anteriores, porque antes non existía un modo
+servidor.
 
 Os nomes `updates/1_0_4.sh` convértense en versións `1.0.4`. O instalador só executa ficheiros co patrón numérico esperado e ordénaos por versión.
 
@@ -90,10 +98,34 @@ Non concentres varias operacións nunha cadea `comando && comando || return 1`. 
 despois de que o repo estea dispoñible: declarar `MODULES_DIR` e `INTERNAL_DIR`,
 comprobar que se poden ler `apps.sh`, `commands.sh`, `files.sh`,
 `gallaecia.sh`, `network.sh` e `ui.sh` dentro de módulos, comprobar tamén
-`apps.sh` e `versions.sh` dentro de internal, e facer `source` explícito dos
-oito ficheiros con cadanseu comentario de ShellCheck. Non retires unha carga
-por non ser necesaria nese momento; a dispoñibilidade uniforme de todos os
-helpers é intencionada.
+`apps.sh`, `mode.sh` e `versions.sh` dentro de internal, e facer `source`
+explícito dos nove ficheiros con cadanseu comentario de ShellCheck. Esta regra
+aplícase a `install.sh`, `base.sh`, á plantilla e a todas as migracións,
+incluídas as históricas. Non retires unha carga por non ser necesaria nese
+momento; a dispoñibilidade uniforme de todos os helpers é intencionada.
+
+### Modos de escritorio e servidor
+
+- `REQUIRED_PACKAGES` contén só paquetes comúns aos dous modos e
+  `REQUIRED_DESKTOP_PACKAGES` os extras obrigatorios do escritorio. Os paquetes
+  opcionais de servidor pertencen ás súas categorías.
+- Usa `is_desktop` e `is_server` de `internal/mode.sh`; 0 significa que o
+  predicado coincide e 1 que non coincide. Un modo ausente ou inválido debe
+  deter o fluxo en lugar de asumir un valor.
+- O modo servidor non instala nin copia Hyprland, Noctalia, greetd, PAM de
+  greetd, GNOME Keyring, Flatpak, Rust, Python/pipx, multimedia, temas, fondos,
+  MIME, portais nin directorios XDG de escritorio.
+- NetworkManager e nftables son comúns e habilítanse sen `--now`. OpenSSH é
+  opcional na categoría Rede dos dous modos; ao escollelo habilítase
+  `sshd.service` tamén sen `--now`.
+- Gallaecia non substitúe `/etc/nftables.conf`; a configuración predeterminada
+  permanece permisiva e o usuario pode definir as súas regras despois.
+- Desde `1.4.0`, `show_changelog` e `apply_update` deben mostrar e executar só
+  operacións aplicables ao modo. Un update exclusivo doutro modo debe rematar
+  con éxito sen pedir unha confirmación innecesaria para poder rexistrarse.
+- `system-update.sh` decide os bloques de paquetes pola presenza do comando ou
+  xestor correspondente, non polo modo: se Rust, Flatpak, Yazi ou pipx están
+  instalados, ofrece actualizalos tanto no escritorio coma no servidor.
 
 ## Separación entre base e personalización
 
@@ -164,10 +196,13 @@ colas nin contexto global entre categorías. Ao engadir unha aplicación:
 - Yazi usa `yazi.desktop` para `inode/directory` e o comando literal
   `$TERMINAL -e yazi` en Hyprland.
 - `updates/base.sh` chama directamente as funcións de categoría. O menú de
-  `gallaecia install-category` declara manualmente as mesmas categorías e
-  chama as funcións da versión instalada sen `--required`, repetindo o menú ata
-  Esc. Este comando non sincroniza o repositorio: as novas categorías e
-  aplicacións só aparecen despois de aplicar a actualización correspondente.
+  `gallaecia install-category` declara manualmente só as categorías do modo
+  actual e chama as funcións da versión instalada sen `--required`, repetindo o
+  menú ata Esc. Non admite unha categoría como argumento nin sincroniza o repo:
+  as novas categorías e aplicacións só aparecen despois da súa actualización.
+- As categorías de servidor son Editor, Administración, Ficheiros,
+  Despregamento e Rede. Editor é obrigatoria na base; as demais son opcionais.
+  Non deben modificar MIME, Hyprland nin configuracións gráficas.
 - Conserva a orde intencionada das opcións; a primeira adoita ser a recomendada.
 - Actualiza no mesmo cambio a lista de categorías e aplicacións do
   `README.md`, indicando o xestor e os identificadores reais dos paquetes.
@@ -284,14 +319,17 @@ Mantén o mesmo formato nos módulos compartidos e nos Bashrc:
   outro módulo: a súa ausencia debe retirar tamén as súas suxestións.
 - Prefire repetir un parser curto dentro de cada comando antes que ocultar o fluxo en helpers xenéricos difíciles de seguir. Extrae funcións privadas cando aforren unha cantidade importante de código e sigan sendo evidentes, como os selectores compartidos de contedores ou imaxes.
 - Mantén os helpers específicos no ficheiro da aplicación que os utiliza. Non movas lóxica exclusiva de Git, Docker, yt-dlp ou SpotDL a módulos globais.
-- Os módulos internos de aplicacións e versións deben advertir claramente que
+- Os módulos internos de aplicacións, modo e versións deben advertir claramente que
   non son unha API para comandos personalizados. Os helpers reutilizables son
   os de aplicacións, interface, ficheiros, comandos e rede.
-- Conserva en `scripts/modules/` só helpers públicos seguros para cargar en cada shell. As librarías exclusivas do instalador deben vivir en `scripts/internal/` e cargarse explicitamente desde `~/.dotfiles`.
+- Conserva en `scripts/modules/` só helpers públicos seguros para cargar en cada shell. As librarías exclusivas do instalador deben vivir en `scripts/internal/` e cargarse explicitamente desde `~/.dotfiles`; `mode.sh` é a excepción que tamén carga `commands.sh` para consultar o modo sen duplicar o predicado.
 - O módulo público `gallaecia.sh` expón só a función `gallaecia`; os seus
   helpers comezan por `_gallaecia_`. Calquera carga de `scripts/internal/`
   iniciada desde ese comando debe facerse nun subshell para non deixar
   funcións, arrays nin variables internas na terminal do usuario.
+- En modo servidor `gallaecia wallpaper-add` e `run-terminal-as` non se
+  suxiren no completado e deben devolver un erro claro se se invocan. Os seus
+  recursos e executables auxiliares non se instalan na base do servidor.
 - Ao engadir, retirar ou renomear un comando, función ou alias público,
   actualiza no mesmo cambio a referencia do `README.md`. Indica tamén a
   aplicación e categoría necesarias cando o comando pertenza a un Bashrc
@@ -389,6 +427,8 @@ Non codifiques cores novas directamente nun fluxo se poden formar parte do módu
   automaticamente GNOME Keyring cando o escritorio é Hyprland. As aplicacións
   que non usan eses wrappers poden requirir o seu propio ficheiro de flags.
 - Conserva os nomes galegos dos directorios XDG e calquera ruta que dependa deles.
+- Os directorios XDG persoais, fondos, MIME e configuracións gráficas créanse
+  exclusivamente no modo escritorio.
 - `others/pam/greetd` é o template controlado para `/etc/pam.d/greetd`.
   Conserva a pila predeterminada de Arch e as dúas regras
   `pam_gnome_keyring.so`; calquera cambio debe revisarse como configuración de
@@ -404,6 +444,10 @@ Non codifiques cores novas directamente nun fluxo se poden formar parte do módu
   nome do `.desktop` de `/usr/share/applications/` e conter só `[Desktop Entry]`,
   `Type`, `Name` e `Hidden=true`, o mínimo que valida freedesktop. Instálaos
   mediante unha fusión que non elimine outros overrides persoais.
+- Mantén dous perfís de Archinstall: `user_configuration.json` para escritorio
+  e `server_configuration.json` para servidor. Ambos usan NetworkManager e non
+  configuran UFW; o perfil servidor non activa audio, Bluetooth, impresión,
+  fontes, multilib nin outros compoñentes gráficos.
 
 ## Comprobacións seguras
 

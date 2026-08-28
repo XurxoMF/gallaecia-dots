@@ -1,11 +1,11 @@
 # 🌿 Gallaecia Dots
 
-### Arch + Hyprland. En galego. Instalación mínima. Base actualizable.
+### Arch en escritorio ou servidor. En galego. Base mínima e actualizable.
 
 Gallaecia Dots é un conxunto de dotfiles e un instalador interactivo para
-montar rapidamente un escritorio baseado en **Arch Linux + Hyprland**, cunha
-identidade galega e unha base concreta: **o mínimo imprescindible para arrancar
-ben, con Noctalia e os paquetes esenciais xa preparados**.
+preparar **Arch Linux como escritorio con Hyprland e Noctalia ou como servidor
+administrado por terminal e SSH**. A instalación garda o modo escollido e aplica
+unicamente os paquetes, configuracións e categorías que lle corresponden.
 
 Non pretende ser unha distribución nin unha capa pesada sobre o sistema. O
 obxectivo é ofrecer un punto de partida pequeno, actualizable e fácil de manter.
@@ -15,13 +15,16 @@ obxectivo é ofrecer un punto de partida pequeno, actualizable e fácil de mante
 - [Galería](#galería)
   - [Tema claro](#tema-claro)
   - [Tema escuro](#tema-escuro)
-  - [Tema extra](#tema-extra)
+  - [Temas adaptables ao fondo de pantalla](#temas-adaptables-ao-fondo-de-pantalla)
 - [Que é Gallaecia Dots?](#que-é-gallaecia-dots)
 - [Enfoque minimalista e _opinionated_](#enfoque-minimalista-e-opinionated)
 - [Feito en galego](#feito-en-galego)
 - [Que instala?](#que-instala)
+  - [Modos de instalación](#modos-de-instalación)
   - [Núcleo obrigatorio](#núcleo-obrigatorio)
   - [Categorías e aplicacións](#categorías-e-aplicacións)
+    - [Escritorio](#escritorio)
+    - [Servidor](#servidor)
 - [Referencia de comandos, funcións e alias](#referencia-de-comandos-funcións-e-alias)
   - [Dispoñibilidade e axuda](#dispoñibilidade-e-axuda)
   - [Aplicacións e paquetes](#aplicacións-e-paquetes)
@@ -77,8 +80,8 @@ obxectivo é ofrecer un punto de partida pequeno, actualizable e fácil de mante
 **Gallaecia Dots** combina:
 
 - Un instalador que prepara o sistema paso a paso.
-- Configuración base para Hyprland, Noctalia, greetd, GTK, Qt e portais XDG,
-  entre outros.
+- Un modo de escritorio con Hyprland, Noctalia, greetd, GTK, Qt e portais XDG.
+- Un modo servidor sen stack gráfico, preparado para terminal e SSH.
 - Unha selección mínima de paquetes fundamentais.
 - Opcións para escoller só as aplicacións que de verdade queres instalar.
 
@@ -91,8 +94,8 @@ A idea é sinxela:
 Este proxecto non está pensado como un paquete completo de aplicacións para
 todo o mundo. A visión é máis pequena e clara:
 
-- Instalar só o esencial para que o escritorio funcione.
-- Incluír **Noctalia** como peza central da experiencia.
+- Instalar só o esencial para o modo seleccionado.
+- Incluír **Noctalia** como peza central da experiencia de escritorio.
 - Manter configuracións que teñen sentido como base común.
 - Deixar o resto como elección do usuario.
 
@@ -114,10 +117,33 @@ en Galicia e na súa identidade.
 
 ## Que instala?
 
-A instalación divídese entre un núcleo común e as aplicacións que escolle cada
-usuario.
+A instalación divídese entre un núcleo común, os compoñentes do modo escollido
+e as aplicacións que selecciona cada usuario. O modo persiste en
+`~/.local/share/gallaecia-dots/mode` como `desktop` ou `server`.
+
+### Modos de instalación
+
+- **Escritorio:** conserva a experiencia completa con Hyprland, Noctalia,
+  greetd, multimedia, integración MIME e aplicacións gráficas.
+- **Servidor:** instala só a base de terminal e as categorías Editor,
+  Administración, Ficheiros, Despregamento e Rede.
+
+As reinstalacións conservan o modo actual. As instalacións anteriores á versión
+1.4.0 rexístranse automaticamente como `desktop`.
 
 ### Núcleo obrigatorio
+
+Os dous modos comparten Yay, Gum, NetworkManager, nftables, Bash e as utilidades
+CLI da base. NetworkManager e nftables quedan habilitados para o seguinte
+arranque, pero Gallaecia non inicia os servizos durante a instalación nin
+substitúe `/etc/nftables.conf`. Nunha instalación limpa non engade regras de
+bloqueo, polo que o tráfico permanece permitido ata que o usuario as configure.
+
+O modo servidor non instala Rust, Python/pipx, Flatpak, audio, multimedia,
+chaveiros, fondos, MIME nin configuracións gráficas. OpenSSH e WireGuard poden
+escollerse opcionalmente na categoría Rede.
+
+O núcleo exclusivo do escritorio inclúe:
 
 - Hyprland.
 - Noctalia e Noctalia Greeter.
@@ -127,15 +153,13 @@ usuario.
 - greetd.
 - XDG Desktop Portals.
 - PipeWire.
-- NetworkManager e soporte para importar OpenVPN.
+- Soporte de NetworkManager para importar OpenVPN.
 - GNOME Keyring e Seahorse para gardar e administrar contrasinais e claves.
 - Overrides locais para ocultar do launcher utilidades técnicas de Qt, CMake,
   Avahi, hwloc, V4L2 e systemd.
-- Kitty.
 - Flatpak e Flathub.
-- Yay para paquetes oficiais de Arch e AUR.
-- Pipx para aplicacións Python illadas.
-- Gum para os menús e formularios interactivos.
+- Rustup coa toolchain estable.
+- Python e Pipx para aplicacións illadas.
 - Configuración GTK, Qt e XDG User Directories.
 - Tipografías, iconas e dependencias comúns do escritorio.
 
@@ -149,16 +173,17 @@ usuario.
 
 ### Categorías e aplicacións
 
-As cinco primeiras categorías son obrigatorias e requiren polo menos unha
-selección ou variante completa xa instalada. As demais son opcionais e poden
-quedar baleiras. As categorías homoxéneas permiten escoller varias aplicacións
-e definir unha predeterminada.
+No escritorio as cinco primeiras categorías son obrigatorias e as demais son
+opcionais. No servidor só Editor é obrigatoria. As categorías homoxéneas do
+escritorio permiten escoller varias aplicacións e definir unha predeterminada.
 
 **Orixes empregadas:**
 
 - **Yay/Pacman:** paquete oficial de Arch ou de AUR instalado mediante Yay.
 - **Flatpak:** aplicación instalada desde Flathub.
 - **Pipx:** aplicación Python instalada nun contorno illado.
+
+#### Escritorio
 
 | Categoría                                | Aplicacións dispoñibles                                                                                                                                                                                                                                                                              |
 | ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -178,8 +203,21 @@ e definir unha predeterminada.
 | **Xogos e tendas**                       | Steam — Yay/Pacman (`steam`)<br>Prism Launcher — Yay/Pacman (`prismlauncher`)<br>Lutris — Yay/Pacman (`lutris`)<br>Bottles — Flatpak (`com.usebottles.bottles`)                                                                                                                                      |
 | **Utilidades**                           | KeePassXC — Yay/Pacman (`keepassxc`)<br>qBittorrent — Yay/Pacman (`qbittorrent`)                                                                                                                                                                                                                     |
 | **Desenvolvemento**                      | Git + GitHub CLI — Yay/Pacman (`git`, `github-cli`)<br>Docker + Compose — Yay/Pacman (`docker`, `docker-compose`, `docker-buildx`)<br>OpenCode — Yay/Pacman (`opencode`)<br>Bruno — Flatpak (`com.usebruno.Bruno`)<br>FileZilla — Yay/Pacman (`filezilla`)                                           |
-| **Rede e privacidade**                   | Proton VPN — Flatpak (`com.protonvpn.www`)                                                                                                                                                                                                                                                           |
+| **Rede e privacidade**                   | Proton VPN — Flatpak (`com.protonvpn.www`)<br>OpenSSH — Yay/Pacman (`openssh`)<br>WireGuard — Yay/Pacman (`wireguard-tools`)                                                                                                                                                                        |
 | **Descargas e personalización**          | yt-dlp — Yay/Pacman (`yt-dlp`)<br>SpotDL — Pipx (`spotdl`)                                                                                                                                                                                                                                           |
+
+#### Servidor
+
+| Categoría                    | Aplicacións dispoñibles                                                                                                              |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| **Editor** · obrigatoria     | Neovim — Yay/Pacman (`neovim`, `neovim-base16-git`)<br>Helix — Yay/Pacman (`helix`)<br>Vim — Yay/Pacman (`vim`)<br>Nano — Yay/Pacman (`nano`)<br>Micro — Yay/Pacman (`micro`) |
+| **Administración**           | tmux — Yay/Pacman (`tmux`)<br>btop — Yay/Pacman (`btop`)<br>htop — Yay/Pacman (`htop`)                                               |
+| **Ficheiros**                | Yazi — Yay/Pacman (`yazi`, `mediainfo`)                                                                                              |
+| **Despregamento**            | Git + GitHub CLI — Yay/Pacman (`git`, `github-cli`)<br>Docker + Compose — Yay/Pacman (`docker`, `docker-compose`, `docker-buildx`)     |
+| **Rede**                     | OpenSSH — Yay/Pacman (`openssh`)<br>WireGuard — Yay/Pacman (`wireguard-tools`)                                                       |
+
+Ao seleccionar OpenSSH, Gallaecia habilita `sshd.service` para o seguinte
+arranque sen iniciar o daemon durante a instalación.
 
 Os paquetes compartidos por varias categorías só se instalan unha vez.
 
@@ -250,7 +288,7 @@ Estes helpers do módulo público `commands.sh` están sempre dispoñibles:
 | `command_path`         | Devolve a ruta executable que resolvería a shell.                                                  |
 | `package_owns_command` | Indica que paquete Yay/Pacman instalado proporciona un executable.                                 |
 | `retry_command`        | Repite un comando un número configurable de veces e cunha espera configurable.                     |
-| `run-terminal-as`      | Abre un comando nunha terminal nova cun `app_id` estable para poder aplicarlle regras de Hyprland. |
+| `run-terminal-as`      | Só escritorio. Abre un comando nunha terminal nova cun `app_id` estable para aplicar regras de Hyprland. |
 
 `command_path` e `package_owns_command` piden o comando cun input cando se
 executan sen argumentos; `--command COMANDO` permite indicalo directamente.
@@ -286,9 +324,10 @@ vpn-export Oficina ~/Descargas/oficina.ovpn
 vpn-delete Oficina
 ```
 
-`vpn-import` necesita o plugin de NetworkManager correspondente ao formato. A
-base instala soporte OpenVPN; para outros protocolos debes instalar o seu
-plugin. NetworkManager non permite exportar perfís WireGuard mediante
+`vpn-import` necesita o plugin de NetworkManager correspondente ao formato. O
+escritorio instala soporte OpenVPN e a categoría Rede dos dous modos ofrece
+`wireguard-tools`; outros protocolos poden precisar o seu propio plugin.
+NetworkManager non permite exportar perfís WireGuard mediante
 `nmcli connection export`.
 
 ### Comando Gallaecia
@@ -304,12 +343,13 @@ as operacións propias do proxecto:
 | `gallaecia update`           | Abre o actualizador completo do sistema e dos dotfiles.                          |
 | `gallaecia reinstall`        | Sincroniza o repositorio e volve executar a instalación base tras confirmar.     |
 | `gallaecia install-category` | Abre as categorías da versión instalada para engadir aplicacións ata premer Esc. |
-| `gallaecia wallpaper-add`    | Clasifica e copia imaxes ou fondos animados no directorio correspondente.        |
+| `gallaecia wallpaper-add`    | Só escritorio. Clasifica e copia imaxes ou fondos animados no seu directorio.    |
 
 Cada subcomando dispón da súa propia axuda, por exemplo
 `gallaecia install-category --help`. As operacións internas de instalación
 cárganse nun subshell e desaparecen da terminal ao finalizar.
-`gallaecia wallpaper-add` abre un selector cando non recibe rutas e admite
+En modo servidor `wallpaper-add` non se suxire no completado e devolve un erro
+se se invoca. No escritorio abre un selector cando non recibe rutas e admite
 `--origin RUTA` repetido para engadir varios fondos directamente.
 
 ### Ficheiros e directorios
@@ -405,14 +445,14 @@ Os roles exportados son `FOREGROUND`, `BACKGROUND`, `MUTED_FOREGROUND`,
 
 ### Alias e configuración da shell
 
-Estes alias e axustes cárganse sempre:
+Estes alias e axustes cárganse nos dous modos, salvo onde se indique:
 
 | Alias ou axuste              | Descrición                                                                   |
 | ---------------------------- | ---------------------------------------------------------------------------- |
 | `ls` → `ls --color=auto`     | Colorea os tipos de ficheiro nas listaxes.                                   |
 | `grep` → `grep --color=auto` | Colorea as coincidencias das buscas.                                         |
 | Autocompletado de `sudo`     | Permite completar tamén o comando situado despois de `sudo`.                 |
-| Autocompletado de Pipx       | Activa o completado de comandos e opcións de Pipx.                           |
+| Autocompletado de Pipx       | Actívase só cando `pipx` e `register-python-argcomplete` están dispoñibles.   |
 | `~/.local/bin` no `PATH`     | Fai accesibles os executables locais, incluídos os instalados mediante Pipx. |
 
 ### Descargas con yt-dlp e SpotDL
@@ -433,8 +473,8 @@ música organízase en subcarpetas de artista e álbum dentro dela. Consulta
 
 ### Git e GitHub
 
-Estes comandos só existen se instalas **Git + GitHub CLI** na categoría
-**Desenvolvemento**:
+Estes comandos só existen se instalas **Git + GitHub CLI** en
+**Desenvolvemento** no escritorio ou **Despregamento** no servidor:
 
 | Comando             | Descrición                                                                    |
 | ------------------- | ----------------------------------------------------------------------------- |
@@ -469,8 +509,8 @@ mantén `--url` para o remoto e `--destination` para a copia local.
 Estes comandos permiten detectar cambios nun directorio sen convertelo nun
 repositorio convencional. Gardan unha única referencia do estado dos ficheiros
 e comparan con ela as revisións posteriores: non crean commits, ramas, historial
-nin copias do contido. Requiren **Git + GitHub CLI** na categoría
-**Desenvolvemento** porque empregan internamente o índice de Git.
+nin copias do contido. Requiren **Git + GitHub CLI** en Desenvolvemento ou
+Despregamento porque empregan internamente o índice de Git.
 
 | Comando        | Descrición                                                                   |
 | -------------- | ---------------------------------------------------------------------------- |
@@ -488,8 +528,8 @@ previas.
 
 ### Docker, Compose e Buildx
 
-Estes comandos só existen se instalas **Docker + Compose** na categoría
-**Desenvolvemento**:
+Estes comandos só existen se instalas **Docker + Compose** en
+**Desenvolvemento** no escritorio ou **Despregamento** no servidor:
 
 | Comando                    | Descrición                                                       |
 | -------------------------- | ---------------------------------------------------------------- |
@@ -538,20 +578,17 @@ abren o selector ou input correspondente.
 
 ### Actualizar o sistema
 
-Na barra de Noctalia hai un botón de actualización co símbolo de descarga.
-Preme nel e o actualizador interactivo abrirase nunha terminal flotante e
-centrada. A xanela recibe o `app_id` común `gallaecia.system-update`
-independentemente de que a terminal predeterminada sexa Kitty, Alacritty, Foot,
-Ghostty ou WezTerm. O fluxo permite:
+No escritorio, a barra de Noctalia ofrece un botón de actualización que abre o
+fluxo nunha terminal flotante. Nos dous modos pode iniciarse con
+`gallaecia update`. O actualizador ofrece un bloque só cando detecta instalada
+a ferramenta correspondente:
 
-1. Actualizar Rust e as súas ferramentas, se están instaladas.
-2. Actualizar paquetes oficiais de Arch e AUR con Yay.
-3. Actualizar aplicacións Flatpak.
-4. Actualizar os plugins de Yazi, se Yazi está instalado.
-5. Actualizar os paquetes instalados mediante pipx.
-6. Descargar os últimos cambios de Gallaecia Dots e aplicar só as migracións
+1. Actualizar Rust, Flatpak e os paquetes de pipx cando existan.
+2. Actualizar paquetes oficiais de Arch e AUR cando Yay estea dispoñible.
+3. Actualizar os plugins de Yazi cando Yazi estea instalado.
+4. Descargar os últimos cambios de Gallaecia Dots e aplicar só as migracións
    pendentes.
-7. Reiniciar o equipo ao final, se o confirmas.
+5. Reiniciar o equipo ao final, se o confirmas.
 
 Cada bloque pide confirmación, polo que podes omitir o que non queiras executar.
 Tamén podes abrir o mesmo fluxo manualmente:
@@ -568,7 +605,8 @@ Para volver abrir as categorías da instalación:
 gallaecia install-category
 ```
 
-Primeiro escolles unha categoría. As variantes completas xa presentes móstranse
+O menú mostra exclusivamente as categorías do modo actual e non admite unha
+categoría como argumento. As variantes completas xa presentes móstranse
 baixo `Xa instaladas:` e ocúltanse do selector; se unha variante require varios
 paquetes, considérase instalada unicamente cando están todos. Ao rematar, o menú
 de categorías aparece de novo ata que premas Esc. O comando non desinstala as
@@ -600,15 +638,10 @@ apps xa instaladas, permiten marcar varias e sempre ensinan a información e
 piden confirmación antes de borrar. Usa `COMANDO --help` para ver a limpeza
 específica de cada xestor e o modo directo `--packages`.
 
-Tamén podes indicar directamente o identificador dunha categoría:
-
-```bash
-gallaecia install-category development
-```
-
 ### Engadir e cambiar fondos
 
-Gallaecia separa os fondos estáticos dos animados:
+Esta función pertence exclusivamente ao modo escritorio. Gallaecia separa os
+fondos estáticos dos animados:
 
 > [!NOTE]
 > Algúns dos fondos incluídos foron xerados con intelixencia artificial debido
@@ -644,6 +677,8 @@ utilizan MPV e mpvpaper, instalados obrigatoriamente polo núcleo.
 
 ### Atallos útiles
 
+Os seguintes atallos pertencen ao modo escritorio:
+
 | Atallo             | Acción                                         |
 | ------------------ | ---------------------------------------------- |
 | `Super` + `Espazo` | Abrir o launcher de Noctalia.                  |
@@ -676,7 +711,7 @@ ofrece ademais un selector de cor que emprega Hyprpicker.
 > [!WARNING]
 > O instalador modifica e substitúe diferentes ficheiros de configuración do
 > sistema e do usuario. Recoméndase utilizalo sobre unha instalación limpa de
-> Arch Linux, sen contorno gráfico previo.
+> Arch Linux; para o modo escritorio, sen contorno gráfico previo.
 
 Executa:
 
@@ -684,17 +719,21 @@ Executa:
 bash <(curl -fsSL https://raw.githubusercontent.com/XurxoMF/gallaecia-dots/release/install.sh)
 ```
 
-O instalador guiarate paso a paso cunha interface interactiva.
+O instalador pregunta primeiro se queres preparar un Escritorio ou un Servidor
+e guía o resto do proceso cunha interface interactiva. A elección queda gardada
+e unha reinstalación conserva sempre o modo actual.
 
 > [!IMPORTANT]
-> Se tras reiniciar ao rematar a instalación aparece un erro de Hyprland ou
+> No modo escritorio, se tras reiniciar aparece un erro de Hyprland ou
 > algunha aplicación non funciona correctamente, reinicia de novo ou volve
 > seleccionar un wallpaper para que Noctalia rexenere as paletas de cores.
 
 ## Instalación con archinstall
 
 Se prefires preparar a instalación base con `archinstall`, inicia o equipo co
-USB de Arch Linux, abre unha consola e descarga o perfil do proxecto:
+USB de Arch Linux e descarga o perfil correspondente.
+
+Para escritorio:
 
 ```bash
 curl -fsSL -o user_configuration.json https://raw.githubusercontent.com/XurxoMF/gallaecia-dots/release/archinstall/user_configuration.json
@@ -706,6 +745,13 @@ Despois lanza:
 archinstall --config user_configuration.json
 ```
 
+Para servidor:
+
+```bash
+curl -fsSL -o server_configuration.json https://raw.githubusercontent.com/XurxoMF/gallaecia-dots/release/archinstall/server_configuration.json
+archinstall --config server_configuration.json
+```
+
 Se a túa versión de `archinstall` emprega outro modo para cargar perfís,
 selecciona a opción de importar configuración e usa o mesmo ficheiro. Durante o
 asistente só queda:
@@ -714,8 +760,10 @@ asistente só queda:
 2. Poñer o contrasinal de `root`.
 3. Escoller o particionamento dos discos.
 
-Cando remate a instalación base, reinicia, entra co teu usuario e executa o
-instalador de Gallaecia Dots para deixar o escritorio preparado.
+Os dous perfís usan NetworkManager e non instalan UFW. O perfil de servidor
+omite audio, Bluetooth, impresión, fontes e multilib. Cando Archinstall remate,
+reinicia, entra co teu usuario e executa o instalador de Gallaecia Dots co modo
+correspondente.
 
 ## Actualizacións e mantemento
 
@@ -735,8 +783,8 @@ propias pezas. O proxecto non pretende ocultar como está montado Arch.
 ## Estado do proxecto
 
 Gallaecia Dots é un proxecto persoal en desenvolvemento. Pode haber cambios
-importantes entre versións e algunhas actualizacións de Arch Linux, Hyprland ou
-outros compoñentes poden requirir axustes manuais.
+importantes entre versións e algunhas actualizacións de Arch Linux, de Hyprland
+ou dos servizos de servidor poden requirir axustes manuais.
 
 Se algo rompe:
 
