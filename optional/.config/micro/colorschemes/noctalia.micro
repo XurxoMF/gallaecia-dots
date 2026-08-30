@@ -1,0 +1,53 @@
+# Tema de Micro xerado coa paleta galega predeterminada de Gallaecia.
+
+color-link default "#181a1b"
+color-link comment "#51565a"
+color-link identifier "#181a1b"
+color-link constant "#4b1a99"
+color-link constant.string "#4b1a99"
+color-link constant.number "#1d2eaf"
+color-link statement "#2185c5"
+color-link type "#1d2eaf"
+color-link preproc "#1d2eaf"
+color-link special "#2185c5"
+color-link symbol "#181a1b"
+color-link symbol.brackets "#6a889c"
+color-link underlined "#4b1a99"
+color-link error "#fd4663"
+color-link todo "#4b1a99"
+
+color-link selection "#0b2c42,#b2d2e6"
+color-link cursor-line "#c1ced7"
+color-link line-number "#6a889c"
+color-link current-line-number "#181a1b"
+
+color-link gutter-info "#1d2eaf"
+color-link gutter-warning "#1d2eaf"
+color-link gutter-error "#fd4663"
+
+color-link statusline "#51565a,#c2e1f5"
+color-link statusline.inactive "#6a889c,#dceef9"
+color-link statusline.suggestions "#181a1b,#c2e1f5"
+
+color-link tabbar "#51565a,#c2e1f5"
+color-link tabbar.active "#181a1b,#b9ddf3"
+
+color-link diff-added "#2185c5"
+color-link diff-modified "#1d2eaf"
+color-link diff-deleted "#fd4663"
+
+color-link message "#181a1b,#c2e1f5"
+color-link error-message "#252626,#f7bbc4"
+
+color-link indent-char "#6a889c"
+color-link color-column "#dceef9"
+color-link divider "#6a889c"
+color-link scrollbar "#6a889c"
+
+color-link match-brace "#2185c5"
+color-link hlsearch "#2185c5"
+
+color-link tab-error "#fd4663"
+color-link trailingws "#fd4663"
+
+color-link ignore "#51565a"

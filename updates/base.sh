@@ -321,6 +321,18 @@ install_gallaecia_config() {
   sudo chmod +x -R "$HOME/.local/share/gallaecia-dots/scripts"
 }
 
+# Instala unha paleta inicial para os wrappers de Gum nos dous modos. No
+# escritorio Noctalia poderá rexenerala; no servidor queda como tema estático.
+install_default_ui_colors() {
+  if path_exists -- "$HOME/.config/gallaecia-dots/ui-colors.sh"; then
+    return 0
+  fi
+
+  copy_file \
+    "$DOTFILES_DIR/.config/gallaecia-dots/ui-colors.sh" \
+    "$HOME/.config/gallaecia-dots/ui-colors.sh"
+}
+
 # Instala os recursos compartidos exclusivos do escritorio. As fusións dos
 # fondos conservan imaxes persoais e a configuración MIME queda controlada.
 install_desktop_gallaecia_config() {
@@ -432,6 +444,12 @@ install_common_dotfiles() {
     success "Bashrc instalado con éxito!"
   else
     fail "Algo fallou ao instalar o bashrc! Abortando instalación..."
+  fi
+
+  if install_default_ui_colors; then
+    success "Paleta inicial de Gum instalada con éxito!"
+  else
+    fail "Algo fallou ao instalar a paleta inicial de Gum! Abortando instalación..."
   fi
 }
 

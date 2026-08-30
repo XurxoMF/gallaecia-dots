@@ -110,6 +110,7 @@ wallpaper_scheme = "vibrant"
     [theme.templates]
     builtin_ids = [
         "alacritty",
+        "btop",
         "foot",
         "gtk3",
         "gtk4",
@@ -135,10 +136,15 @@ wallpaper_scheme = "vibrant"
         "prismlauncher",
         "steam",
         "obs",
+        "blender",
+        "gimp",
+        "inkscape",
+        "micro",
         "zathura",
         "hyprtoolkit",
         "papirus-icons",
-        "yazi"
+        "yazi",
+        "tmux"
     ]
 
         [theme.templates.user.ui-colors]
@@ -177,3 +183,5 @@ type = "custom_button"
 
 [widget.colorpicker]
 type = "oldirtty/color_picker:widget"
+picker_open_near_click = true
+picker_placement = "attached"

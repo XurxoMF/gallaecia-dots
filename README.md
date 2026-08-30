@@ -228,6 +228,17 @@ Os paquetes compartidos por varias categorías só se instalan unha vez.
 > [guía de Noctalia v5](https://docs.noctalia.dev/v5/)
 > para coñecer os requisitos e habilitar cada integración.
 
+No escritorio, Noctalia mantén activados os templates das aplicacións que
+Gallaecia permite instalar, incluídos btop, Micro, tmux, Blender, GIMP e
+Inkscape. Os temas xerados existentes distribúense tamén como paleta inicial
+para que as aplicacións escollidas teñan cores coherentes desde o primeiro
+inicio; Noctalia continúa actualizándoos cando cambia o tema.
+
+No servidor, onde Noctalia non se instala, Gum recibe a mesma paleta inicial e
+Helix, Neovim, Micro, Yazi, tmux e btop instalan un tema estático xunto coa
+aplicación seleccionada. As actualizacións non substitúen un tema que xa
+exista na configuración do usuario.
+
 Gallaecia configura globalmente os wrappers `electronXX` de Arch para usar
 GNOME Keyring mediante `gnome-libsecret`, xa que Electron non recoñece Hyprland
 automaticamente como un escritorio con Secret Service. As aplicacións que

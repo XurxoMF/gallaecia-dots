@@ -562,7 +562,13 @@ install-category-terminal() {
 _configure_neovim_matugen() {
   local source="$DOTFILES_DIR/optional/.config/nvim/init.lua"
   local target="$HOME/.config/nvim/init.lua"
+  local theme_source="$DOTFILES_DIR/optional/.config/nvim/lua/matugen.lua"
+  local theme_target="$HOME/.config/nvim/lua/matugen.lua"
   local setup_line="require('matugen').setup()"
+
+  if ! path_exists -- "$theme_target"; then
+    copy_file "$theme_source" "$theme_target" || return 1
+  fi
 
   if path_exists -- "$target"; then
     if [ ! -f "$target" ]; then
@@ -585,8 +591,8 @@ _configure_neovim_matugen() {
 }
 
 # Instala editores de terminal e asigna explicitamente o comando da elección
-# predeterminada a `Gallaecia.editor`. Neovim incorpora o tema Base16 e a carga
-# de Matugen; ningún editor desta categoría define MIME.
+# predeterminada a `Gallaecia.editor`. Neovim, Helix e Micro incorporan o seu
+# tema inicial; ningún editor desta categoría define MIME.
 install-category-editor() {
   local required=false
   if [ "${1:-}" = "--required" ]; then required=true; shift; fi
@@ -623,6 +629,12 @@ install-category-editor() {
 
   if _selection_has "Neovim" "${active_entries[@]}"; then
     _configure_neovim_matugen || return 1
+  fi
+  if _selection_has "Helix" "${selected_entries[@]}"; then
+    replace_path "$DOTFILES_DIR/optional/.config/helix" "$HOME/.config/helix" || return 1
+  fi
+  if _selection_has "Micro" "${selected_entries[@]}"; then
+    replace_path "$DOTFILES_DIR/optional/.config/micro" "$HOME/.config/micro" || return 1
   fi
 
   [ -n "$default_entry" ] || return 0
@@ -734,6 +746,7 @@ install-category-browser() {
     "Escolle o navegador predeterminado:" "${active_entries[@]}")"
 
   _install_selected_packages "${selected_entries[@]}" || return 1
+
   [ -n "$default_entry" ] || return 0
 
   case "$(_app_label "$default_entry")" in
@@ -875,6 +888,7 @@ install-category-audio() {
   default_entry="$(_select_default_app "$required" \
     "Escolle o reprodutor de audio predeterminado:" "${active_entries[@]}")"
   _install_selected_packages "${selected_entries[@]}" || return 1
+
   [ -n "$default_entry" ] || return 0
 
   mapfile -t mime_entries < <(_mime_application_order "$default_entry" "${active_entries[@]}")
@@ -960,7 +974,8 @@ install-category-video() {
 }
 
 # Instala visores de documentos e declara os mesmos formatos de lectura en cada
-# opción para que a predeterminada resolva todas as coincidencias.
+# opción para que a predeterminada resolva as coincidencias. Zathura incorpora
+# ademais o tema inicial xerado por Noctalia.
 install-category-pdf() {
   local required=false
   if [ "${1:-}" = "--required" ]; then required=true; shift; fi
@@ -990,6 +1005,11 @@ install-category-pdf() {
   default_entry="$(_select_default_app "$required" \
     "Escolle o visor de documentos predeterminado:" "${active_entries[@]}")"
   _install_selected_packages "${selected_entries[@]}" || return 1
+
+  if _selection_has Zathura "${selected_entries[@]}"; then
+    replace_path "$DOTFILES_DIR/optional/.config/zathura" "$HOME/.config/zathura" || return 1
+  fi
+
   [ -n "$default_entry" ] || return 0
 
   mapfile -t mime_entries < <(_mime_application_order "$default_entry" "${active_entries[@]}")
@@ -1109,7 +1129,7 @@ install-category-mail() {
 }
 
 # Instala clientes de chat. Discord e Vesktop compiten por discord://; Telegram
-# e Element figuran explicitamente cun bloque baleiro porque non usan ese MIME.
+# incorpora o tema importable e, xunto con Element, non usa ese MIME.
 install-category-chat() {
   local required=false
   if [ "${1:-}" = "--required" ]; then required=true; shift; fi
@@ -1140,6 +1160,13 @@ install-category-chat() {
   default_entry="$(_select_default_app "$required" \
     "Escolle a app de chat predeterminada:" "${active_entries[@]}")"
   _install_selected_packages "${selected_entries[@]}" || return 1
+
+  if _selection_has Telegram "${selected_entries[@]}"; then
+    replace_path \
+      "$DOTFILES_DIR/optional/.config/telegram-desktop" \
+      "$HOME/.config/telegram-desktop" || return 1
+  fi
+
   [ -n "$default_entry" ] || return 0
 
   mapfile -t mime_entries < <(_mime_application_order "$default_entry" "${active_entries[@]}")
@@ -1158,9 +1185,8 @@ install-category-chat() {
 ###############################################################################
 
 # Instala ferramentas creativas heteroxéneas e rexistra os formatos nativos de
-# cada unha sen pedir unha aplicación predeterminada común. As coincidencias
-# resólvense pola orde estable das entradas; os casos baleiros fan visible que
-# esas apps non teñen MIME propio nesta categoría.
+# cada unha sen pedir unha aplicación predeterminada común. OBS incorpora o seu
+# tema inicial. As coincidencias MIME resólvense pola orde estable das entradas.
 install-category-creativity() {
   local required=false
   if [ "${1:-}" = "--required" ]; then required=true; shift; fi
@@ -1193,6 +1219,12 @@ install-category-creativity() {
   esac
   [ ${#active_entries[@]} -gt 0 ] || return 0
   _install_selected_packages "${selected_entries[@]}" || return 1
+
+  if _selection_has "OBS Studio" "${selected_entries[@]}"; then
+    replace_path \
+      "$DOTFILES_DIR/optional/.config/obs-studio" \
+      "$HOME/.config/obs-studio" || return 1
+  fi
 
   for entry in "${active_entries[@]}"; do
     case "$(_app_label "$entry")" in
@@ -1373,7 +1405,7 @@ install-category-utilities() {
 ###############################################################################
 
 # Instala ferramentas de desenvolvemento e copia os módulos Bash opcionais.
-# Docker habilita tamén o servizo e o grupo; non hai MIME nin clave Hyprland.
+# Docker habilita o servizo e o grupo; OpenCode incorpora o tema inicial.
 install-category-development() {
   local required=false
   if [ "${1:-}" = "--required" ]; then required=true; shift; fi
@@ -1418,6 +1450,10 @@ install-category-development() {
       "$HOME/.local/share/gallaecia-dots/bashrc/204-docker" || return 1
     sudo systemctl enable docker.service || return 1
     sudo usermod -aG docker "$USER" || return 1
+  fi
+
+  if _selection_has OpenCode "${selected_entries[@]}"; then
+    replace_path "$DOTFILES_DIR/optional/.config/opencode" "$HOME/.config/opencode" || return 1
   fi
 }
 
@@ -1536,11 +1572,21 @@ install-category-server-editor() {
     *) return 1 ;;
   esac
   [ ${#active_entries[@]} -gt 0 ] || return 0
-  _install_selected_packages "${selected_entries[@]}"
+  _install_selected_packages "${selected_entries[@]}" || return 1
+
+  if _selection_has Neovim "${selected_entries[@]}"; then
+    _configure_neovim_matugen || return 1
+  fi
+  if _selection_has Helix "${selected_entries[@]}"; then
+    replace_path "$DOTFILES_DIR/optional/.config/helix" "$HOME/.config/helix" || return 1
+  fi
+  if _selection_has Micro "${selected_entries[@]}"; then
+    replace_path "$DOTFILES_DIR/optional/.config/micro" "$HOME/.config/micro" || return 1
+  fi
 }
 
-# Instala ferramentas de administración e monitorización de terminal. A
-# categoría é heteroxénea e non precisa unha aplicación predeterminada.
+# Instala ferramentas de administración e monitorización de terminal. tmux e
+# btop reciben os seus temas estáticos; non hai unha aplicación predeterminada.
 install-category-administration() {
   local required=false
   if [ "${1:-}" = "--required" ]; then required=true; shift; fi
@@ -1567,11 +1613,18 @@ install-category-administration() {
     *) return 1 ;;
   esac
   [ ${#active_entries[@]} -gt 0 ] || return 0
-  _install_selected_packages "${selected_entries[@]}"
+  _install_selected_packages "${selected_entries[@]}" || return 1
+
+  if _selection_has tmux "${selected_entries[@]}"; then
+    replace_path "$DOTFILES_DIR/optional/.config/tmux" "$HOME/.config/tmux" || return 1
+  fi
+  if _selection_has btop "${selected_entries[@]}"; then
+    replace_path "$DOTFILES_DIR/optional/.config/btop" "$HOME/.config/btop" || return 1
+  fi
 }
 
-# Instala Yazi e os ficheiros de terminal que non dependen do flavor xerado por
-# Noctalia. `mediainfo` acompáñao porque un dos plugins usa ese executable.
+# Instala Yazi coa configuración e o flavor estático de Gallaecia. No servidor
+# non hai Noctalia para rexeneralo; `mediainfo` acompaña un dos plugins.
 install-category-server-files() {
   local required=false
   if [ "${1:-}" = "--required" ]; then required=true; shift; fi
@@ -1597,16 +1650,7 @@ install-category-server-files() {
   _install_selected_packages "${selected_entries[@]}" || return 1
 
   if _selection_has Yazi "${selected_entries[@]}"; then
-    ensure_directory "$HOME/.config/yazi" || return 1
-    replace_file \
-      "$DOTFILES_DIR/optional/.config/yazi/init.lua" \
-      "$HOME/.config/yazi/init.lua" || return 1
-    replace_file \
-      "$DOTFILES_DIR/optional/.config/yazi/keymap.toml" \
-      "$HOME/.config/yazi/keymap.toml" || return 1
-    replace_file \
-      "$DOTFILES_DIR/optional/.config/yazi/yazi.toml" \
-      "$HOME/.config/yazi/yazi.toml" || return 1
+    replace_path "$DOTFILES_DIR/optional/.config/yazi" "$HOME/.config/yazi" || return 1
     ya pkg add yazi-rs/plugins:git || return 1
     ya pkg add yazi-rs/plugins:mount || return 1
     ya pkg add yazi-rs/plugins:chmod || return 1
